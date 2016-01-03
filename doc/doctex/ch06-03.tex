@@ -1,0 +1,684 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 6.3 Basic Linear Algebra Subprograms (BLAS1)
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This is a set of subroutine and function subprograms for basic mathematical
+operations on a single vector or a pair of vectors. The operations provided
+are those commonly used in algorithms for numerical linear algebra problems,
+$e.g.$, problems involving systems of equations, least-squares, matrix
+eigenvalues, optimization, etc.
+
+\subsection{Usage}
+
+Described below under B.1 through B.13 are:
+
+\begin{tabular*}{3.3in}{@{}l@{~~}l}
+B.1 & Vector Arguments \dotfill \pageref{B1}\\
+B.2 & Dot Product [SDOT, DDOT, CDOTC,\\
+ & CDOTU, DSDOT, SDSDOT] \dotfill \pageref{B2}\\
+B.3 & Scalar times a Vector Plus a Vector\\
+ & [SAXPY, DAXPY, CAXPY] \dotfill \pageref{B3}\\
+B.4 & Set up Givens Rotation [SROTG, DROTG] \dotfill \pageref{B4}\\
+B.5 & Apply Givens Rotation [SROT, DROT] \dotfill \pageref{B5}\\
+B.6 & Set up Modified Rotation\\
+ & [SROTMG, DROTMG] \dotfill \pageref{B6}\\
+B.7 & Apply Modified Rotation [SROTM, DROTM] \dotfill \pageref{B7}\\
+B.8 & Copy X into Y [SCOPY, DCOPY, CCOPY] \dotfill \pageref{B8}\\
+B.9 & Swap X and Y [SSWAP, DSWAP, CSWAP] \dotfill \pageref{B9}\\
+B.10 & Euclidean Norm\\
+ & [SNRM2, DNRM2, SCNRM2] \dotfill \pageref{B10}\\
+B.11 & Sum of Absolute Values\\
+ & [SASUM, DASUM, SCASUM] \dotfill \pageref {B11}\\
+B.12 & Constant Times a Vector\\
+ & [SSCAL, DSCAL, CSCAL, CSSCAL] \dotfill \pageref{B12}\\
+B.13 & Index of Element Having Maximum Absolute\quad \quad ~\\
+ & Value [ISAMAX, IDAMAX, ICAMAX] \dotfill \pageref{B13}
+\end{tabular*}
+
+\subsubsection{Vector Arguments\label{B1}}
+
+For subprograms of this package a vector is specified by three arguments,
+say N, SX, and INCX, where
+
+\begin{description}
+\item[N]  \ denotes the number of elements in the vector,
+
+\item[SX (or DX or CX)]  \ identifies the array containing the vector, and
+
+\item[INCX]  \ is the (signed) storage increment between successive elements
+of the vector.
+\end{description}
+
+Let $x_i$, $i = 1$, ..., N, denote the vector stored in the array SX().
+Within a subprogram of this package the array argument, SX, will be declared
+as
+\begin{description}
+\item[REAL]  \ {\bf SX($*$) }
+\end{description}
+In the common case of INCX\ $= 1$, $x_i$ is stored in SX(i). More generally,
+if INCX\ $\geq 0$, $x_i$ is stored in SX($1 + (i-1) \times \text{INCX})$, and
+if INCX $< 0$, $x_i$ is stored in X($1 + (\text{N}-i) \times |\text{INCX}|).$
+
+With indexing as specified above, looping operations within the
+subprograms are performed in the order i=1, 2, ...,~N.
+
+Only positive values of INCX are allowed for subprograms that have a single
+vector argument. For subprograms having two vector arguments, the two
+increment parameters, INCX and INCY, may independently be positive, zero, or
+negative.
+
+Due to the Fortran~77 rules for argument association and array storage, the
+actual argument playing the role of SX is not limited to being a singly
+dimensioned array. It may be an array of any number of dimensions, or it may
+be an array element with any number of subscripts. The standard does not
+permit this argument to be a simple variable, however.
+
+If the actual argument is an array element, $i.e.$, a subscripted array
+name, then it identifies $x_1$, the first element of the vector, if INCX\ $%
+\geq 0$, and $x_N$, the last element of the vector, if INCX\ $< 0.$
+
+The most common reason for using an increment value different from one is to
+operate on a row of a matrix. For example, if an array is declared as
+\begin{description}
+\item[DOUBLE PRECISION]  \ {\bf A}(5, 10)
+\end{description}
+The third row of A(,) begins at element A(3,1) and has a storage spacing of~5
+(double precision) storage locations between successive elements. Thus this
+row-vector of length~10 would be described by the parameter triple
+(N,~DX,~INCX) = (10,~A(3,1),~5) in calls to subprograms of this package.
+
+See Section C for examples illustrating the specifications of vector
+arguments.
+
+In the following subprogram descriptions we assume the following
+declarations have been made for any subprograms that use these variable names
+\begin{description}
+\item[INTEGER]  {\bf N, INCX, INCY }
+
+\item[REAL]  {\bf \ SX($mx$), SY($my$) }
+
+\item[DOUBLE PRECISION]  {\bf \ DX($mx$), DY($my$) }
+
+\item[COMPLEX]  {\bf \ CX($mx$), CY($my$) }
+\end{description}
+In the common case of INCX\ $= 1$, $mx$ must satisfy $mx \geq\ $ N. More
+generally, $mx$ must satisfy $mx \geq 1+(\text{N}-1)\times |\text{INCX}|$.
+Similarly, $my$ must be consistent with N and INCY.
+
+In Sections B.2 through B.13 we use the convention that ${\bf x}$ denotes
+the vector contained in the storage array SX(), DX(), or CX(), $a$ denotes the
+scalar value contained in SA, DA, or CA, etc.
+
+\subsubsection{Dot Product Subprograms\label{B2}}
+\begin{description}
+\item[REAL]  \ {\bf SDOT, SDSDOT, SB, SW }
+
+\item[DOUBLE PRECISION]  {\bf \ DDOT, DSDOT, DW }
+
+\item[COMPLEX]  {\bf \ CDOTC, CDOTU, CW }
+\end{description}
+The first four subprograms each compute
+\begin{equation*}
+w=\sum_{i=1}^Nx_iy_i
+\end{equation*}
+Single precision:
+$$
+\fbox{{\bf SW = SDOT(N, SX, INCX, SY, INCY)}}
+$$
+Double precision:
+$$
+\fbox{{\bf DW = DDOT(N, DX, INCX, DY, INCY)}}
+$$
+Single precision data. Uses double precision arithmetic internally and
+returns a double precision result:
+$$
+\fbox{{\bf DW = DSDOT(N, SX, INCX, SY, INCY)}}
+$$
+Complex (unconjugated):
+$$
+\fbox{{\bf CW = CDOTU(N, CX, INCX, CY, INCY)}}
+$$
+CDOTC computes%
+\begin{equation*}
+w=\sum_{i=1}^N\bar x_iy_i
+\end{equation*}
+where $\bar x_i$ denotes the complex conjugate of the given $x_i$. This is
+the usual inner product of complex N-space.
+$$
+\fbox{{\bf CW = CDOTC(N, CX, INCX, CY, INCY)}}
+$$
+SDSDOT computes%
+\begin{equation*}
+w=b+\sum_{i=1}^Nx_iy_i
+\end{equation*}
+using single precision data, double precision internal arithmetic, and
+converting the final result to single precision:
+$$
+\fbox{{\bf SW = SDSDOT(N, SB, SX, INCX, SY, INCY)}}
+$$
+In each of the above six subprograms the value of the summation from~1 to~N
+will be set to zero if N $\leq 0.$
+
+\subsubsection{Scalar Times a Vector Plus a Vector\label{B3}}
+\begin{description}
+\item[REAL]  \ {\bf SA }
+
+\item[DOUBLE PRECISION]  {\bf \ DA }
+
+\item[COMPLEX]  {\bf \ CA }
+\end{description}
+Given a scalar, $a$, and vectors, ${\bf x}$ and ${\bf y}$, each of these
+subroutines replaces ${\bf y}$ by $a{\bf x} + {\bf y}$. If $a = 0$ or N $%
+\leq 0$, each subroutine returns, doing no computation.
+
+Single precision:
+$$
+\fbox{{\bf CALL SAXPY (N, SA, SX, INCX, SY, INCY)}}
+$$
+Double precision:
+$$
+\fbox{{\bf CALL DAXPY (N, DA, DX, INCX, DY, INCY)}}
+$$
+Complex:
+$$
+\fbox{{\bf CALL CAXPY (N, CA, CX, INCX, CY, INCY)}}
+$$
+\subsubsection{Construct a Givens Plane Rotation\label{B4}}
+\begin{description}
+\item[REAL]  \ {\bf SA, SB, SC, SS }
+
+\item[DOUBLE PRECISION]  {\bf \ DA, DB, DC, DS }
+\end{description}
+Single precision:
+$$
+\fbox{{\bf CALL SROTG (SA, SB, SC, SS)}}
+$$
+Double precision:
+$$
+\fbox{{\bf CALL DROTG (DA, DB, DC, DS)}}
+$$
+Given $a$ and $b$, each of these subroutines computes $c$ and $s$, satisfying%
+\begin{equation*}
+\left[
+\begin{array}{rr}
+c & s \\
+-s & c
+\end{array}
+\right] \cdot \left[
+\begin{array}{c}
+a \\
+b
+\end{array}
+\right] =\left[
+\begin{array}{c}
+r \\
+0
+\end{array}
+\right]
+\end{equation*}
+subject to $c^2+s^2=1$ and $r^2=a^2+b^2$. Thus the matrix involving $c$ and $%
+s$ is an orthogonal (rotation) matrix that transforms the second component
+of the vector $[a,b]^t$ to zero. This matrix is used in certain least-%
+squares and eigenvalue algorithms.
+
+If $r = 0$ the subroutine sets $c = 1$ and $s = 0$. Otherwise the sign of $r$
+is set so that $sgn(r) = sgn(a)$ if $|a| > |b|$, and $sgn(r) = sgn(b)$ if $%
+|a| \leq |b|$. Then, $c = a/r$ and $s = b/r.$
+
+Besides setting $c$ and $s$, the subroutine stores $r$ in place of $a$ and
+another number, $z$, in place of $b$.  The number $z$ is rarely needed.
+See
+\cite{Lawson:1979:BLA}--\nocite{Lawson:1979:ABL}\nocite{Dodson:1982:RBL}
+\cite{Dodson:1983:CRB} in Section D for a description of $z.$
+
+These subroutines are designed to avoid extraneous overflow or underflow in
+cases where $r^2$ is outside the exponent range of the computer arithmetic
+but $r$ is within the range.
+
+\subsubsection{Apply a Plane Rotation\label{B5}}
+\begin{description}
+\item[REAL]  \ {\bf SC, SS }
+
+\item[DOUBLE PRECISION]  {\bf \ DC, DS }
+\end{description}
+Single precision:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SROT (N, SX, INCX,\\
+SY, INCY, SC, SS)\\
+\end{tabular}}
+\end{center}
+
+Double precision:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DROT (N, DX, INCX,\\
+DY, INCY, DC, DS)\\
+\end{tabular}}
+\end{center}
+
+Given vectors, ${\bf x}$ and ${\bf y}$, and scalars, $c$ and $s$, this
+subroutine replaces the 2$\times $N matrix%
+\begin{equation*}
+\left[
+\begin{array}{c}
+{\bf x}^t \\ {\bf y}^t
+\end{array}
+\right] \ \ \text{by the 2}\times \text{N matrix}\ \ \left[
+\begin{array}{rr}
+c & s \\
+-s & c
+\end{array}
+\right] \cdot \left[
+\begin{array}{c}
+{\bf x}^t \\ {\bf y}^t
+\end{array}
+\right] .
+\end{equation*}
+If N $\leq 0$ or if $c=1$ and $s=0$, these subroutines return, doing no
+computation.
+
+\subsubsection{Construct a Modified Givens Transformation\label{B6}}
+\begin{description}
+\item[REAL]  \ {\bf SD1, SD2, SX1, SX2, SPARAM}(5)
+
+\item[DOUBLE PRECISION]  \ {\bf DD1, DD2, DX1, DX2, DPARAM}(5)
+\end{description}
+Single precision:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SROTMG (SD1, SD2,\\
+SX1, SX2, SPARAM)\\
+\end{tabular}}
+\end{center}
+
+Double precision:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DROTMG (DD1, DD2,\\
+DX1, DX2, DPARAM)\\
+\end{tabular}}
+\end{center}
+
+The input quantities $d_1$, $d_2$, $x_1$, and $x_2$, define a
+2-vector $[w_1\ w_2]^t$ in partitioned form as%
+\begin{equation*}
+\left[
+\begin{array}{c}
+w_1 \\
+w_2
+\end{array}
+\right] =\left[
+\begin{array}{cc}
+d_1^{1/2} & 0 \\
+0 & d_2^{1/2}
+\end{array}
+\right] \cdot \left[
+\begin{array}{c}
+x_1 \\
+x_2
+\end{array}
+\right] .
+\end{equation*}
+The subroutine determines the modified Givens rotation matrix H that
+transforms $x_2$ and thus $w_2$ to zero. It also replaces $d_1$, $d_2$, and $x_1$
+with $\delta _1$, $\delta _2$, and $\xi _1$, respectively. These quantities
+satisfy
+
+\begin{align*}
+\left[ \begin{array}{c} \omega  \\ 0 \end{array}
+\right] &= \left[ \begin{array}{cc}
+\delta _1^{1/2} & 0 \\ 0 & \delta _2^{1/2} \end{array} \right]
+\cdot H\cdot \left[ \begin{array}{c} x_1 \\ x_2 \end{array} \right] \\
+ &=\left[ \begin{array}{cc}
+\delta _1^{1/2} & 0 \\ 0 & \delta _2^{1/2}
+\end{array} \right]
+\cdot \left[ \begin{array}{c} \xi _1 \\ 0
+\end{array} \right] ,
+\end{align*}
+
+with $\omega =\pm (w_1^2+w_2^2)^{1/2}$. A representation of the matrix H will be
+stored by this subroutine into SPARAM() or DPARAM() for subsequent use by
+subroutines SROTM or DROTM.
+
+See the Appendix in \cite{Lawson:1979:BLA} for more details on the
+computation and storage of $H.$
+
+Most of the time the matrix H will be constructed to have two elements equal
+to +1 or $-$1. Thus multiplication of a 2-vector by H can be programmed to
+be faster than multiplication by a general $2\times 2$ matrix. This is the
+motivation for using a modified Givens matrix rather than a standard Givens
+matrix; however, these matrix multiplications must represent a very
+significant percentage of the execution time of an application program in
+order for the extra complexity of using the modified Givens matrix to be
+worthwhile.
+
+\subsubsection{Apply a Modified Givens Transformation\label{B7}}
+\begin{description}
+\item[REAL]  \ {\bf SPARAM}(5)
+
+\item[DOUBLE PRECISION]  \ {\bf DPARAM}(5)
+\end{description}
+Single precision:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SROTM (N, SX, INCX,\\
+SY, INCY, SPARAM)\\
+\end{tabular}}
+\end{center}
+
+Double precision:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DROTM (N, DX, INCX,\\
+DY, INCY, DPARAM)\\
+\end{tabular}}
+\end{center}
+
+Given vectors, ${\bf x}$ and ${\bf y}$, and a representation of an H matrix
+constructed by SROTMG or DROTMG in SPARAM() or DPARAM(), this subroutine
+replaces the 2$\times $N matrix%
+\begin{equation*}
+\left[
+\begin{array}{c}
+{\bf x}^t \\ {\bf y}^t
+\end{array}
+\right] \quad \text{by }\quad H\cdot \left[
+\begin{array}{c}
+{\bf x}^t \\ {\bf y}^t
+\end{array}
+\right] .
+\end{equation*}
+Due to the special form of the matrix, H, this matrix multiplication
+generally requires only 2N multiplications and 2N additions rather than the
+4N multiplications and 2N additions that would be required if H were an
+arbitrary $2\times 2$ matrix.
+
+If N $\leq 0$ or H is the identity matrix, these subroutines return
+immediately.
+
+\subsubsection{Copy a Vector ${\bf x}$ to ${\bf y}$\label{B8}}
+
+Single precision:
+$$
+\fbox{{\bf CALL SCOPY (N, SX, INCX, SY, INCY)}}
+$$
+
+Double precision:
+$$
+\fbox{{\bf CALL DCOPY (N, DX, INCX, DY, INCY)}}
+$$
+Complex:
+$$
+\fbox{\bf CALL CCOPY (N, CX, INCX, CY, INCY)}
+$$
+Each of these subroutines copies the vector ${\bf x}$ to ${\bf y}$. If N $%
+\leq 0$ the subroutine returns immediately.
+
+\subsubsection{Swap Vectors ${\bf x}$ and ${\bf y}$\label{B9}}
+
+Single precision:
+$$
+\fbox{{\bf CALL SSWAP (N, SX, INCX, SY, INCY)}}
+$$
+Double precision:
+$$
+\fbox{{\bf CALL DSWAP (N, DX, INCX, DY, INCY)}}
+$$
+Complex:
+$$
+\fbox{{\bf CALL CSWAP (N, CX, INCX, CY, INCY)}}
+$$
+This subroutine interchanges the vectors ${\bf x}$ and ${\bf y}$. If N $\leq
+0 $, the subroutine returns immediately.
+
+\subsubsection{Euclidean Norm of a Vector\label{B10}}
+\begin{description}
+\item[REAL]  \ {\bf SNRM2, SCNRM2, SW }
+
+\item[DOUBLE PRECISION]  {\bf \ DNRM2, DW }
+\end{description}
+Single precision:
+$$
+\fbox{{\bf SW = SNRM2(N, SX, INCX)}}
+$$
+Double precision:
+$$
+\fbox{{\bf DW = DNRM2(N, DX, INCX)}}
+$$
+Complex data, REAL result:
+$$
+\fbox{{\bf SW = SCNRM2(N, CX, INCX)}}
+$$
+Each of these subprograms computes%
+\begin{equation*}
+w=\left[ \sum_{i=1}^N|x_i|^2\right] ^{1/2}.
+\end{equation*}
+If N $\leq 0$, the result is set to zero.
+
+These subprograms are designed to avoid overflow or underflow in cases in
+which $w^2$ is outside the exponent range of the computer arithmetic but $w$
+is within the range.
+
+\subsubsection{Sum of Magnitude of Vector Components\label{B11}}
+\begin{description}
+\item[REAL]  \ {\bf SASUM, SCASUM, SW }
+
+\item[DOUBLE PRECISION]  {\bf \ DASUM, DW }
+\end{description}
+SASUM and DASUM compute%
+\begin{equation*}
+w=\sum_{i=1}^N|x_i|.
+\end{equation*}
+Single precision:
+$$
+\fbox{{\bf SW = SASUM(N, SX, INCX)}}
+$$
+Double precision:
+$$
+\fbox{{\bf DW = DASUM(N, DX, INCX)}}
+$$
+Given a complex vector, ${\bf x}$, SCASUM computes a REAL result for the
+expression:%
+\begin{equation*}
+w=\sum_{i=1}^N|\Re x_i|+|\Im x_i|.
+\end{equation*}
+$$
+\fbox{{\bf SW = SCASUM(N, CX, INCX)}}
+$$
+If N $\leq 0$ these subprograms set the result to zero.
+
+\subsubsection{Vector Scaling\label{B12}}
+\begin{description}
+\item[REAL]  \ {\bf SA }
+
+\item[DOUBLE PRECISION]  {\bf \ DA }
+
+\item[COMPLEX]  {\bf \ CA }
+\end{description}
+Given a scalar, $a$, and vector, ${\bf x}$, each of these subroutines replaces
+the vector, ${\bf x}$, by the product $a{\bf x}$.
+
+Single precision:
+$$
+\fbox{{\bf CALL SSCAL (N, SA, SX, INCX)}}
+$$
+Double precision:
+$$
+\fbox{{\bf CALL DSCAL (N, DA, DX, INCX)}}
+$$
+Complex:
+$$
+\fbox{{\bf CALL CSCAL (N, CA, CX, INCX)}}
+$$
+Given REAL $a$ and complex ${\bf x}$, the subroutine CSSCAL replaces ${\bf x}$
+by the product $a{\bf x}$.
+$$
+\fbox{{\bf CALL CSSCAL (N, SA, CX, INCX)}}
+$$
+If N $\leq 0$ these subroutines return immediately.
+
+\subsubsection{Find Vector Component of Largest Magnitude\label{B13}}
+\begin{description}
+\item[INTEGER]  \ {\bf ISAMAX, IDAMAX, ICAMAX, IMAX }
+\end{description}
+ISAMAX and IDAMAX each determine the smallest $i$ such that%
+\begin{equation*}
+|x_i|=\max \{|x_j|:j=1,...,N\}
+\end{equation*}
+REAL vector, integer result:
+$$
+\fbox{{\bf IMAX = ISAMAX(N, SX, INCX)}}
+$$
+Double precision vector, integer result:
+$$
+\fbox{{\bf IMAX = IDAMAX(N, DX, INCX)}}
+$$
+Given a complex vector, ${\bf x}$, ICAMAX determines the smallest $i$ such
+that%
+\begin{equation*}
+|\Re x_i|+|\Im x_i|=\max \{|\Re x_j|+|\Im x_j|:j=1,...,N\}
+\end{equation*}
+$$
+\fbox{{\bf IMAX = ICAMAX(N, CX, INCX)}}
+$$
+If N $\leq 0$, each of these subprograms sets the integer result to zero.
+
+\subsection{Examples and Remarks}
+
+The program, DRDBLAS1, and its output, ODDBLAS1, illustrate the use of
+various BLAS1 subprograms to compute matrix-vector and matrix-matrix products.
+
+Problems (1) and (2) show two ways of computing the matrix-vector
+product, $A{\bf b}$. Using DDOT accesses the elements of $A$ by rows.
+Using DAXPY accesses $A$ by columns. The column ordering has an
+efficiency advantage on virtual memory systems since Fortran stores
+arrays by columns and there will therefore be fewer page faults.
+
+Problem (3) illustrates multiplication by the transpose of a matrix without
+transposing the matrix in storage.
+
+Problem (4) illustrates matrix-matrix multiplication. This operation could
+also be programmed to use DAXPY rather than DDOT.
+
+These examples also illustrate the feature that matrix dimensions and
+storage array dimensions need not be the same. Thus, in DRDBLAS1, a $2\times
+3$ matrix $A$ is stored in a $5\times 10$ storage array A(,).
+
+The program, DRDBLAS2, with output, ODDBLAS2, illustrates a complete
+algorithm for solving a linear least-squares problem. The algorithm first
+performs sequential accumulation of data into a triangular matrix, using
+DROTG and DROT to build and apply Givens orthogonal transformations. It then
+solves the triangular system using DCOPY and DAXPY. This is a very reliable
+algorithm.
+
+The problem solved is the determination of coefficients $c_1$, $c_2$, and $%
+c_3$ in the expression $c_1 + c_2x + c_3\exp (-x)$ to produce a least-%
+squares fit to the data given in XTAB() and YTAB(). Note that by changing
+dimension parameters, and the statements assigning values to the array W(),
+DRDBLAS2 could be altered to solve any specific linear least-squares problem.
+
+\subsection{Functional Description}
+
+This set of subprograms is described in more detail in \cite{Lawson:1979:BLA}.
+For discussion of the standard and modified Givens orthogonal transformations
+and their use in least-squares computations see \cite{Lawson:1974:SLS}.
+
+There is an error in \cite{Lawson:1979:BLA} in the discussion of the
+parameter, $z$, which is returned by SROTG or DROTG.  This error was
+corrected by \cite{Dodson:1982:RBL}, after which \cite{Dodson:1983:CRB}
+corrected an error in \cite{Dodson:1982:RBL}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+These subprograms do not issue any error messages. If INCX $\leq $ 0 in any
+of the subprograms having a single vector argument the results are
+unpredictable.
+
+A value of N $= 0$ is a valid special case. Values of N $< 0$ are treated
+like N $= 0.$
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Each program unit has a single entry with the same name as the program unit.
+No program units contain external references.
+
+As a result of experiments done in \cite{Krogh:1972:OUA}, a BLAS-type
+package was originally proposed in \cite{Hanson:1973:APS}.  The package
+was subsequently developed and tested over the period 1973--77 as an ACM
+SIGNUM committee project, with the final product being announced
+in~\cite{Lawson:1979:BLA}.  This package was subsequently used as a
+component in many other numerical software packages and optimized
+machine-language versions were produced for a number of different computer
+systems.
+
+This package was identified as BLAS when it appeared in~1979
+\cite{Lawson:1979:BLA}, however it is now identified as ``BLAS1", or
+``Level~1 BLAS" since publication of BLAS2~\cite{Dongarra:1988:ESF} for
+matrix-vector operations and BLAS3~\cite{Dongarra:1990:SLB} for
+matrix-matrix operations.  These latter two packages support more
+efficient use of vector registers, processor cache, and parallel
+processors than is possible in BLAS1.\nocite{Hanson:1987:ATA}
+
+Adapted to Fortran~77, by C. Lawson and S. Chiu, JPL, January~1984.
+Replaced L2 norm routines with new versions which avoid undeflow in all
+cases and which don't use assigned go to's, F. Krogh, May 1998.
+
+All entries need one file of the same name, except for DNRM2, SCNRM2,
+and SNRM2 all of which also require AMACH.
+\begin{center}\bf \vspace{-20pt}
+\begin{tabular}{llll}
+\multicolumn{4}{c}{Entries}\\
+CAXPY & CCOPY & CDOTC & CDOTU\\
+CSCAL & CSSCAL & CSWAP & DASUM\\
+DAXPY & DCOPY & DDOT & DNRM2\\
+DROT & DROTG & DROTM & DROTMG\\
+DSCAL & DSDOT & DSWAP & ICAMAX\\
+IDAMAX & ISAMAX & SASUM & SAXPY\\
+SCASUM & SCNRM2 & SCOPY & SDOT\\
+SDSDOT & SNRM2 & SROT & SROTG\\
+SROTM & SROTMG & SSCAL & SSWAP\\
+\end{tabular}
+\end{center}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDBLAS1}\vspace{10pt}
+\lstinputlisting{\codeloc{dblas1}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODDBLAS1}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dblas1}}
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+\vspace{.5in}
+\centerline{\bf \large DRDBLAS2}\vspace{10pt}
+\lstinputlisting{\codeloc{dblas2}}
+
+\vspace{30pt}\centerline{\bf \large ODDBLAS2}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dblas2}}
+\end{document}

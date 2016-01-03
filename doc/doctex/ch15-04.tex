@@ -1,0 +1,125 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 15.4 Cumulative Distribution Function for Poisson
+\hbox{Probability Distribution}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The procedure described in this chapter computes the Cumulative Distribution
+Function (CDF) of the Poisson probability distribution. The CDF is sometimes
+called the lower tail. The lower tail,
+or CDF, $Q(n|\lambda )$, and the upper tail, $P(n|\lambda )$ for the Poisson
+probability distribution with parameter $\lambda $ and argument $n$ are
+defined by%
+\begin{gather*}
+\Pr \{x<n|\lambda \}=Q(n|\lambda )=e^{-\lambda }\sum_{j=0}^{
+n-1}\frac{\lambda ^j}{j!},\phantom{=1-Q(n|\lambda )}\\
+\Pr \{x\geq n|\lambda \}=P(n|\lambda )=e^{-\lambda }
+\sum_{j=n}^\infty \frac{\lambda ^j}{j!}=1-Q(n|\lambda ).
+\end{gather*}
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf LAMDA, P, Q}
+
+\item[INTEGER]  \ {\bf N, IERR}
+\end{description}
+
+Assign values $n$ to N and $\lambda $ to LAMDA, and obtain P $= P(n|\lambda
+) $ and Q $= Q(n|\lambda )$ by using
+$$
+\fbox{{\bf CALL SCDPOI (N, LAMDA, P, Q, IERR)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[N]  \ [in] Argument $n$ of the functions $P(n|\lambda )$ and $%
+Q(n|\lambda ).$ N must be nonnegative.  Must be positive if LAMBDA =
+0.
+
+\item[LAMDA]  \ [in] Parameter $\lambda $ of the functions $P(n|\lambda )$
+and $Q(n|\lambda ).$ LAMBDA must be nonnegative.  Must be positive if
+N = 0.
+
+\item[P]  \ [out] The value of the function $P(n|\lambda ).$
+
+\item[Q]  \ [out] The value of the function $Q(n|\lambda ).$
+
+\item[IERR]  \ [out] A flag that normally is zero to indicate successful
+computation. See Section E below for discussion of non-zero values.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision computation, change the REAL type statement to DOUBLE
+PRECISION and change the initial letter of the procedure name to D.
+
+\subsection{Example and Remarks}
+
+See DRDCDPOI and ODDCDPOI for an example of the usage of this subprogram.
+
+The procedures SGAMIK and SGAMIE, described in Chapter~2.19, are used to
+control the procedure SGAMI and determine the error estimate it returns.
+SGAMI is used as described in Section D below.
+
+\subsection{Functional Description}
+
+\subsubsection{Method}
+
+The identities $P(n|\lambda )=P(a,x)$ and $Q(n|\lambda )=Q(a,x)$, with $a=n$
+and $x=\lambda $, where $P(a,x)$ and $Q(a,x)$ are incomplete gamma function
+ratios, are used. The procedure SGAMI described in Chapter~2.19 is used to
+evaluate $P(a,x)$ and $Q(a,x).$
+
+\subsubsection{Accuracy Tests}
+
+See Section~2.19.D.
+
+\subsection{Error Procedures and Restrictions}
+
+The procedure SGAMI issues error messages, under several conditions, at
+level 2 + MSGOFF, where MSGOFF is zero unless specified by a call to SGAMIK
+(see Chapter~2.19) at some time before calling SCDPOI. If error termination
+is suppressed by setting MSGOFF $< 0$, or by calling ERMSET (see Chapter
+19.2), IERR will be set to a non-zero value.
+
+If the desired tolerance could not be achieved, IERR is set to~2.
+
+If SCDPOI is called with both LAMDA and N zero, IERR is set to~3 and P is
+set to~3.0.
+
+If SCDPOI is called with one or both of LAMDA and N negative, IERR is set to
+4 and P is set to~4.0.
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCDPOI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCDPOI, DCSEVL, DERF, DERM1, DERV1, DGAM1, DGAMMA, DINITS, DRCOMP,
+DREXP, DRLOG, DXPARG, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SCDPOI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCDPOI, SCSEVL, SERF, SERM1, SERV1, SGAM1,
+SGAMMA, SINITS, SRCOMP, SREXP, SRLOG, SXPARG}\\\end{tabular}
+
+Designed and programmed by W. V. Snyder, JPL, 1993.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDCDPOI}\vspace{10pt}
+\lstinputlisting{\codeloc{dcdpoi}}
+
+\vspace{30pt}\centerline{\bf \large ODDCDPOI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dcdpoi}}
+\end{document}

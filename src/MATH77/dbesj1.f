@@ -1,0 +1,74 @@
+      DOUBLE PRECISION FUNCTION DBESJ1 (X)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+c>> 1996-03-30 DBESJ1 Krogh  Added external statement.
+C>> 1995-11-13 DBESJ1 Krogh  Changed data statment for C converstion.
+C>> 1995-11-03 DBESJ1 Krogh  Removed blanks in numbers for C conversion.
+C>> 1994-11-11 DBESJ1 Krogh   Declared all vars.
+C>> 1994-10-20 DBESJ1 Krogh  Changes to use M77CON
+C>> 1992-02-07 DBESJ1 WV Snyder Correct sign for X < 0.
+C>> 1990-11-29 DBESJ1 CLL
+C>> 1985-08-02 DBESJ1 Lawson  Initial code.
+C JUNE 1978 EDITION.  W. FULLERTON, C3, LOS ALAMOS SCIENTIFIC LAB.
+C C.L.LAWSON & S.CHAN, JPL, 1984 FEB ADAPTED TO JPL MATH77 LIBRARY.
+c     ------------------------------------------------------------------
+c--D replaces "?": ?BESJ1, ?BMP1, ?INITS, ?CSEVL
+c     ------------------------------------------------------------------
+      EXTERNAL D1MACH, DCSEVL
+      INTEGER NTJ1
+      DOUBLE PRECISION X, BJ1CS(19), AMPL, THETA, XSML, XMIN, Y,
+     1  D1MACH, DCSEVL
+C
+C SERIES FOR BJ1        ON THE INTERVAL  0.          TO  1.60000D+01
+C                                        WITH WEIGHTED ERROR   1.16D-33
+C                                         LOG WEIGHTED ERROR  32.93
+C                               SIGNIFICANT FIGURES REQUIRED  32.36
+C                                    DECIMAL PLACES REQUIRED  33.57
+C
+      SAVE NTJ1, XSML, XMIN
+C
+      DATA BJ1CS / -.117261415133327865606240574524003D+0,
+     *  -.253615218307906395623030884554698D+0,
+     *  +.501270809844695685053656363203743D-1,
+     *  -.463151480962508191842619728789772D-2,
+     *  +.247996229415914024539124064592364D-3,
+     *  -.867894868627882584521246435176416D-5,
+     *  +.214293917143793691502766250991292D-6,
+     *  -.393609307918317979229322764073061D-8,
+     *  +.559118231794688004018248059864032D-10,
+     *  -.632761640466139302477695274014880D-12,
+     *  +.584099161085724700326945563268266D-14,
+     *  -.448253381870125819039135059199999D-16,
+     *  +.290538449262502466306018688000000D-18,
+     *  -.161173219784144165412118186666666D-20,
+     *  +.773947881939274637298346666666666D-23,
+     *  -.324869378211199841143466666666666D-25,
+     *  +.120223767722741022720000000000000D-27,
+     *  -.395201221265134933333333333333333D-30,
+     *  +.116167808226645333333333333333333D-32 /
+C
+      DATA NTJ1, XSML, XMIN / 0, 2*0.D0 /
+C     ------------------------------------------------------------------
+      IF (NTJ1 .eq. 0) then
+         call DINITS (BJ1CS, 19, 0.1D0*D1MACH(3), NTJ1)
+         XSML = SQRT (4.0D0*D1MACH(3))
+         XMIN = 2.0D0*D1MACH(1)
+      endif
+C
+      Y = ABS(X)
+C
+      IF (Y .LE. XMIN) THEN
+        DBESJ1 = 0.D0
+      ELSE IF (Y .LE. XSML) THEN
+        DBESJ1 = .5D0 * X
+      ELSE IF (Y .LE. 4.D0) THEN
+        DBESJ1 = X * ( .25D0 + DCSEVL (.125D0*Y*Y-1.D0,BJ1CS, NTJ1) )
+      ELSE
+        CALL DBMP1 (Y, AMPL, THETA)
+        DBESJ1 = AMPL * COS(THETA)
+        IF (X .LT. 0.0d0) DBESJ1 = -DBESJ1
+      END IF
+C
+      RETURN
+      END

@@ -1,0 +1,132 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 2.20  Binomial Coefficients
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology,
+  \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Compute the binomial coefficient $\displaystyle \binom{n}{k} =
+\frac{n!}{(n-k)!\, k!}$ which gives the number of ways one can select
+$k$ items from a set containing $n$ items.  Binomial coefficients also
+appear in a number of other contexts.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+\begin{description}
+\item[REAL] \ {\bf SBINOM, ANS}
+\item[INTEGER] \ {\bf N, K}
+\end{description}
+Assign values to N and K.
+$
+\fbox{\bf ANS = SBINOM(N, K)}
+$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[N, K] \ [in] The input integers $n$ and $k$ as described in
+"Purpose" above.  One must have $0 \leq \text{K} \leq \text{N}.$
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double-precision usage change the name SBINOM to DBINOM, and
+change the REAL declaration to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+The program DRSBINOM compares the true values with the results of
+computing the binomial coefficients for two large values of N where SBINOM
+uses a different algorithm internally.  It then finds the first case where
+results using the Pascal triangle give different results from SBINOM (the
+true value for the case printed is 67863915, which is slightly closer to
+the value given by SBINOM).  If one is computing binomial coefficients for
+strictly increasing values of N, one may want to use the Pascal triangle
+code in DRSBINOM instead of SBINOM for computing the binomial
+coefficients.
+
+\subsection{Functional Description}
+
+For N $\leq$ 150, the routine maintains and uses a table of saved
+factors of factorials, $\phi_j$.  If the input N is larger than any
+seen so far, this table is extended.  When there is no problem with
+overflow, $\phi_j = j \phi_{j-1}$.  To deal with overflow a second
+table $i_\nu$ is maintained.  Initially $\nu=0$.  When adding entry
+$j$ to the table would cause an overflow, $\nu$ is incremented,
+$i_\nu$ is set to $j-1$, and $\phi_j$ to $j$.
+
+To compute the binomial coefficients, the code uses
+\begin{equation*}
+\binom{n}{k} = \frac{n!}{(n-k)!\,k!}, \quad
+j!  = \Big (\prod_{\ell = 1}^{\nu-1} \phi(i_{\ell}) \Big ) \phi (j),
+\end{equation*}
+with $\nu $ such that $ i_{\nu-1} < j \leq i_\nu$.  When a factorial is so
+large it is represented by more than one piece, the pieces are combined in
+such a way as to avoid overflow.  Finally, for large values, the result is
+refined by setting the result equal to $p \times \lfloor r / p + .5
+\rfloor $, where $r$ is the originally computed result, $p$ is either one
+prime or the product of two primes in the interval $\big (\max(n-k,\ k),\
+n \big ]$ and $ \lfloor \cdot \rfloor$ denotes the integer part.
+
+In the case of IEEE single precision arithmetic, only one piece of the
+factorial is needed for $\text{N} \leq 33$, and for IEEE double precision
+$150!$ does not overflow.  When only one piece is needed for the factorial
+and it is already computed, the binomial coefficient is computed with one
+multiply, one divide, and a few tests.
+
+
+If N $>$ 150, the log gamma function from Chapter~2.3 is used.  In this
+case
+\begin{equation*}
+\binom{n}{k} = e^{\log \Gamma (n+1) - \log \Gamma (n-k+1) -
+\log \Gamma (k+1)}
+\end{equation*}
+It is very easy to shorten the code by replacing the call to the log
+gamma function for large N with an error message reporting too large an N.
+It is only slightly more difficult to replace the code for keeping pieces
+of the factorial with code that calls log gamma whenever N!\ would
+overflow.  This would lose some precision as illustrated by the difference
+in the errors for N = 150 and N = 151 in the results.
+
+
+\subsection{Error Procedures and Restrictions}
+
+An error exit is taken if the condition $0 \leq \text{K} \leq \text{N}$
+is not satisfied, or if the result would overflow.  Errors are
+processed using the routines in Chapter 19.2.  If one references one
+of these routines to change the error action, then instead of stopping on
+an error, the routine will return with a result of $-1$.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DBINOM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DBINOM, DERM1, DERV1, DLGAMA, DGAMMA, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}}\\
+SBINOM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SBINOM, SERM1, SERV1, SLGAMA,
+SGAMMA\rule[-5pt]{0pt}{8pt}}\\ \end{tabular}
+
+Algorithm and code due to F. T. Krogh, JPL, December~1995.
+
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSBINOM}\vspace{10pt}
+\lstinputlisting{\codeloc{sbinom}}
+
+\vspace{20pt}\centerline{\bf \large ODSBINOM}\vspace{0pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sbinom}}
+\end{document}

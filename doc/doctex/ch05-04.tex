@@ -1,0 +1,255 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 5.4 Eigenvalues and Eigenvectors of an Unsymmetric Matrix
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Compute all eigenvalues and right eigenvectors of a real N $\times $ N unsymmetric
+matrix $A$. Some or all of the eigenvalues and eigenvectors may be complex.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf A}(LDA,$\geq $N)\ [LDA$\geq $N]{\bf , VR}($\geq $N){\bf %
+, VI}($\geq $ N){\bf , VEC}(LDA,$\geq $N), WORK($\geq $N)
+
+\item[INTEGER]  \ LDA, N, IFLAG($\geq $N)
+\end{description}
+
+Assign values to A(,), LDA, and N.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SEVVUN(A, LDA, N, VR, VI,\\
+VEC, IFLAG, WORK)\\
+\end{tabular}}
+\end{center}
+
+Results are returned in VR(), VI(), VEC(,), and IFLAG(1). The contents of
+A(,), IFLAG(), and WORK() will be modified.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A(,), LDA, N]  \ A(,) is [inout], LDA and N are [in]. On entry A(,) must
+contain the N $\times $ N matrix $A$ whose eigenvalues and eigenvectors are to be
+computed. The integer LDA is the dimension of the first subscript of the
+arrays A(,) and VEC. Require LDA $\geq $ N. On return the contents
+of A(,) will be modified.
+
+\item[VR(), VI()]  \ [out] The subroutine will store the $J^{th}$ eigenvalue
+in VR($J$) and VI($J$), $J$ = 1, ..., N. The real part is stored in VR($J$), and the
+imaginary part in VI($J$). If the $J^{th}$ eigenvalue is real VI($J$) will be
+zero. The eigenvalues will be sorted so that VR(1) $\leq $ VR(2) $\leq $ ...
+$\leq$ VR(N), and if VR($J$) = VR($J$+1) for some $J$ then $|$VI$(J)|\leq
+|$VI$(J+1)|.$
+
+Complex eigenvalues will occur in conjugate pairs. Such pairs will be stored
+in adjacent locations with the eigenvalue having positive imaginary part
+preceding its conjugate partner.
+
+\item[VEC(,)]  \ [out] The eigenvectors will be stored in this array. If the $%
+J^{th}$ eigenvalue is real then the $J^{th}$ eigenvector will be real and
+will be stored in column $J$ of VEC(,). It will be normalized to have unit
+Euclidean length.
+
+If the $J^{th}$ and $(J+1)^{st}$ eigenvalues are a complex conjugate pair,
+then the $J^{th}$ eigenvector will be complex, say ${\bf u}+i{\bf v}$, and
+the $(J+1)^{st}$ eigenvector will be its complex conjugate vector, ${\bf u}-i%
+{\bf v}$. The subroutine will store ${\bf u}$ in column $J$ of VEC(,) and will
+store ${\bf v}$ in column $J+1$ of VEC(,). The eigenvector ${\bf u}+i{\bf v}$
+will be normalized to have unit unitary norm and real first component, $i.e
+$. the first component of ${\bf v}$ will be zero.
+
+\item[IFLAG()]  \ [out, scratch] The N-array IFLAG() will be used as INTEGER
+working space. In addition, the first location, IFLAG(1), will be used to
+pass information back to the user as follows:
+
+\begin{itemize}
+\item[= 1]  If successful and all eigenvalues are real.
+
+\item[= 2]  If successful and some eigenvalues are complex.
+\end{itemize}
+
+See Section E for use of IFLAG(1) in error conditions.
+
+\item[WORK()] \ [scratch] Working space.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change SEVVUN to DEVVUN, and the REAL type statement to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+The following unsymmetric matrix $A$ is
+given on page~84 of~\cite{Gregory:1969:ACM}.
+\begin{equation*}
+A=\left[
+\begin{array}{rrr}
+8 & -1 & -5 \\
+-4 & 4 & -2 \\
+18 & -5 & -7
+\end{array}
+\right] .
+\end{equation*}
+
+The eigenvalues are 1, $2+4i$, and $2-4i$. The (unnormalized) right
+eigenvectors are column vectors with the following triples of
+elements:  (1, 2, 1), (1, $1+i$, $1-i$), and (1, $1-i$, $1+i$).  This
+example illustrates the way SEVVUN returns complex eigenvalues and
+eigenvectors in storage.
+
+The demonstration program DRSEVVUN below applies SEVVUN to compute
+eigenvalues and eigenvectors for the above matrices. The results are
+in the file ODSEVVUN. Before the call to SEVVUN, the matrix is saved in
+order to compute the relative residual matrix $D$ defined as%
+\begin{equation*}
+D=\left( AW-W\Lambda \right) /\gamma ,
+\end{equation*}
+where $A$ denotes the current test matrix, $W$ is the matrix whose columns are
+the computed eigenvectors of $A$, $\Lambda $ is the diagonal matrix of
+eigenvalues, and $\gamma $ is the maximum-row-sum norm of $A$. The
+(possibly complex) matrix $D$ is packed into the array D(,) and printed.
+
+\subsection{Functional Description.}
+
+Given an N $\times $ N real unsymmetric matrix $A$ there exists an N $\times $ N nonsingular
+matrix $C$ such that the matrix%
+\begin{equation*}
+U=C^{-1}AC
+\end{equation*}
+is N $\times $ N upper triangular. The matrices $C$ and $U$ may be complex. The
+diagonal elements of $U$ are called the eigenvalues of $A$. This set of N
+numbers is uniquely determined by $A$ although $C$ and $U$ are not unique. Note
+that $\lambda $ is an eigenvalue of $A$ if and only if $A-\lambda I$ is
+singular.
+
+A nonzero vector ${\bf w}$ is a right eigenvector of $A$ associated with an
+eigenvalue $\lambda $ if%
+\begin{equation*}
+A{\bf w}={\bf w}\lambda
+\end{equation*}
+If $A$ has N distinct eigenvalues then it will also have N linearly
+independent eigenvectors. If the eigenvalues of $A$ are not all distinct then
+an eigenvalue $\lambda $ of multiplicity $\mu $ may have any number of
+linearly independent eigenvectors from~1 to $\mu $. If some multiple
+eigenvalue of $A$ has fewer linearly independent eigenvectors than its
+multiplicity the matrix is called defective.
+
+If a set of computed eigenvalues returned by SEVVUN are equal or nearly equal,
+it is not uncommon for the associated computed eigenvectors to be
+linearly dependent, or nearly so.  This subroutine cannot be used
+to distinguish between defective and nondefective matrices.
+
+The subroutine SEVVUN was developed using the
+subroutines BALANC, ELMHES, ELTRAN, HQR2, and BALBAK from the EISPACK
+package of eigenvalue-eigenvector subroutines, \cite{Smith:1974:MER}. The Fortran
+subroutines in EISPACK are based directly on the earlier set of Algol
+procedures described in \cite{Wilkinson:1971:HAC}.
+
+Subroutine SEVVUN first calls SEVBH which consists of the two EISPACK
+subroutines BALANC and ELMHES.
+
+BALANC applies similarity permutations to isolate eigenvalues available by
+inspection, if any. Then, applies diagonal similarity scaling to balance the
+size of the matrix elements%
+\begin{equation*}
+B=D^{-1}P^TAPD.
+\end{equation*}
+ELMHES reduces $B$ to upper Hessenberg form using stabilized elementary
+transformations%
+\begin{equation*}
+H=G^{-1}BG.
+\end{equation*}
+The remainder of SEVVUN consists of a minor modification of three
+EISPACK subroutines: ELTRN, HQR2, and BALBAK.
+
+ELTRN computes explicitly the matrix $G$ that was stored in factored form by
+SEVBH.
+
+HQR2 applies the QR algorithm to $H$. This is an iterative process which
+reduces $H$ to a real nearly-upper-triangular matrix $R$%
+\begin{equation*}
+R=Q^THQ.
+\end{equation*}
+The transformations applied to $H$ are also applied to $G$ forming%
+\begin{equation*}
+K=GQ.
+\end{equation*}
+The matrix $R$ has a mixture of single elements and $2\times 2$
+blocks on its diagonal and is otherwise upper triangular.
+
+The eigenvalues of $A$ are the single diagonal elements of $R$ along with the
+eigenvalues of the $2 \times 2$ blocks on the diagonal of $R$. These latter
+eigenvalues are computed by direct formulas.
+
+The eigenvectors of $R$, say ${\bf z}_1$, ..., ${\bf z}_N$ are each computed
+by a single back substitution process without any iteration. These
+eigenvectors are transformed to eigenvectors of $B$, say ${\bf s}_1$, ..., $%
+{\bf s}_N$ by computing%
+\begin{equation*}
+{\bf s}_j=K{\bf z}_j,\quad j=1,...,N.
+\end{equation*}
+BALBAK transforms the vectors $s_j$ to eigenvectors of $A$, say $w_j$, $j=1$,
+..., N by computing%
+\begin{equation*}
+{\bf w}_j=PD{\bf s}_j,\quad j=1,...,N.
+\end{equation*}
+SEVVUN normalizes each eigenvector ${\bf w}_j$ to have unit unitary norm
+and a real first component, and then reorders the eigenvalues along with
+their associated eigenvectors, to achieve the ordering described in Section B.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If N $\leq $ 0 or if there is convergence failure in the QR algorithm the
+error processing subroutine ERMSG of Chapter~19.2 will be called with
+an error level of 0 to print an error message.  Upon return, IFLAG(1) = 3
+or~4 to indicate N $\leq $ 0 or convergence failure, respectively.
+In these error conditions all computed eigenvalues and eigenvectors should
+be regarded as invalid.
+
+If a set of computed eigenvalues are equal or nearly equal, the set of
+associated computed eigenvectors will frequently not have as large a
+numerical rank as would be possible for the given matrix.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+The EISPACK package of Fortran subroutines was acquired at JPL
+from Argonne National Laboratories where it was developed with financial
+support from the AEC and the NSF. The subroutine SEVVUN was written by F. T.
+Krogh, JPL, October~1991.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DEVVUN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DEVBH, DEVVUN, DNRM2, DSCAL, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+SEVVUN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SEVBH, SEVVUN, SNRM2, SSCAL}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSEVVUN}\vspace{10pt}
+\lstinputlisting{\codeloc{sevvun}}
+
+\vspace{30pt}\centerline{\bf \large ODSEVVUN}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sevvun}}
+\end{document}

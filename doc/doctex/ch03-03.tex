@@ -1,0 +1,252 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 3.3 Random Numbers: Exponential, Rayleigh, and Poisson
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Generate pseudorandom numbers from the exponential and Rayleigh
+distributions and pseudorandom integers from the Poisson distribution.
+
+\subsection{Usage}
+
+\subsubsection{Generating exponential pseudorandom numbers}
+
+The density function for the exponential distribution with mean and standard
+deviation, $\mu $, has the value zero for $x < 0$ and $\mu^{-1} \exp (-x/\mu )$ for $%
+x \geq 0$. The cumulative distribution function has the value zero for $x <
+0 $ and $1- \exp (- x/\mu )$ for $x \geq 0$. If $u$ is a random variable
+having the uniform distribution on [0,~1] then $x = - \mu \ \log u$ is a
+random variable having the exponential distribution with mean and standard
+deviation, $\mu .$
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf SRANE, XMEAN, X}
+\end{description}
+
+Assign a value to XMEAN.
+$$
+\fbox{{\bf X = SRANE(XMEAN)}}
+$$
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[XMEAN]  \ [in] Specifies the mean and standard deviation of the
+desired exponential distribution. Require XMEAN $>0.$
+
+\item[SRANE]  \ [out] The function returns a nonnegative pseudorandom number
+from the exponential distribution with mean and standard deviation equal to
+XMEAN.
+\end{description}
+
+\subsubsection{Generating Rayleigh pseudorandom numbers}
+
+The density function for the Rayleigh distribution with scaling parameter, $%
+\alpha $, has the value zero for $x < 0$ and
+\begin{equation*}
+(x/\alpha ^2) \exp (-x^2/2\alpha ^2)
+\end{equation*}
+for $x \geq 0$. The cumulative distribution function has the value zero for $%
+x < 0$ and
+\begin{equation*}
+1 - \exp(-x^2/2 \alpha ^2)
+\end{equation*}
+for $x \geq 0$. The mean and standard deviation of this distribution are
+\begin{equation*}
+\mu = \alpha \sqrt{\pi /2} \approx 1.25331\ \alpha
+\end{equation*}
+and
+\begin{equation*}
+\sigma = \alpha \sqrt{2 - \pi /2} \approx 0.655136\ \alpha
+\end{equation*}
+If $u$ is a random variable having the uniform distribution on [0,~1] then
+\begin{equation*}
+x = \alpha \sqrt{-2 \log u}
+\end{equation*}
+is a random variable having the Rayleigh distribution with scaling
+parameter, $\alpha .$
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf SRANR, ALPHA, X}
+\end{description}
+
+Assign a value to ALPHA.
+$$
+\fbox{{\bf X = SRANR(ALPHA)}}
+$$
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[ALPHA]  \ [in] Specifies the scaling of the desired Rayleigh
+distribution. Require ALPHA $>0$. The distribution will have mean = ALPHA $%
+\times \sqrt{\pi /2}$ and variance = ALPHA$^2\times (2-\pi /2).$
+
+\item[SRANR]  \ [out] The function returns a nonnegative pseudorandom number
+from the Rayleigh distribution with scaling parameter, ALPHA.
+\end{description}
+
+\subsubsection{Generating Poisson pseudorandom integers}
+
+The Poisson distribution with mean and variance, $\mu $, is defined over
+nonnegative integers. The nonnegative integer, $k$, occurs with probability $%
+p_k$ given by%
+\begin{equation*}
+p_k=e^{-\mu }\frac{\mu ^k}{k!}
+\end{equation*}
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf XMEAN}
+
+\item[INTEGER]  \ {\bf ISRANP, K}
+\end{description}
+
+Assign a value to XMEAN.
+$$
+\fbox{{\bf K = ISRANP(XMEAN)}}
+$$
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[XMEAN]  \ [in] Specifies the mean and variance of the desired Poisson
+distribution. XMEAN must be positive and not so large that exp($-$XMEAN)
+would underflow. For example if the underflow limit is $10^{-38}$, XMEAN
+must not exceed~87. This subprogram requires more computing time for larger
+values of XMEAN or if XMEAN is changed frequently. See Section D.
+
+\item[ISRANP]  \ [out] The function returns a nonnegative pseudorandom
+integer from the Poisson distribution with mean XMEAN.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change the names SRANE, SRANR, and ISRANP to DRANE, DRANR, and IDRANP
+respectively, and change the REAL type statements above to
+DOUBLE PRECISION. Note particularly that if either of the function names
+DRANE or DRANR is used it must be typed DOUBLE PRECISION either explicitly
+or via an IMPLICIT statement.
+
+\subsection{Examples and Remarks}
+
+The programs DRSRANE, DRISRANP, and DRSRANR demonstrate, respectively, the
+use of SRANE, ISRANP, and SRANR. These programs use SSTAT1 and SSTAT2, or
+ISSTA1 and ISSTA2 to compute and print statistics and a histogram based on a
+sample of~10000 numbers each.
+
+To fetch or set the seed used in the underlying pseudorandom integer
+sequence use the subroutines described in Chapter~3.1.
+
+\subsection{Functional Description}
+
+\subparagraph{Method}
+
+The exponential random number is computed as $x = -\mu \ \log u$ where $u$
+is a random number from the uniform distribution on [0,~1].
+
+The Rayleigh random number is computed as $x = \alpha \sqrt{-2 \log u}$
+where $u$ is a random number from the uniform distribution on [0,~1].
+
+The Poisson subprogram uses ideas from \cite{Snow:1968:A342}.  The method
+begins by obtaining a random number, $u$, from the uniform distribution on
+[0,~1].  Then the probabilities $p_0$, $p_1$, ..., defined above in
+Section B.3, are summed until the sum reaches or exceeds $u$.  The index
+of the last term in the sum is then returned as the Poisson random
+integer.
+
+To improve efficiency on the assumption that the subprogram may be
+referenced many successive times with the value of XMEAN remaining
+unchanged, the partial sums through at most the term $p_{84}$ are stored in
+an internal array as they are computed. On subsequent references, if the
+value of XMEAN has not been changed, previously computed partial sums can be
+tested without the need to recompute them. The testing starts at the index
+nearest to the value, XMEAN, since these indices have the highest
+probabilities of being selected.
+
+These subprograms obtain uniform pseudorandom numbers by calling SRANUA or
+DRANUA, using the array in common block /RANCMS/ or /RANCMD/ as a buffer as
+described in Chapter~3.1.
+
+Values returned as double-precision random numbers will have random bits
+throughout the word, however the quality of randomness should not be
+expected to be as good in a low-order segment of the word as in a high-order
+part.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+In subprograms SRANE, DRANE, SRANR, and DRANR the input parameter should be
+positive, however no test is made of this. The input parameter is simply
+used as a multiplicative factor.
+
+Subprogram ISRANP will issue an error message and return the value $-1$ if
+XMEAN\ $\leq $ 0 or if XMEAN $\geq -0.5\times \log \,($ underflow limit ).
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DRANE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DRANE, ERFIN, ERMSG, RANPK1, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+DRANR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DRANR, ERFIN, ERMSG, RANPK1, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+IDRANP & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IDRANP, RANPK1, RANPK2, DERM1, DERV1\rule[-5pt]{0pt}{8pt}}\\
+ISRANP & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, ISRANP, RANPK1, RANPK2, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\
+SRANE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK1, RANPK2, SRANE\rule[-5pt]{0pt}{8pt}}\\
+SRANR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK1, RANPK2, SRANR}\\\end{tabular}
+
+Based on subprograms written for JPL by Stephen L. Richie, Heliodyne Corp.,
+and Wiley R. Bunton, JPL, 1969. Adapted to Fortran~77 for the JPL MATH77
+library by C. L. Lawson and S. Y. Chiu, JPL, April~1987.
+
+1991 November: Lawson reorganized and renamed common blocks.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSRANE}\vspace{10pt}
+\lstinputlisting{\codeloc{srane}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSRANE}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{srane}}
+\newpage
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSRANR}\vspace{10pt}
+\lstinputlisting{\codeloc{sranr}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSRANR}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sranr}}
+
+\newpage
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRISRANP}\vspace{0pt}
+\lstinputlisting{\codeloc{isranp}}
+
+\vspace{20pt}\centerline{\bf \large ODISRANP}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{isranp}}
+\end{document}

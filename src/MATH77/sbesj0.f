@@ -1,0 +1,68 @@
+      REAL             FUNCTION SBESJ0 (X)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+c>> 1996-03-30 SBESJ0 Krogh  Added external statement.
+C>> 1995-11-10 SBESJ0 Krogh  Changed data statment for C converstion.
+C>> 1995-11-03 SBESJ0 Krogh  Removed blanks in numbers for C conversion.
+C>> 1994-11-11 SBESJ0 Krogh   Declared all vars.
+C>> 1994-10-20 SBESJ0 Krogh  Changes to use M77CON
+C>> 1990-11-29 SBESJ0 CLL
+C>> 1985-08-02 SBESJ0 Lawson  Initial code.
+C JULY 1977 EDITION.  W. FULLERTON, C3, LOS ALAMOS SCIENTIFIC LAB.
+C C.L.LAWSON & S.CHAN, JPL, 1984 FEB ADAPTED TO JPL MATH77 LIBRARY.
+c     ------------------------------------------------------------------
+c--S replaces "?": ?BESJ0, ?BMP0, ?INITS, ?CSEVL
+c     ------------------------------------------------------------------
+      EXTERNAL R1MACH, SCSEVL
+      INTEGER NTJ0
+      REAL             X, BJ0CS(19), AMPL, THETA, XSML, Y,
+     1  R1MACH, SCSEVL
+C
+C SERIES FOR BJ0        ON THE INTERVAL  0.          TO  1.60000E+01
+C                                        WITH WEIGHTED ERROR   4.39E-32
+C                                         LOG WEIGHTED ERROR  31.36
+C                               SIGNIFICANT FIGURES REQUIRED  31.21
+C                                    DECIMAL PLACES REQUIRED  32.00
+C
+      SAVE NTJ0, XSML
+C
+      DATA BJ0CS / +.10025416196893913701073127264074E+0,
+     *  -.66522300776440513177678757831124E+0,
+     *  +.24898370349828131370460468726680E+0,
+     *  -.33252723170035769653884341503854E-1,
+     *  +.23114179304694015462904924117729E-2,
+     *  -.99112774199508092339048519336549E-4,
+     *  +.28916708643998808884733903747078E-5,
+     *  -.61210858663032635057818407481516E-7,
+     *  +.98386507938567841324768748636415E-9,
+     *  -.12423551597301765145515897006836E-10,
+     *  +.12654336302559045797915827210363E-12,
+     *  -.10619456495287244546914817512959E-14,
+     *  +.74706210758024567437098915584000E-17,
+     *  -.44697032274412780547627007999999E-19,
+     *  +.23024281584337436200523093333333E-21,
+     *  -.10319144794166698148522666666666E-23,
+     *  +.40608178274873322700800000000000E-26,
+     *  -.14143836005240913919999999999999E-28,
+     *  +.43910905496698880000000000000000E-31 /
+C
+      DATA NTJ0, XSML / 0, 0.E0 /
+C     ------------------------------------------------------------------
+      IF (NTJ0.NE.0) GO TO 10
+      call SINITS (BJ0CS, 19, 0.1E0*R1MACH(3), NTJ0)
+      XSML = SQRT (4.0E0*R1MACH(3))
+C
+ 10   Y = ABS(X)
+C
+      IF (Y .LE. XSML) THEN
+        SBESJ0 = 1.E0
+      ELSE IF (Y .LE. 4.E0) THEN
+        SBESJ0 = SCSEVL (.125E0*Y*Y-1.E0, BJ0CS, NTJ0)
+      ELSE
+        CALL SBMP0 (Y, AMPL, THETA)
+        SBESJ0 = AMPL * COS(THETA)
+      END IF
+C
+      RETURN
+      END

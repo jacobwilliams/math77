@@ -1,0 +1,24 @@
+\documentclass[twoside]{MATH77}
+\usepackage{supertabular, ulem}
+\begin{document}
+\newcommand{\s}{\hspace{1.2pt}}
+\normalem
+\begindex
+Subscripts are used to indicate the type of arguments as follows:
+logical$_L$, integer$_i$, real$_r$, double precision$_d$, complex$_z$,
+character$_c$, and subroutine or unknown external$_x$.  The text of
+arguments indicates how it is used: {\bf defined} (value may also be
+referenced), {\em referenced} (no value assigned), possibly defined or
+referenced uses the normal font, {\scriptsize not used}, and
+\uline{external name}.  Arrays are given in upper case.  The decorations
+for the arguments were obtained automatically using the software described
+in Chapter~19.7, while the text for the arguments was obtained using a
+program that examines the \LaTeX \ files.
+
+\tablehead{\multicolumn{2}{l}{\bf CHAPTER} &
+\multicolumn{2}{l}{\bf \quad CALL Statement}\rule[-8pt]{0pt}{10pt}\\}
+\begin{supertabular}{@{\qquad \quad}r@{\quad }l@{\ \ }l@{\ }p{4.9in}}
+\shrinkheight{.175in}
+\input{gen_index}
+\end{supertabular}
+\end{document}

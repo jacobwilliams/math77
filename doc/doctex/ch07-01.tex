@@ -1,0 +1,326 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 7.1 Roots of a Polynomial
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Given the coefficients $a_i$ of a polynomial of degree $n=$ {NDEG }$>0,$%
+\begin{equation*}
+a_1z^n+a_2z^{n-1}+...+a_nz+a_{n+1}
+\end{equation*}
+with $a_1\neq 0$, this subroutine computes the NDEG roots of the polynomial.
+Since the roots may be complex, they will always be returned as complex
+numbers, even when they are real.
+
+Subroutines are provided for four cases:
+
+\begin{tabular}{ll}
+{\bf SPOLZ} & for single precision real coefficients.\\
+{\bf DPOLZ} & for double precision real coefficients.\\
+{\bf CPOLZ} & for single precision complex coefficients.\\
+{\bf ZPOLZ} & for double precision complex coefficients.\\
+\end{tabular}
+
+See Section E for remarks on the method of storing double precision complex
+numbers.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision Real Coefficients}
+
+\begin{description}
+\item[INTEGER]  \ {\bf NDEG, IERR}
+
+\item[REAL]  \ {\bf A}$(\geq $ NDEG + 1){\bf , H}$(\geq $ NDEG**2)
+
+\item[~~~~COMPLEX]  \ {\bf Z}$(\geq $ NDEG)
+\end{description}
+
+Assign values to A(), and NDEG.%
+$$
+\fbox{{\bf CALL SPOLZ(A, NDEG, Z, H, IERR)}}
+$$
+Computed quantities are returned in Z() and IERR.
+
+\subsubsection{Program Prototype, Double Precision Real Coefficients}
+
+\begin{description}
+\item[INTEGER]  \ {\bf NDEG, IERR}
+
+\item[DOUBLE PRECISION]  \ {\bf A}$(\geq $ NDEG + 1){\bf ,\newline
+H}$(\geq $NDEG**2)
+
+\item[DOUBLE PRECISION]  \ {\bf Z}(2, $\geq $ NDEG) or
+
+\item[~~~~COMPLEX*16]  {\bf Z}$(\geq $ NDEG)
+\end{description}
+
+Assign values to A(), and NDEG.%
+$$
+\fbox{{\bf CALL DPOLZ(A, NDEG, Z, H, IERR)}}
+$$
+Computed quantities are returned in Z() and IERR.
+
+\subsubsection{Program Prototype, Single Precision Complex Coefficients}
+
+\begin{description}
+\item[INTEGER]  \ {\bf NDEG, IERR}
+
+\item[COMPLEX]  \ {\bf A}$(\geq $NDEG + 1)
+
+\item[REAL]  \ {\bf H}$(\geq $ 2 * NDEG**2)
+
+\item[COMPLEX]  \ {\bf Z}$(\geq $ NDEG)
+\end{description}
+
+Assign values to A(), and NDEG.%
+$$
+\fbox{{\bf CALL CPOLZ(A, NDEG, Z, H, IERR)}}
+$$
+Computed quantities are returned in Z() and IERR.
+
+\subsubsection{Program Prototype, Double Precision Complex Coefficients}
+
+\begin{description}
+\item[INTEGER]  \ {\bf NDEG, IERR}
+
+\item[DOUBLE PRECISION]  \ {\bf A}(2, $\geq $ NDEG + 1) or
+
+\item[~~~~COMPLEX*16]  \ {\bf A}$(\geq $ NDEG + 1)
+
+\item[DOUBLE PRECISION]  \ {\bf H} $(\geq $2 * NDEG**2)
+
+\item[DOUBLE PRECISION]  \ {\bf Z}(2, $\geq $ NDEG) or
+
+\item[~~~~COMPLEX*16]  \ {\bf Z}$(\geq $ NDEG)
+\end{description}
+
+Assign values to A(), and NDEG.%
+$$
+\fbox{{\bf CALL ZPOLZ(A, NDEG, Z, H, IERR)}}
+$$
+Computed quantities are returned in Z() and IERR.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A()]  [in] Contains the coefficients of a polynomial, high order
+coefficient first, with A($1)\neq 0$. The contents of this array will not be
+modified by the subroutine.
+
+In the case of ZPOLZ, if the declaration DOUBLE PRECISION A(2, NDEG$+1)$ is
+used, the user must store the real part of $a_i$ in A(1, $i$) and the imaginary
+part in A(2, $i$).
+
+\item[NDEG]  [in] Degree of the polynomial.
+
+\item[H()]  [scratch] Work space for the subroutine.
+
+\item[Z()]  [out] Contains the polynomial roots stored as complex numbers.
+In the cases of DPOLZ and ZPOLZ, if the declaration DOUBLE PRECISION Z($2,$
+NDEG) is used, the real part of $z_i$ will be returned in Z($1, i)$ and the
+imaginary part in Z($2, i).$
+
+\item[IERR]  [out] Error flag. Set by the subroutine to~0 on normal
+termination. Set to $-$1 if A($1)=0$. Set to $-$2 if NDEG $<1$. Set to J $>0$
+if the iteration count limit has been exceeded and roots~1 through J have
+not been determined.
+\end{description}
+
+\subsection{Examples and Remarks}
+
+The program, DRSPOLZ, uses SPOLZ to compute the roots of the two polynomials%
+\begin{gather*}
+x^3-4x^2+x-4,\quad \text{and}\\
+x^5-15x^4+85x^3-225x^2+274x-120
+\end{gather*}
+The output is shown in ODSPOLZ.
+
+The Fortran~77 standard does not support a double precision complex data
+type, although such a type is supported in many compilers using the
+declaration, COMPLEX*16. The subroutines described here conform to the
+standard and thus do not use COMPLEX*16. For cases in which double precision
+complex quantities are communicated using the arrays A() or Z(), these
+subroutines store a complex number as an adjacent pair of double precision
+numbers, representing respectively the real and imaginary parts of the
+complex number.  This is compatible with the Fortran~90 storage
+convention for double precision complex.  If the user has the COMPLEX*16
+declaration available and wishes to use it, it will generally be compatible
+with this storage
+convention.
+
+\subsection{Functional Description}
+
+\subparagraph{Method}
+
+The degree, NDEG, and coefficients, $a_1$, $..., a_{NDEG+1}$, are given. An
+error condition is reported if NDEG $< 1$ or if $a_1 = 0.$
+
+Let $k+1$ be the index of the last nonzero coefficient. If $k<\text{NDEG}$, the
+polynomial has a root at zero repeated $\text{NDEG}-k$ times and these roots
+are recorded. The remaining roots will be roots of the polynomial of degree $k$
+whose coefficients are the first $k+1$ given coefficients. If $k=1$, the
+root $-a_2/a_1$ is recorded.
+
+If  $k>1$, the subroutine forms the $k\times k$ companion matrix $H$ for
+this $k^{th}$ degree polynomial. The matrix $H$ is zero except for the first
+row,%
+\begin{equation*}
+h_{1,j}=-a_{j+1}/a_1,\quad j=1, ..., k
+\end{equation*}
+and the elements just below the diagonal,%
+\begin{equation*}
+h_{i,i-1}=1,\quad i=2, ..., k
+\end{equation*}
+A scaling algorithm is applied to $H$ to balance the sizes of the nonzero
+elements.  Testing showed that accuracy could be very unsatisfactory if no
+scaling were done.  The scaling method used is a modification of the
+subroutine BALANC from the EISPACK collection of matrix eigensystem
+subroutines \cite{Smith:1974:MER}, \cite{Garbow:1977:MER}.  The
+modification avoids treating the elements that are known to be zero due to
+the form of the companion matrix.  The search for useful row or column
+permutations done in BALANC is also deleted since, with $a_{k+1}$ known to
+be nonzero, none of these permutations are possible.
+
+The eigenvalues of the balanced $H$ matrix are then computed using appropriate
+code for the QR algorithm from EISPACK. For SPOLZ and DPOLZ the code for the
+EISPACK subroutine, HQR, has been incorporated in-line. For CPOLZ or ZPOLZ,
+a call is made to SCOMQR or DCOMQR, respectively. These latter two
+subroutines are, respectively, single precision and double precision versions
+of the EISPACK subroutine, COMQR.
+
+Reference \cite{Goedecker:1994:RAF} reports that compared with other
+widely used methods, the conversion of the root finding problem to an
+eigenvalue problem is superior in reliability, generally superior in
+accuracy, and comparable in speed.
+
+\subparagraph{Accuracy tests}
+
+A root of a polynomial is called ill-conditioned if a small relative change
+in the coefficients makes a significantly larger relative change in the
+root. Roots that are bunched closely together relative to their magnitude,
+or relative to their distance from other roots, tend to be ill-conditioned.
+An extreme case of ill-conditioning occurs with multiple roots. If the
+coefficients of a polynomial are only known to some relative precision, say $%
+p$, then a double root will typically have a relative uncertainty of about $%
+p^{1/2}$, and a triple root a relative uncertainty of about $p^{1/3}.$
+
+The accuracy of a computed root is limited by the inherent conditioning of
+the root. Rather than directly testing the accuracy of the computed roots,
+we have chosen to test the accuracy with which polynomial coefficients could
+be reconstituted from the computed roots.
+
+To test these subroutines we selected eight sets of roots to test SPOLZ and
+DPOLZ and a different group of eight sets of roots to test CPOLZ and ZPOLZ.
+These sets included double and triple roots, roots that formed a small
+cluster relative to other roots, roots that differed by a factor of $10^8$,
+and both real and complex roots. The number of roots in each set varied
+from~1 to~7.
+
+From each set of roots we created 8~test sets by multiplying all roots in
+the set by one of the factors, $10^{-3}$, $10^{-2}$, ..., $10^3$, or $10^4$.
+This produced a total of 64~test sets for each subroutine.
+
+To execute the test for one subroutine, say xPOLZ, and one set of roots, say
+$r_1$, ..., $r_n$, we did the following:
+
+\begin{itemize}
+\item[1.]  Compute, in double precision, the coefficients, say $a_i$, of the
+monic polynomial having the roots, $r_i$.  Subroutine ZCOEF of
+Chapter 15.3 is used for this.
+
+\item[2.]  Use subroutine xPOLZ to compute the roots, say $s_i$, of this
+polynomial.
+
+\item[3.]  Compute, in double precision, the coefficients, say $b_i$, of the
+monic polynomial having the roots, $s_i.$
+
+\item[4.]  Compute $\delta =$ the maximum of the relative differences
+between corresponding coefficients, $a_i$ and $b_i.$
+
+\item[5.]  Compute $\varepsilon =\delta \ /\rho $, where $\rho $ is the
+relative precision of the arithmetic being used by xPOLZ. The value for $%
+\rho $ was obtained as R1MACH(4) for single precision and D1MACH(4) for
+double precision.  (See Chapter~19.1.)
+\end{itemize}
+
+Ideally, Step~3 should be done using significantly higher precision than is
+used by the subroutine xPOLZ being tested, so the error measures, $\delta $
+and $\varepsilon $, will be attributable only to xPOLZ with no inflation
+from Step~3. Since we used double precision in Step~3 for all cases, we
+conclude that the reported values of $\varepsilon $ are solely attributable
+to SPOLZ and CPOLZ in the tests of those subroutines, while the values of $%
+\varepsilon $ reported for DPOLZ and ZPOLZ are somewhat inflated due to
+errors from Step~3.
+
+These tests were run on an IBM PC/{AT} equipped with the Intel 80287 math
+coprocessor. The precision was $\rho \approx 1.2 \times 10^{-7}$ for single
+precision and $2.2\times 10^{-16}$ for double precision. The results may be
+summarized as follows:
+
+\begin{tabular}{lrr}
+    & \multicolumn{1}{c}{\bf
+Max. $\varepsilon $ over}  &  \multicolumn{1}{c}{\bf Number of Cases}\\
+  \multicolumn{1}{c}{\bf Subroutine} & \multicolumn{1}{c}{\bf 64 test cases} &
+  \multicolumn{1}{c}{\bf with $\epsilon >10$}  \\
+  \hspace{.15in} SPOLZ   &  35 \hspace{.3in}   &  19 \hspace{.5in}  \\
+  \hspace{.15in} DPOLZ   &  57 \hspace{.3in}  &  21 \hspace{.5in} \\
+  \hspace{.15in} CPOLZ   &    8 \hspace{.3in}   &    0 \hspace{.5in} \\
+  \hspace{.15in} ZPOLZ   &  43  \hspace{.3in}  &    8 \hspace{.5in}
+\end{tabular}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+The error indicator, IERR, will be set as follows:
+
+\begin{description}
+\item[\rm = 0]  \ when no errors are detected.
+
+\item[\rm = $-$1]  \ if A(1) is zero, or A(1,~1) and A(2,~1) are both zero.
+
+\item[\rm = $-$2]  \ if NDEG $<1.$
+
+\item[\rm = J $>$ 0]  \ if the iteration count limit has been exceeded and
+roots 1 through J have not been determined. The matrix eigenvalue codes
+allow a maximum of 30~iterations for each root. This limit is ample.
+\end{description}
+
+When IERR is set nonzero, the subroutine will also issue an error message
+using ERMSG, of Chapter~19.2, with an error level of 0.
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt}\\
+CPOLZ & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, CPOLZ, ERFIN, ERMSG, SCOMQR\rule[-5pt]{0pt}{8pt}}\\
+DPOLZ & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, DPOLZ, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+SPOLZ & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, ERFIN, ERMSG, SPOLZ\rule[-5pt]{0pt}{8pt}}\\
+ZPOLZ & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, DCOMQR, DZABS, ERFIN, ERMSG, ZPOLZ, ZQUO, ZSQRT}\\
+\end{tabular}
+
+Designed by C. L. Lawson, JPL, May~1986. Programmed by C. L. Lawson and S.
+Y. Chiu, JPL, May~1986, Feb.~1987.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSPOLZ}\vspace{10pt}
+\lstinputlisting{\codeloc{spolz}}
+
+\vspace{30pt}\centerline{\bf \large ODSPOLZ}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{spolz}}
+\end{document}

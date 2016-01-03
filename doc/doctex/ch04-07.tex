@@ -1,0 +1,251 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\DeclareRobustCommand{\us}{\rule{.2pt}{0pt}\rule[-.8pt]{.4em}{.5pt}\rule{.7pt}{0pt}}
+\begin{document}
+\begmath 4.7  Sparse Square Nonsingular Systems of Equations
+
+\silentfootnote{$^\copyright$ \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+For a sparse square nonsingular matrix, $A$, of order N, and an
+optional vector or matrix B, this routine will factor A, solve $A X =
+B, \ A^T X = B$, compute the reciprocal of the condition number, and
+obtain the determinant and the inverse.  This code has similar
+functionality to the dense codes described in Chapter 4-1.  The
+program in Chapter 19-6 can be used together with the code here to
+solve problems with the matrix given in Matrix Market format.
+
+\subsection{Usage}
+With minimal options, this simply solves $A \mathbf{x} = \mathbf{b}$
+for a single vector $\mathbf{b}$, and does not preserve the
+factorization.  Other features are available through the options in
+ISPEC.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf N, ISPEC(?), IA(?)}
+
+\item[DOUBLE PRECISION] \ {\bf A(?), B(?), OPT(3)}
+
+\end{description}
+
+Assign values to N, ISPEC(), IA(),  A(), and B().
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DSPGE (N, ISPEC, IA, A, B, OPT)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in IA(), A(), B(), and ISPEC.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[N] [in] The order of the matrix $A$ and number of rows in the
+  $B$ and $X$.
+
+\item[ISPEC()] [inout] An array used to return a flag, specify
+  dimensions and specify options.  Locations are used as follows.
+  \begin{description}
+  \item[1] [inout] Must be 0 if the matrix is not factored.  The value
+    returned on the first call must be preserved on later calls when
+    the matrix is already factored.  If the returned value is $<$ 0,
+    then the matrix was not factored.  See Section~\ref{sec:errors} on
+    page~\pageref{sec:errors} for details.
+  \item[2] [in] Declared dimension of IA() (or at least all that you
+    want this routine to know about.  This number must be at least the
+    space required for storing the factors of the matrix + twice the
+    space needed for the original matrix + 7N.
+  \item[3] [in] Declared dimension of A(), this can have a dimension
+    4N less than that for IA.
+  \item[4] [out]  The total free space in A at the solution.  If there
+    was insufficient free space this gives the negative of the number
+    of columns left to be factored.
+  \item[5] [in] Start of options, see the next Section.
+  \end{description}
+
+\item[IA()] [inout] IA(1) gives the number of nonzeros in the first
+  column.  IA(2) to IA(1 + IA(1)) give the row indexes for rows in the
+  first column which must be in increasing order.  IA(2+IA(1)) then
+  gives the number of nonzeros in the second column, etc.  Locations
+  after this input data are used internally.
+
+\item[A()] [inout] For each row index given in IA, the corresponding
+  location in A contains the coefficient corresponding to that row and
+  column.  The remaining locations in A are used internally.
+
+\item[B()] [inout] Used to hold the right hand side(s) on entry and to
+  hold the solution on exit.
+
+\item[OPT()] [out] Used only for some options..\\
+  OPT(1) = reciprocal condition number if requested.\\
+  OPT$(2) \times 10^{OPT[3]}$ = the determinant if requested.
+\end{description}
+
+\subsubsection{Options}
+
+First, a summary of the options.\vspace{2pt}
+
+\begin{tabular}{|l@{}r|l|}\hline
+  \multicolumn{2}{|c|}{\rule{0pt}{12pt}Name \hfill Value}&
+  \multicolumn{1}{|c|}{Brief Description}
+  \\[2pt]\hline\rule{0pt}{12pt}%
+  IPS & 0 & Solve $A \mathbf{x} = \mathbf{b}$\\
+  IPST & 1 & Solve $A^T \mathbf{x} = \mathbf{b}$\\
+  IPBDIM & 2 & Specifies dimensions on B\\
+  IPRCON & 3 & Compute reciprocal condition number\\
+  IPDET & 4 & Compute determinant\\
+\hline
+\end{tabular}\vspace{5pt}
+
+Starting in ISPEC(5) there is an index for an action which we denote
+here by $I_a$.  Each $I_a$ has associated with it a parameter name, a
+value for that parameter, and a (possibly empty) list of arguments,
+which follow immediately after $I_a$ in ISPEC.  After the last
+argument for an $I_a$, the next location in ISPEC contains the next
+$I_a$, with its associated arguments.  This continues until the last
+$I_a$ has been specified.  An option index $\leq 1$ ends the option
+list (other options must precede these).  Setting ISPEC(5) = 0, gives
+the default action.
+
+It is assumed that B is a one dimensional of length N if option
+IPBDIM is not used.
+
+All the above options except for IPBDIM, take no arguments, and the
+above table should be self-explanatory.  IPBDIM uses 3 locations in
+ISPEC, the 2 to indicate this option, next $I_2$ to indicate the
+number of columns (default is 1), and then $J_2$ to indicate the
+distance between successive columns of B.  In addition one can get the
+inverse by setting $I_2 = -1$, and DSPGE will initialize B to the
+identity matrix computing a solution.  If no backsolve is desired, set
+$I_2$ to 0.  In the case of a B with 5 columns one might have
+ISPEC(5)=2, ISPEC(6)=5, and ISPEC(7)=N.  Note that the code always
+assumes that B is dense.
+
+If you want to compute the inverse matrix and are not an expert,
+chances are you should ask an expert who is likely to tell you ---
+don't.  Given the ability to backsolve using a previous factorization
+the inverse should very rarely be needed.
+
+\paragraph{Program Prototype, Single Precision}
+
+Usage is the same as for double precision, except the ``DOUBLE
+PRECISION'' statement is changed to ``REAL'', and the name DSPGE is
+changed to SSPGE.
+
+\subsection{Examples and Remarks}
+
+Program DRDSPGE illustrates the use of DSPGE to solve a system
+of linear equations and compute the reciprocal condition number of the
+matrix of the system. Output is shown in ODDSPGE. The data for this problem
+were chosen so the exact solution has components 2, $-$5, and~3.
+
+\subsection{Functional Description}
+
+To factor the matrix, Gaussian elimination is used on columns to get a
+factorization of the form $A = U L^{-1}$.  Pivot selection permutes
+rows and columns independently balancing a desire to keep an upper
+triangular form of the matrix without sacrificing stability.
+
+Internal scaling first computes scale factors to make all the columns
+have an $L_\infty$ norm of 1, and follows this by doing the same to
+the rows.
+
+\subsubsection{Estimating reciprocal condition number}
+
+The condition number of an $n\times n$ nonsingular matrix, $A$, is defined
+as $\kappa = \|A\|\times \|A^{-1}\|$, a quantity that is never less than
+unity.  This is the largest factor by which the relative error in a
+vector, ${\bf y}$, can be amplified as a result of multiplication by $A$
+or by $A^{-1}$.  Roughly speaking, if $\kappa = 10^k$ and the components
+of the vector ${\bf b}$ in the problem, $A{\bf x} = {\bf b}$, are known to
+$d$ decimal digits, and the components of $A$ are known to more than $d$
+decimal digits, and the problem is solved using precision greater than $d$
+decimal digits, then the solution will be known to about $d-k$ decimal
+digits.  In particular, if $k \geq d$, the solution may have no reliable
+digits at all.
+
+We use the procedure described in \cite[pp.\ 128--130]{Golub:1996:GVL}
+(based on work in \cite{Dongarra:1979:LUG}), which requires on the
+order of $3n^2$ additional operations.  In a test with 1250~cases
+reported in \cite{Dongarra:1979:LUG}, the maximum value for the
+condition number / estimated condition number was just slightly more
+than 16.
+
+\subsubsection{Computing the determinant of $A$}
+
+We have $Det(A) = Det(U) Det(L^{-1})$.  Since all row and column
+permutations are done on both $L$ and $U$, and the diagonal of $L$
+contains 1's, the determinant is simply the product of the diagonals
+of $U$ times $-1$ if the sum of the number of exchanges done on rows
+and columns of A is odd.\normalsize
+
+
+For a matrix of large order it is not uncommon for the determinant to
+be of extremely large or small magnitude. Consequently we compute and
+store the determinant as a pair of numbers, permitting a very large
+exponent range.  The second number of the pair is always in integer.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+
+\subsection{Error Procedures and Restrictions}
+\label{sec:errors}
+Error messages are printed using the facility described in Chapter
+19-03.  Options there give one some control over actions taken on
+errors, and on where the debug print goes.  Error indexes $<-4$ stop
+by default, those $>-4$ only return an error flag, and the $-4$ case
+will return only if there was enough space to get started on the
+factorization.  The error flags returned are
+
+\begin{description}
+\setlength{\parsep}{0pt} \setlength{\itemsep}{-3pt}
+\item[$-1$] Matrix appears singular.  (Sets OPT(1) = 0.)
+\item[$-2$] Matrix has an empty column.
+\item[$-3$] Matrix has an empty row.
+\item[$-4$] No more space.
+\item[$-5$] N $\leq$ 0
+\item[$-6$] An unknown option.
+\item[$-7$] Problem with column size.
+\item[$-8$] Problem with row indexes.
+\end{description}
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Design and programming by Fred T. Krogh, Math \`a la Carte, Inc.
+March 2006.  We hope to revisit this in the future and improve
+performance.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DSPGE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DMESS, DSPGE, MESS\rule[-5pt]{0pt}{8pt}}\\
+SSPGE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+MESS, SMESS, SSPGE\rule[-5pt]{0pt}{8pt}}\\
+\ & \ \\\end{tabular}
+
+\begcodenp
+\vspace {10pt}
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDSPGE}\vspace{0pt}
+
+\vspace{10pt}
+\lstinputlisting{\codeloc{dspge}}
+
+\vspace{10pt}\centerline{\bf \large ODDSPGE}
+
+\lstset{language={}}
+\lstinputlisting{\outputloc{dspge}}
+
+\end{document}

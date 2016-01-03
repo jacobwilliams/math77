@@ -1,0 +1,312 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 19.2  Error Message Processor
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This package of subroutines processes diagnostic messages, providing options
+to write or not write the message, and to return or stop after message
+processing. These subroutines are intended primarily for use by other
+library subprograms although they are not restricted to that usage.
+
+By passing error messages through these subroutines it is possible to (a)
+avoid having Fortran I/O statements in other library subprograms that do
+not otherwise execute any I/O functions, and (b) provide a means, via
+the subroutine ERMSET, for a user program to alter the nominal action of
+error message processing.
+
+\subsection{Usage}
+
+To process an error message the program detecting the error must make
+a sequence of one or more calls to subroutines of this package. Such
+a sequence of calls is distinguished by the condition that the
+argument, FLAG, has the value~$^{\prime },^{\prime }$ in all but the
+last call, and has the value~$^{\prime }.^{\prime }$ in the last call
+of the sequence.
+
+The first, and possibly only, call of a sequence must be to ERMSG, SERM1,
+DERM1, or IERM1.  These subroutines all have the argument, LEVEL, that
+specifies the nominal action level for the entire sequence of calls.
+
+If there are additional calls in the sequence, the subsequent calls must
+be to SERV1, DERV1, IERV1, or ERMOR, each of which may be called any
+number of times.  These calls provide additional data values or character
+strings to be included in the printed error message.
+
+The package contains two additional subroutines: ERMSET, which can be called
+by a user to alter the nominal action of the package, and ERFIN which is
+called by other subroutines of the package when FLAG = $^{\prime}.^{\prime}$
+to handle the common final steps of processing an error message.
+
+\subsubsection{Type Statements for Arguments}
+\begin{description}
+\item[INTEGER] \ {\bf IERR, LEVEL, IDATA, IDELTA, NVAL}
+
+\item[CHARACTER] \ {\bf SUBNAM*$n_1$, MESS*$n_2$,\\
+FLAG, LABEL*$n_3$}
+
+\item[CHARACTER*$n_4$] \ {\bf LABELS}($\geq $NVAL)
+
+\item[REAL] \ {\bf SDATA, SVALS}($\geq $NVAL)
+
+\item[DOUBLE PRECISION] \ {\bf DDATA, DVALS}($\geq $NVAL)
+\end{description}
+
+\subsubsection{Call Statements}
+
+In each of these calls, all arguments must be assigned values before the
+call and none of the argument values will be changed by the subroutine. It
+will usually be most convenient to supply most of the arguments,
+particularly those of type character, as literals in the call statement.
+
+To initiate an error message:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL ERMSG (SUBNAM, IERR, LEVEL,\\
+MESS, FLAG)\\
+\end{tabular}}
+\end{center}
+
+To initiate a message, including one REAL datum:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SERM1 (SUBNAM, IERR, LEVEL,\\
+MESS, LABEL, SDATA, FLAG)\\
+\end{tabular}}
+\end{center}
+
+To initiate a message, including one DOUBLE PRECISION datum:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DERM1 (SUBNAM, IERR, LEVEL,\\
+MESS, LABEL, DDATA, FLAG)\\
+\end{tabular}}
+\end{center}
+
+To initiate a message, including one INTEGER datum:
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL IERM1 (SUBNAM, IERR, LEVEL,\\
+MESS, LABEL, IDATA, FLAG)\\
+\end{tabular}}
+\end{center}
+
+To add a REAL datum to the current message:
+$$
+\fbox{\bf CALL SERV1 (LABEL, SDATA, FLAG)}
+$$
+To add a DOUBLE PRECISION datum to the current message:
+$$
+\fbox{\bf CALL DERV1 (LABEL, DDATA, FLAG)}
+$$
+To add an INTEGER datum to the current message:
+$$
+\fbox{\bf CALL IERV1 (LABEL, IDATA, FLAG)}
+$$
+\pagebreak
+
+To add an additional character string, MESS, to the current message:
+$$
+\fbox{\bf CALL ERMOR (MESS, FLAG)}
+$$
+To alter the nominal message processing action:
+$$
+\fbox{\bf CALL ERMSET (IDELTA)}
+$$
+Subroutine called by other subroutines of the package when
+FLAG = $^{\prime}.^{\prime}$ to print the closing line of dollar signs
+and take the final action of returning or stopping:
+$$
+\fbox{\bf CALL ERFIN}
+$$
+\subsubsection{Argument Definitions}
+
+\begin{description}
+
+\item[SUBNAM] \ [in] Name of subprogram in which error has been detected. Suggest
+length of name $\leq $ 12.
+
+\item[IERR] \ [in] Identification number for the error.
+
+\item[LEVEL] \ [in] Should be set to~2, 0, or~$-$2 to specify the nominal
+action desired.
+\begin{itemize}
+\item[2] = print and stop
+\item[0] = print and return
+\item[$-$2] = return with no printing
+\end{itemize}
+This specification applies over a complete sequence of calls to the package
+as described above. In particular if a stop is to occur, it will not happen
+until the last call of a sequence, $i.e$. a call with
+FLAG = $^{\prime}.^{\prime}$ .
+
+The actual action taken is governed by:
+
+\hspace{.2in}NALPHA = NDELTA + LEVEL,
+
+where NDELTA is a saved local variable in the package. The initial value of
+NDELTA is zero but it can be changed by use of subroutine ERMSET.
+
+\item[MESS] \ [in] Error message of length $\leq $ 72.
+
+\item[FLAG] \ [in] A single character, either a comma or a period. A comma means
+further data or character strings to be included in the error message will
+be provided by subsequent calls. A period means this is the last call
+relating to the current error message.
+
+\item[LABEL] \ [in] An identifying label to be printed with the data value given in
+SDATA, DDATA, or IDATA. Suggest length of label $\leq $ 35.
+
+\item[SDATA] \ [in] Data item of type REAL to be printed with the error message.
+
+\item[DDATA] \ [in] Data item of type DOUBLE PRECISION to be printed with the error
+message.
+
+\item[IDATA] \ [in] Data item of type INTEGER to be printed with the error message.
+
+\item[NVAL] \ [in] Number of array elements to be printed from LABELS() and from
+SVALS() or DVALS().
+
+\item[LABELS()] \ [in] An array of NVAL labels to be printed with the data values
+given in SVALS() or DVALS(). The array elements should have CHARACTER
+length $\leq $ 35.
+
+\item[SVALS()] \ [in] An array of NVAL REAL values to be printed.
+
+\item[DVALS()] \ [in] An array of NVAL DOUBLE PRECISION values to be printed.
+
+\item[IDELTA] \ [in] New value to be assigned to the saved local variable NDELTA.
+Alters the action of the error processing.
+
+\end{description}
+
+\subsection{Examples and Remarks}
+
+Usage is illustrated by the program DRERMSG and the output ODERMSG.
+
+\subsection{Functional Description}
+
+\subsubsection{Levels of action}
+
+The actual action level, NALPHA, computed as LEVEL + NDELTA, determines
+the action as follows:
+
+\begin{tabular}{ll}
+NALPHA $\geq $ 2 & print message and STOP.\\
+NALPHA $= -1$, 0 or 1 & print message and RETURN.\\
+NALPHA $\leq$ $-$2 & RETURN, doing no printing.\\
+\end{tabular}
+
+\subsubsection{Effects of resetting NDELTA}
+
+The saved local variable, NDELTA, initially has the value zero. If it is
+changed by a call to ERMSET the effect can be interpreted as follows:
+
+{\bf NDELTA \hspace{.75in} Effect}\vspace{-3pt}
+\begin{itemize}
+\item[2\ ]  Print and stop on all diagnostics that would otherwise be printed.
+
+\item[0\ ]  Take the standard action.
+
+\item[$-$1\ ]  Do not stop on any diagnostics. Print as usual.
+
+\item[$-$2\ ]  Never stop. Print only those diagnostics that nominally result in a stop.
+
+\item[$-$4\ ]  Do not print or stop on any diagnostic.
+\end{itemize}
+
+\subsubsection{Form of the error message}
+
+The message will begin with a line of~72 dollar signs. The next two lines
+will be:
+
+Subprogram SUBNAM reports Error No. IERR
+
+The initial message, MESS.
+
+Following may be lines of the following forms:
+
+\begin{tabbing}
+(1)\hspace{.2in}\=LABEL = $value$\\
+\\
+where $value$ is SDATA, DDATA, or IDATA,\\
+\\
+(2)\>$label1 = val1$, $label2 = val2$, ...\\
+\\
+where the $labels$ are from LABELS() and the $values$ are\\
+from SVALS() or DVALS(), or\\
+\\
+(3)\>MESS\\
+\\
+transmitted by subroutine ERMOR.
+\end{tabbing}
+
+Finally the message will be terminated with another line of~72 dollar signs.
+
+\subsection{Error Procedures and Restrictions}
+
+This package shares data via a COMMON block named M77ERR. The user must not
+use this name for any other COMMON block.
+
+If any of the character string arguments are longer than the suggested
+maximum lengths, the corresponding printed line of the error message will
+exceed a length of 72~characters.
+
+The subroutine ERMSET should not be called between the beginning and end of
+a sequence of calls to the error processing subroutines.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77. Uses common block M77ERR.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DERM1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERM1, DERV1, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+DERV1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, ERFIN\rule[-5pt]{0pt}{8pt}}\\
+ERFIN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN\rule[-5pt]{0pt}{8pt}}\\
+ERMOR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMOR\rule[-5pt]{0pt}{8pt}}\\
+ERMSET & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+ERMSG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+IERM1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+IERV1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SERM1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\
+SERV1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, SERV1\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+This package is based on the subroutine EMESS, designed by F. T. Krogh, JPL,
+1974, and programmed by S. A. Singletary, JPL, 1974. Present version
+designed and programmed by C. L. Lawson and S. Chiu, JPL, April~1983.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRERMSG}\vspace{10pt}
+\lstinputlisting{\codeloc{ermsg}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODERMSG}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{ermsg}}
+\end{document}

@@ -1,0 +1,137 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 7.3 Compute Polynomial Coefficients from Roots
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Given $n$ complex numbers, $z_i$, compute (complex) coefficients, $c_i$,
+such that the monic polynomial defined by%
+\begin{equation*}
+p(z)=c_1z^n+...+c_nz+c_{n+1}
+\end{equation*}
+has the numbers $z_i$ as its roots. The coefficients will be computed from
+the relation%
+\begin{equation*}
+\hspace{-10pt}c_1z^n+.\text{ . . }+c_nz+c_{n+1}=(z-z_1)(z-z_2)^{...}(z-z_n)
+\end{equation*}
+Note that $c_1$ is always set to~1.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[\bf INTEGER]  \ {\bf NDEG}
+\item[\bf COMPLEX]  \ {\bf ROOTS}$(\geq $NDEG),{\bf COEFS}$(\geq $NDEG+1)
+\end{description}
+Assign values to NDEG and ROOTS().
+$$
+\fbox{{\bf CALL CCOEF (NDEG, ROOTS, COEFS)}}
+$$
+Computed quantities are returned in COEFS().
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[NDEG]  [in] Number of roots given in ROOTS(), and thus the degree of
+the polynomial whose coefficients are to be computed.
+\item[ROOTS()]  [in] Roots, given as complex numbers.
+\item[COEFS()]  [out] Computed coefficients, stored as complex numbers. The
+arrays COEFS() and ROOTS() must be distinct. The coefficient, $c_1$, will be
+the coefficient of $z^{NDEG}$ and will be set to~1.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change the subroutine name from CCOEF to ZCOEF.
+Recall that the Fortran~77 standard does not support a double precision
+complex data type, although many Fortran compilers do, using the
+declaration, COMPLEX*16. To remain within the Fortran~77 standard, use the
+declarations
+\begin{description}
+\item[DOUBLE PRECISION]  {\bf ROOTS}(2, $\geq $ NDEG$)$,
+{\bf COEFFS}(2, $\geq $NDEG$+1)$
+\end{description}
+
+and use the convention that real and imaginary parts of complex numbers are
+associated with the values 1 and~2, respectively, of the first subscript.
+This usage is compatible with the Fortran~90 standard.  Alternatively, if
+the COMPLEX*16 declaration is available and is compatible with this storage
+convention, one may use the nonstandard declaration
+\begin{description}
+\item[COMPLEX*16]  {\bf ROOTS}$(\geq $ NDEG$)$,
+{\bf COEFFS}$(\geq $ NDEG$+1)$
+\end{description}
+
+\subsection{Examples and Remarks}
+
+The program, DRZCOEF, with its output, ODZCOEF, illustrates the use of ZCOEF
+to compute the coefficients of a quadratic and a cubic polynomial.
+
+If this subroutine is used to assess the accuracy of a polynomial root
+finder we suggest use of the double precision version, even if it is a single precision
+root finder, to reduce the introduction of errors from the process of
+computing the polynomial coefficients.
+
+\subsection{Functional Description}
+
+\subparagraph{Method}
+
+The degree, NDEG, and roots, $z_1$, ..., $z_{NDEG}$, are given. The
+coefficients, $c_i$, are computed by the following algorithm. The quantities
+$z_i$ and $c_i$ are complex. In the double precision version the complex arithmetic is
+coded in-line in terms of operations on the real and imaginary parts to
+conform to the Fortran~77 standard.
+\begin{tabbing}
+\hspace{.2in}\=$c_1 = 1.0$\\
+\>if( NDEG .le. 0 ) return\\
+\>$c_2 = -z_1$\\
+\>do $i = 2$, NDEG\\
+\>\ \ \ \ \=$c_{i+1} = -c_i * z_i$\\
+\>\>do $j = i$, 2, $-$1\\
+\>\>\ \ \ \ $c_j = c_j - c_{j-1} * z_i$\\
+\>\>enddo\\
+\>enddo\\
+\>return
+\end{tabbing}
+
+\subparagraph{Accuracy tests}
+
+The logic and the accuracy of this code were checked by use with a root
+finder. The accuracy was consistent with the computer system being used.
+
+\subsection{Error Procedures and Restrictions}
+
+If NDEG $\leq$ 0 the subroutine returns, setting COEFS$(1) = 1$. The arrays
+ROOTS() and COEFS() must occupy distinct storage locations.
+
+\subsection{Supporting Information}
+
+The source language for these subroutines is ANSI Fortran 77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt}\\
+CCOEF & \hspace{.35in} CCOEF\rule[-5pt]{0pt}{8pt}\\
+ZCOEF & \hspace{.35in} ZCOEF
+\end{tabular}
+
+Designed by C. L. Lawson, JPL, May~1986.
+
+Programmed by C. L. Lawson and S. Y. Chiu, JPL, May~1986, Feb.~1987.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRZCOEF}\vspace{10pt}
+\lstinputlisting{\codeloc{zcoef}}
+
+\vspace{30pt}\centerline{\bf \large ODZCOEF}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{zcoef}}
+\end{document}

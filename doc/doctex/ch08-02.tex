@@ -1,0 +1,488 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 8.2 Solve System of Nonlinear Equations
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine solves a system of $n$ nonlinear equations in $n$ unknowns.
+The problem can be expressed as
+\begin{equation*}
+{\bf f}({\bf x}) = {\bf 0}
+\end{equation*}
+where ${\bf x}$ denotes an $n$-vector of unknowns and ${\bf f}$ denotes an $%
+n $-dimensional vector-valued function, with components $f_i({\bf x})$, $i =
+1$, ..., $n.$
+
+It is assumed that the function ${\bf f}$ has continuous first partial
+derivatives with respect to ${\bf x}$, at least in a reasonably sized
+neighborhood of the solution.
+
+The solution algorithm makes use of the $n\times n$ Jacobian matrix, $J({\bf %
+x})$, whose $(i,j)$ element is $\partial f_i/\partial x_j$ evaluated at $%
+{\bf x}$. The elements of $J$ may either be computed by user-provided code
+or estimated by the algorithm using finite differences of values of ${\bf f}%
+. $
+
+An auxiliary subroutine DCKDER (Chapter~8.3) may be used as an aid for
+checking the consistency of code the user may write for computing
+derivatives.
+
+The problem, ${\bf f}({\bf x}) = {\bf 0}$, can also be solved using the
+nonlinear least-squares package DNLxxx of Chapter~9.3. Generally if a
+problem can be solved by both DNQSOL and DNLxxx the execution time will be
+significantly less using DNQSOL. Problems for which DNLxxx is needed are:
+\begin{itemize}
+\item[(1)] those in which the number of unknowns is not equal to the number of
+equations,
+\item[(2)] those in which one does not expect the system to have an
+exact solution,
+\item[(3)] those in which constraints on the variables are an
+inherent aspect of the problem and one expects that the solution may lie on
+a constraint boundary, or
+\item[(4)] those in which it is necessary to constrain
+the region of search to prevent the algorithm from wandering away from the
+expected neighborhood of the solution.
+\end{itemize}
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Double Precision}
+\begin{description}
+\item[EXTERNAL]  \ {\bf DNQFJ}
+
+\item[INTEGER]  \ {\bf N, IOPT(), IDIMW}
+
+\item[DOUBLE PRECISION]  {\bf X}($\geq $N){\bf , FVEC}($\geq $N){\bf ,\\
+XTOL, W}(IDIMW)
+\end{description}
+Assign values to N, X(), XTOL, IOPT(), IDIMW, and optionally, W().
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DNQSOL(DNQFJ, N, X, FVEC,\\
+XTOL, IOPT, W, IDIMW)\\
+\end{tabular}}
+\end{center}
+Computed results will be returned in X(), FVEC(), IOPT(1:3), and W(3).
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[DNQFJ]  \ [in] Name of subroutine provided by the user to compute the
+value of ${\bf f}$, and optionally $J$, at any specified value of ${\bf x}$.
+This subroutine must be of the form:
+{\tt \begin{tabbing}
+subroutine DNQFJ(N, X, FVEC, FJAC, IFLAG)\\
+integer N, IFLAG\\
+double precision X(N), FVEC(N), FJAC(N,N)\\
+On entry X() contains the current value\\
+of ${\bf x}.$\\
+If IFLAG $= 0$, print X() and FVEC().\\
+\ \ \ \=$\{$This action is needed only if the\\
+\>$iprint$ option is selected with $nprint$\\
+\>positive$.\}$\\
+If IFLAG $= 1$, compute ${\bf f}({\bf x})$, storing $f_i$ in\\
+\>FVEC(i) for $i = 1$, ...,N.\\
+If IFLAG $= 2$, compute $J({\bf x})$, storing\\
+\>$\partial f_i/\partial x_j$ in FJAC$(i,j)$ for $i = 1$, ..., N,\\
+\>and $j = 1$, ..., N. $\{$This action is not\\
+\>needed if the $inoj$ option is selected,\\
+\>however FJAC must still appear in the\\
+\>argument list$.\}$\\
+return\\
+end
+\end{tabbing}}
+The subroutine DNQFJ may set IFLAG to a negative integer value to cause
+immediate termination of the solution procedure. Otherwise, the value of
+IFLAG should not be changed.
+
+Except at the initial ${\bf x}$, a call to DNQFJ with IFLAG $=2$ will almost
+never be with the same ${\bf x}$ as the previous call with IFLAG $=1$. Thus,
+it is not easy to save subexpressions from the computation of function
+values for reuse in the computation of the Jacobian. The Jacobian updating
+method used by this algorithm reduces the number of Jacobian evaluations
+needed.
+
+In some applications DNQFJ may need additional data that may have been input
+by the user's main program. One way to handle this in Fortran~77 is by use
+of named COMMON blocks.
+
+\item[N]  \ [in] The number, $n$, of components in ${\bf x}$ and in ${\bf f}%
+. $
+
+\item[X()]  \ [inout] On entry X() must contain an initial value for the $%
+{\bf x}$ vector. On successful termination X() contains the final estimate
+of the solution vector, ${\bf x}.$
+
+\item[FVEC()]  \ [out] On termination FVEC() contains the value of the ${\bf %
+f}$ vector evaluated at the final ${\bf x}.$
+
+\item[XTOL]  \ [in] Require XTOL $\geq 0.0$. The algorithm will report
+successful termination when it estimates the relative error in ${\bf x}$, in
+a weighted Euclidean vector norm sense, is less than $\max (\text{XTOL}%
+,\epsilon )$, where $\epsilon $ is the machine accuracy, given by
+D1MACH(4) (or R1MACH(4) for single precision).  D1MACH and R1MACH are
+described in Chapter~19.1.
+
+We suggest setting XTOL in the range from $\epsilon ^{0.50}$ to $%
+\epsilon ^{0.75}.$
+
+See Section D for further discussion of XTOL and the convergence test.
+
+\item[IOPT()]  \ [inout] Array used to select options and to return
+information. The first three locations are used to return information as
+follows:
+
+IOPT$(1)=info$. Indicator of status on termination. If $info<0$, termination
+is due to IFLAG having been set negative in DNQFJ, and $info$ will have the
+value that was assigned to IFLAG. Otherwise, $info$ may have the following
+values:
+
+\begin{itemize}
+\item[0]  Successful termination. Either the XTOL test is satisfied or the
+condition ${\bf f}={\bf 0}$ is satisfied exactly.
+
+\item[1]  Improper input parameters. Require N $>0$, IDIMW $\geq $ the value
+specified below, and valid entries in IOPT(i) for $i\geq 4.$
+
+\item[2]  Number of calls to DNQFJ has reached the limit of {\em maxfev}. Default:
+$maxfev =200\times (\text{N}+1).$
+
+\item[3]  It appears to be impossible to satisfy the XTOL test. Possibly
+XTOL should be set larger.
+
+\item[4, 5]  The value 4 means there have been five successive evaluations
+of the Jacobian matrix without any significant reduction in $\Vert {\bf f}%
+\Vert $, while 5 means there have been ten successive evaluations of ${\bf f}
+$ without any significant reduction in $\Vert {\bf f}\Vert $. Typically the
+algorithm will terminate with IOPT(1) = 4 or 5 when it is trapped in the
+neighborhood of a local minimum of $\Vert {\bf f}\Vert $ at which ${\bf f}$
+is not the zero vector.
+\end{itemize}
+
+When IOPT(1) = 2, 4, or 5 it is advisable to check the validity of the user
+code, if any, for computing the Jacobian. Once that is assured it may be
+useful to try different initial values for ${\bf x}.$
+
+IOPT$(2)=nfev$. Number of function evaluations used, $i.e.$, the number of
+times DNQFJ was called with IFLAG = 1.
+
+IOPT$(3)=njev$. Number of evaluations of the Jacobian matrix, either by
+finite-difference approximation or by calling DNQFJ with IFLAG =
+2.\vspace{5pt}
+
+Locations in IOPT() indexed from~4 on are available for selecting options.
+The sequence of option selections must be terminated with a zero. For the
+simplest usage, if DNQFJ contains code for computing the Jacobian matrix
+just set IOPT(4) = 0, while if DNQFJ does not contain code for the Jacobian
+set IOPT(4) = 1 and IOPT(5) = 0.
+
+Options have code numbers from~1 to~8, and some options have one or two
+integer arguments. The code numbers of options to be exercised, each
+followed immediately by its arguments, if any, must be placed in IOPT()
+beginning at IOPT(4), with no gaps, and terminated by a zero value. The
+ordering of different options in IOPT() is not significant. If an option is
+repeated the last occurrence prevails.
+
+As a convenience for altering the set of selected options, the negative of
+an option code is interpreted to mean the option is to take its default
+value. If this is an option that has arguments, space for the appropriate
+number of arguments must still be allocated following the option code, even
+though the arguments will not be used.
+
+The option codes and their arguments are as follows:
+
+\begin{itemize}
+\item[1]  $inoj$. Select this option if the subroutine DNQFJ does not
+contain code for computing the Jacobian matrix. In this case no calls to
+DNQFJ will be made with IFLAG = 2, and the algorithm will estimate the
+Jacobian matrix by computing finite differences of values of ${\bf f}.$
+
+\item[2]  $isetd$. Argument: $dmode$. Selects manner of initializing and
+subsequently altering the weighting array, $diag$(), which is stored in W($4:%
+\text{N}+3)$ and discussed in Section D.  {\em dmode} may be set to~1,~2, or~3. The
+default value is~1.
+
+\begin{itemize}
+\item[1] DNQSOL will set $diag$() to all ones and not subsequently alter
+these values.  Reference \cite{Powell:AHM:1970} states that, for most
+tested problems, the MINPACK code from which the present package was
+derived was most successful using this option.
+
+\item[2]  The user must assign positive values to $diag$() before calling
+DNQSOL. DNQSOL will not subsequently alter these values.
+
+\item[3]  DNQSOL will initially set $diag(j)$ to be the Euclidian norm of
+the $j^{th}$ column of the initial Jacobian matrix, for $j=1$, ..., N. If
+the $j^{th}$ column is all zeros $diag(j)$ will be set to one. The value of
+$diag(j)$ will be increased subsequently if the norm of the $j^{th}$ column
+increases.
+\end{itemize}
+
+\item[3]  $iprint$. Argument: $nprint$. The algorithm increments an internal
+counter, $ibest$, whenever a new value of ${\bf x}$ is accepted as giving a
+significant reduction in $\Vert {\bf f}\Vert $. If $nprint >0$, DNQFJ will
+be called with IFLAG $=0$ after the first evaluation of ${\bf f}$, after
+every $nprint^{th}$ time $ibest$ is incremented, and on termination. DNQFJ is
+expected to print X() and FVEC() on these occasions. The values in X() and
+FVEC() on these calls will be those that have given the smallest value of $%
+\Vert {\bf f}\Vert $ up to that point. Thus, these will not always be the
+values associated with the most recent function evaluation. Setting $nprint
+\leq $ 0 has the same effect as not exercising option $iprint$, $i.e.$, no
+calls will be made to DNQFJ with IFLAG = 0.
+
+\item[4]  {\em imxfev}. Argument: {\em maxfev}. The algorithm will terminate with $%
+info=2 $ if convergence has not been attained after {\em maxfev} function
+evaluations. Default value: $200 \times (\text{N}+1).$
+
+\item[5]  $iband$. Arguments: $ml$ and $mu$. If DNQFJ will not be computing the
+Jacobian matrix, $J$, and thus option $inoj$ is selected, and if $J$ has a
+sufficiently narrow band structure, a reduction in the number of function
+evaluations needed to estimate $J$ by finite differences can be effected by
+informing the algorithm of the band structure. In such a case set $ml$ and $mu$
+to values such that all the nonzero elements of $J$ lie within the first $ml$
+subdiagonals, the main diagonal, and the first $mu$ superdiagonals. This only
+reduces the number of function evaluations if $ml+mu+1<$ N.
+
+\item[6]  {\em iepsfn}. Select this option if DNQFJ will not be computing the
+Jacobian matrix, $J$, and thus option $inoj$ is selected, and you are
+providing an estimate, {\em epsfcn}, in W(1), of the relative error expected in
+function evaluations. {\em epsfcn} is used by the algorithm in selecting the
+increment used in computing finite difference approximations to derivatives.
+Default: {\em epsfcn} = machine precision obtained as D1MACH(4) (or R1MACH(4) in
+single precision.)
+
+\item[7]  $ifactr$. Select this option if you are providing a value, $factor$,
+in W(2). {\em factor} provides a bound on the weighted length of the first step
+the algorithm takes. Default: $factor$ = 0.75. See Section D for more
+information on the role of $factor$.
+
+\item[8]  $itrace$. This option activates printing of intermediate diagnostic
+output. The output statements use unit `` * " to direct the output to the
+standard system output unit.
+\end{itemize}
+
+\item[W()]  \ [in, out, scratch] An array of length IDIMW.
+
+If option {\em iepsfn} is selected the user must store {\em epsfcn} in W(1). This value
+will not be altered.
+
+If option $ifactr$ is selected the user must store $factor$ in W(2). This value
+will not be altered.
+
+On return W(3) will contain a quantity, $toltst$, that can be regarded as an
+estimate of the relative error in the final ${\bf x}$ in a weighted norm
+sense. If ${\bf x}\neq 0$, $toltst=\Delta /\Vert Dx\Vert $, which is the
+value compared with XTOL for the convergence test (see Section D).
+
+If ${\bf x}=0$, $toltst=0.$
+
+If option $isetd$ is selected with $dmode$ = 2, the user must store positive
+values for $diag(1:\text{N})$ in W($4:\text{N}+3)$. In this case the
+contents of W($4:\text{N}+3)$ will not be altered by DNQSOL. If $isetd$ is
+not selected or if it is selected with $dmode$ = 1 or~3, values for $diag$()
+will be stored in W($4:\text{N}+3)$ by DNQSOL.
+
+W($\text{N}+4:3+(15 \times \text{N}+3 \times \text{N}^2)/2)$ is used as working
+space.
+
+\item[IDIMW]  \ [in] Dimension of W() array. Require IDIMW $\geq 3+(15
+\times \text{N}+3 \times \text{N}^2)/2.$
+\end{description}
+
+\subsubsection{Modifications for Single Precision}
+
+For single precision usage change the DOUBLE PRECISION statements to REAL
+and change the initial letters of the subroutine names from ``D'' to ``S.''
+It is recommended that one use the double precision rather than the
+single precision version of this
+package for better reliability, except on computers such as the Cray Y/MP
+that have precision of about 14~decimal places in single precision.
+
+\subsection{Examples and Remarks}
+
+Consider the sample problem:%
+\begin{align*}
+\exp (-x_1)+\sinh(2x_2)+\tanh(2x_3) &= 5.01\\
+\exp (2x_1)+\sinh(-x_2)+\tanh(2x_3) &= 5.85\\
+\exp (2x_1)+\sinh(2x_2)+\tanh(-x_3) &= 8.88
+\end{align*}
+To use DNQSOL this must be put in the form of expressions whose desired
+values are zeros. Thus, for instance we may define%
+\begin{alignat*}{2}
+f_1 &\equiv \exp &(-x_1)+\sinh(2x_2)+\tanh(2x_3)-5.01&=0\\
+f_2 &\equiv \exp &(2x_1)+\sinh(-x_2)+\tanh(2x_3)-5.85&=0\\
+f_3 &\equiv \exp &(2x_1)+\sinh(2x_2)+\tanh(-x_3)-8.88&=0
+\end{alignat*}
+The program DRDNQSOL illustrates the use of DNQSOL to solve this problem.
+DRDNQSOL also illustrates the use of DCKDER of Chapter~8.3 to check the
+mutual consistency of the code for function and Jacobian evaluation. Results
+are shown in ODDNQSOL.
+
+A problem ${\bf f}({\bf x}) = {\bf 0}$ may have no solutions, or one or more
+solutions. The residual norm $\|{\bf f}({\bf x})\|$ may have more than one
+local minimum, some with ${\bf f}$ not zero. The norm $\|{\bf f}({\bf x})\|$
+can have a nonzero minimum only at a point where the Jacobian matrix is
+singular. The user should choose an initial ${\bf x}$ that is as close to
+the desired solution as possible. For a problem whose properties with regard
+to multiplicity of solutions or local minima are not known, it may be
+advisable to apply the subroutine several times using different initial $%
+{\bf x}$'s to see if different termination points occur.
+
+It is often useful, or even necessary, to limit the search to a specified
+region. Subroutine DNQSOL does not have a specific feature for bounding
+variables. One can limit the size of the initial step by setting $factor$
+using option $ifactr$. If bounding of variables is definitely needed, one can
+use the nonlinear least-squares package of Chapter~9.3. If a problem can be
+solved by DNQSOL, this approach will generally require less execution time
+than would the use of the Chapter~9.3 package.
+
+Since the uniformly weighted Euclidean norm of ${\bf f}$ plays a central
+role in the algorithm, it is generally advantageous to have the separate
+components of ${\bf f}$ scaled so that an error of one unit in one component
+of ${\bf f}$ has about the same importance as an error of one unit in any
+other component.
+
+If the user has estimates of positive numbers $dx_j$ such that a change of
+magnitude $dx_j$ in $x_j$ is expected to have about the same effect on $\|%
+{\bf f}\| $ as a change of magnitude $dx_i$ in $x_i$ for all $i$ and $j$, it
+may be useful to set $diag(j) = 1/dx_j$ for $j = 1$, ..., $n$, by using the
+option $isetd$. The overall scaling of values for $diag$() must be coordinated
+with the choice of XTOL and $factor$ to assure that the convergence test (see
+end of Section D) makes sense. For example it may be convenient to scale
+$diag$() so its largest element is~1.
+
+\subsection{Functional Description}
+
+The algorithm attempts to find a vector ${\bf \hat x}$ satisfying ${\bf f}(%
+{\bf \hat x})={\bf 0}$, starting the search from a given point ${\bf x}_0$.
+
+The algorithm is a trust-region method, using a Broyden update to reduce the
+number of times the Jacobian matrix must be recomputed, and using a
+double-dogleg method of solving the constrained linearized problem within
+the trust-region. For detailed descriptions of these terms and techniques,
+see \cite{Dennis:1983:NMU}. A brief description follows:
+
+Given a point, ${\bf x}$, a positive diagonal scaling matrix, D, and a
+trust-region radius, $\Delta $, the algorithm attempts to find a step
+vector, ${\bf p}$, that solves the modified problem:%
+\begin{equation*}
+\min \{\Vert {\bf f}({\bf x}+{\bf p})\Vert ^2:\Vert D{\bf p}\Vert \leq
+\Delta \}
+\end{equation*}
+where $\Vert \cdot \Vert $ denotes the Euclidean norm. The algorithm
+replaces this problem by the linearization,%
+\begin{equation*}
+\min \{\Vert {\bf f}+J{\bf p}\Vert ^2:\Vert D{\bf p}\Vert \leq \Delta \}
+\end{equation*}
+where ${\bf f}$ and $J$ denote the function vector and Jacobian matrix
+evaluated at ${\bf x}$. This problem is approximately solved using a
+double-dogleg method that further restricts the step vector ${\bf p}$ to be
+in the two-dimensional subspace spanned by the Gauss-Newton direction, $%
+-J^{-1}{\bf f}$, and the scaled gradient descent direction, $-D^{-2}J^t{\bf f}.$
+
+The region $\{{\bf x}+{\bf p} : \|D{\bf p}\| \leq \Delta \}$ is called the
+trust-region associated with ${\bf x}$. The algorithm attempts to regulate
+the size of $\Delta $ so the linear function ${\bf f}+J{\bf p}$ will be a
+reasonably good approximation to the nonlinear function ${\bf f}({\bf x}+%
+{\bf p})$ within the trust-region.
+
+Diagonal elements of D are stored in the array $diag$(), which is initialized,
+and optionally updated, as described in Section B. The trust-region radius $%
+\Delta $ is initially computed as $\Delta = factor \times \|{\bf x}_0\|$, if $%
+\|{\bf x}_0\| > 0$, and as $\Delta = factor$, otherwise. The initialization of
+$factor$ is described in Section B.
+
+Let ${\bf p}$ denote the step vector determined by this process and define $%
+{\bf x}_+ = {\bf x} + {\bf p}$. If $\|{\bf f}({\bf x}_+)\| \geq
+\|{\bf f}({\bf x})\|$ the algorithm will reduce $\Delta $ and solve for
+a new ${\bf p}.$
+
+If a smaller value of $\Vert {\bf f}\Vert $ is found, the algorithm computes
+an estimate of the Jacobian at the new point and starts the step
+determination process again. Rather than always computing the new Jacobian
+by calling the user-supplied code or using finite differences, the algorithm
+first tries to use an updated Jacobian which is more economical to compute.
+The update formula, due to Broyden, is%
+\begin{equation*}
+J_{+}=J+\frac{\left( {\bf f}({\bf x}+{\bf p})-{\bf f}({\bf x})-J{\bf p}%
+\right) \left( D^tD{\bf p}\right) ^t}{\Vert D{\bf p}\Vert ^2}
+\end{equation*}
+The algorithm computes and maintains a QR factorization of $J$. The Broyden
+update process is applied to the QR factorization of J.
+
+If progress is unsatisfactory when based on an updated Jacobian, the
+algorithm will recompute the Jacobian using the user-supplied code for $J$,
+if available, or otherwise by finite differences of user-computed values of $%
+{\bf f}.$
+
+As the algorithm makes progress toward a zero of ${\bf f}$, the step ${\bf p}
+$ will generally become smaller. If also the trust-region seems reliable, in
+the sense that the relative reduction in $\Vert {\bf f}\Vert ^2$ is within
+10\% of the relative reduction predicted by the linear model, then $\Delta $
+will be reset to $2\Vert D{\bf p}\Vert $ so that $\Delta $ decreases as $%
+\Vert D{\bf p}\Vert $ decreases. Convergence to a zero of ${\bf f}$ is
+assumed to have occurred when%
+\begin{equation*}
+\Delta \leq \max (\text{XTOL},\epsilon )\times \Vert D{\bf x}\Vert ,
+\end{equation*}
+or if an ${\bf x}$ is found for which ${\bf f}({\bf x})={\bf 0}$, exactly.
+In these cases the subroutine returns with IOPT(1) = 1.
+
+If the algorithm gets trapped in the neighborhood of a local minimum of $\|%
+{\bf f}\|$ at which ${\bf f}$ is not zero, the step ${\bf p}$, and thus the
+trust-region radius, $\Delta $, will generally not get small. The Jacobian $%
+J $ will be singular at such a local minimum. These conditions generally
+result in a return with IOPT$(1) = 4$ or~5 or possibly~2.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Notice of any detected error condition is sent to the error message printing
+routines of Chapter~19.2 using error level 0, and the subroutine will return
+with a value of $info$ in IOPT(1) other than~0. The action of the error
+printing routines can be altered as described in Chapter~19.2.
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DNQSOL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERV1, DNQSOL, DNRM2, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SNQSOL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SERV1, SNQSOL, SNRM2}\\
+\end{tabular}
+
+The source language is ANSI Fortran~77.
+
+The original MINPACK version of this code was designed and programmed by
+the authors of \cite{More:1980:MIN} and \cite{Garbow:1980:MIN} where this
+code is called HYBRD and HYBRJ.  They, in turn, cite
+\cite{Powell:AHM:1970} for the general strategy of their approach and
+numerous other authors for additional ideas.  The MINPACK code was
+downloaded from $netlib$ to JPL by C.  L.  Lawson in February~1990.  The
+subroutine names and the user interface were modified by Lawson and F.  T.
+Krogh in~1990 and 1991 to conform to the MATH77 library style.  Changes to
+the logic of the algorithm have been made that reduced the execution time
+and improved the reliability of the code when applied to the set of
+fourteen test problems included with the MINPACK package.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDNQSOL}\vspace{0pt}
+\lstinputlisting{\codeloc{dnqsol}}
+
+\vspace{10pt}\centerline{\bf \large ODDNQSOL}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dnqsol}}
+\end{document}

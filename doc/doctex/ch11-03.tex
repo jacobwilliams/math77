@@ -1,0 +1,152 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 11.3 Conversion between Chebyshev and Monomial
+\hbox{Representations of a Polynomial}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subroutines convert a polynomial represented in the monomial basis to
+a representation in the Chebyshev basis, and vice versa.
+
+\subsection{Usage}
+
+{\bf B.1 Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  {\bf COEFF}(0:$\geq $N)
+\end{description}
+Assign values to N, and to coefficients in COEFF(). If COEFF(i) contains
+coefficients of $T_i(x)$, $i = 0$, 1, ..., N, which are to be converted to
+coefficients of $x^i$,
+$$
+\fbox{{\bf CALL SCONCM(N, COEFF)}}
+$$
+For the inverse operation,
+$$
+\fbox{{\bf CALL SCONMC(N, COEFF)}}
+$$
+\subsubsection{Argument Definitions}
+\begin{description}
+\item[N]  \ [in] The degree of the polynomial.
+
+\item[COEFF]  \ [inout] When calling SCONCM, COEFF(i) contains the
+coefficient of $T_i$, $i=0$, 1, ... N, on input, and contains the
+coefficient of $x^i$ on output. When calling SCONMC, COEFF(i) contains the
+coefficient of $x^i$, $i=0$, 1, ..., N on input, and the coefficient of $T_i$
+on output.
+\end{description}
+\subsubsection{Modifications for Double Precision}
+
+Change the names SCONCM and SCONMC to DCONCM and DCONMC respectively, and
+change the REAL declaration to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+The program DRSCON prints out the coefficients of the Chebyshev polynomials
+corresponding to $x^k$, $k = 0$, 1, ..., 6, and then prints the coefficients
+in the monomial basis corresponding to the Chebyshev polynomials $T_k$, $k =
+0$, 1, ..., 6. Results are in the file ODSCON.
+
+If these subroutines are applied to a coefficient array, say P(), obtained
+from SPFIT, Chapter~11.1, the zero$^{th}$ order coefficient is in P($3)$ so
+the call would be of the form SCONxx(NDEG, P($3))$, where xx is either CM or
+MC.
+
+\subsection{Functional Description}
+
+Consider the polynomial $p_n(x)$ of degree $n$,
+\begin{equation}
+\label{O1}p_n(x)=\sum_{k=0}^na_kx^k\equiv \sum_{k=0}^nc_kT_k(x)
+\end{equation}
+where $T_k(x)$ is the $k^{th}$ Chebyshev polynomial. This software
+converts between the $a_k$'s and the $c_k$'s.
+
+Using the well-known identities,
+\begin{equation}
+\label{O2}
+\begin{split}
+xT_k(x)&=\frac 12\left[ T_{k+1}(x)+T_{k-1}(x)\right],\ \ k>1\\
+xT_0(x)&=T_1(x)=x,
+\end{split}
+\end{equation}
+we can write $p_n$ in forms intermediate between the extremes represented
+in Eq.\,(1). It is these intermediate forms that are used in obtaining the
+recurrences. Thus
+\begin{align}
+\label{O3}
+p_n(x) &=\sum_{k=0}^{j-1}a_kx^k+x^j\sum_{k=0}^{n-j}b_{k,j}T_k(x)\\
+\label{04}
+ &\equiv \sum_{k=0}^ja_kx^k+x^{j+1}\sum_{k=0}^{n-j-1}b_{k,j+1}T_k(x)
+\hspace{-1in}
+\end{align}
+Note that $b_{k,0}\equiv c_k$. Using Eq.\,(2), Eq.\,(4) gives
+\begin{multline}
+\label{O5}
+p_n(x)=\sum_{k=0}^{j}a_kx^k+\frac{x^j}2 \sum_{k=1}^{n-j-1}
+b_{k,j+1}\bigl [ T_{k+1}(x)\\
++\ T_{k-1}(x)\bigr ]+x^jb_{0,j+1}T_1(x).
+\end{multline}
+Collecting like terms in Eqs.\,(3) and (5), we obtain,
+\begin{equation}\label{O6}
+\hspace{-15pt}\begin{split}
+a_j+\frac 12b_{1,j+1} &= b_{0,j}\\
+b_{0,j+1}+\frac 12 b_{2,j+1} &=b_{1,j}\\
+\frac 12\left[ b_{k-1,j+1}+b_{k+1,j+1}\right] &=
+b_{k,j},\ k=2,3,...,n-j-2\\
+\frac 12b_{k-1,j+1} &= b_{k,j},\ k\geq n-j-1.
+\end{split}
+\end{equation}
+A more efficient recursion is obtained with $b_{k,j}$ replaced by
+$2^jB_{k,j}$. Thus,
+\begin{equation}\label{O7}
+\hspace{-15pt}\begin{split}
+2^{-j}a_j+B_{1,j+1} &= B_{0,j}\\
+2 B_{0,j+1}+B_{2,j+1} &= B_{1,j}\\
+B_{k-1,j+1}+B_{k+1,j+1} &= B_{k,j},\ k=2,3,...,n-j-2\\
+B_{k-1,j+1} &= B_{k,j}, \ k\geq n-j-1.
+\end{split}
+\end{equation}
+In the code, the $B_{k-j,k}$ share space with the original $a_k$ or the
+original $c_k$. If one starts with the $a_k$ then one runs $j$ from $n$ down
+to~0, and otherwise $j$ runs in the opposite direction. Observe that the
+innermost loop requires only a single addition.
+
+\subsection{Error Procedures and Restrictions}
+
+If $n < 0$, a return is made without taking any action.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+Algorithm and code by F.\ T.\ Krogh, JPL, January 1992.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCONCM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+\hspace{.35in} DCONCM\rule[-5pt]{0pt}{8pt}}\\
+DCONMC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+\hspace{.35in} DCONMC\rule[-5pt]{0pt}{8pt}}\\
+SCONCM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+\hspace{.35in} SCONCM\rule[-5pt]{0pt}{8pt}}\\
+SCONMC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+\hspace{.35in} SCONMC}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false} \lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSCON}\vspace{10pt}
+\lstinputlisting{\codeloc{scon}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSCON}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{scon}}
+\end{document}

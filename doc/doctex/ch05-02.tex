@@ -1,0 +1,170 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{DRDHERQL DRSHERQL ODSHERQL}
+\begmath 5.2 Eigenvalues and Eigenvectors of a Hermitian Complex Matrix
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Compute the N eigenvalues and right eigenvectors of an N $\times $ N
+complex Hermitian matrix $A$. A complex matrix is Hermitian if its
+diagonal elements are real and its off-diagonal pairs $a_{i,j}$ and
+$a_{j,i}$ are complex conjugates of each other. Such a matrix will
+have real eigenvalues. The eigenvectors will in general be complex
+but can be chosen so that the matrix $V$ of N eigenvectors is
+unitary, $i.e.$, the conjugate transpose of $V$ is the inverse of
+$V$.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype}
+
+\begin{description}
+\item[REAL]  \ {\bf AR}(LDA,$\geq $N){\bf , AI}(LDA,$\geq $N) [LDA$\geq $N]
+{\bf ,\newline
+EVAL}($\geq $N)
+
+\item[REAL]  \ {\bf VR}(LDA,$\geq $N){\bf , VI}(LDA,$\geq $N){\bf , WORK}($%
+\geq $3N)
+
+\item[INTEGER]  \ {\bf LDA, N, IERR}
+\end{description}
+
+Assign values to AR(,), AI(,), LDA, and N.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SHERQL(AR, AI, LDA, N,\\
+EVAL, VR, VI, WORK, IERR)\\
+\end{tabular}}
+\end{center}
+
+Results are returned in EVAL(), VR(,), VI(,), and IERR.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[AR(,), AI(,)]  \ [inout] On entry the locations on and below the
+diagonal of these arrays must contain the lower-triangular elements of the
+N $\times $ N complex Hermitian matrix $A$ with the real part in AR(,) and
+the imaginary part in AI(,). On return AR(,) and AI(,) contain information
+about the unitary transformations used in the reduction of $A$ in their lower
+triangle. The strict upper triangles of AR(,) and AI(,), and the diagonal of
+AR(,) are unaltered.
+
+\item[LDA]  \ [in] Dimension of the first subscript of the arrays AR(,),
+AI(,), VR(,), and VI(,). Require LDA $\geq $ N.
+
+\item[N]  \ [in] Order of the complex Hermitian matrix $A$. N $\geq 1.$
+
+\item[EVAL()]  \ [out] Array in which the N real eigenvalues of $A$ will be
+stored by the subroutine. The eigenvalues will be sorted with the
+algebraically smallest eigenvalues first.
+
+\item[VR(,), VI(,)]  \ [out] On return contains the real and imaginary parts
+of the eigenvectors with column $k$ corresponding to the eigenvalue in EVAL$%
+(k)$. These N eigenvectors will be mutually orthogonal and will have a
+unit unitary norm.
+
+\item[WORK()]  \ [scratch] An array of at least 3N locations used as
+temporary space.
+
+\item[IERR]  \ [out] On exit this is set to~0 if the QL algorithm converges,
+otherwise see Section E.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change SHERQL to DHERQL, and the REAL type statement to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+Consider the following complex Hermitian matrix:
+\begin{equation*}
+A=\left[
+\begin{array}{cccc}
+\phantom{-}25 & -3-4i & -8+6i & \phantom{-}0 \\
+-3+4i & \phantom{-}25 & \phantom{-}0 & -8-6i \\
+-8-6i & \phantom{-}0 & \phantom{-}25 & \phantom{-}3-4i \\
+\phantom{-}0 & -8+6i & \phantom{-}3+4i & \phantom{-}25
+\end{array}
+\right]
+\end{equation*}
+unit unitary norm associated with these eigenvalues are column
+vectors with the following quadruples of elements:
+($0.5i$, $0.4+0.3i$, $-0.3+0.4i$, 0.5),
+($-0.5i$, $0.4+0.3i$, $0.3-0.4i$, 0.5),
+($-0.5i$, $-0.4-0.3i$, $-0.3+0.4i$, 0.5),  and
+($0.5i$, $-0.4-0.3i$, $0.3-0.4i$, 0.5), respectively.
+
+The code in DRSHERQL, given below, computes the eigenvalues and eigenvectors
+of this matrix. Output from this program is given in the file ODSHERQL.
+
+Before the call to SHERQL, the matrix is saved in order to compute the
+relative residual matrix $D$ defined as%
+\begin{equation*}
+C=\left( AW-W\Lambda \right) /\gamma
+\end{equation*}
+where $W$ is the matrix whose columns are the computed eigenvectors
+of $A$, $\Lambda $ is the diagonal matrix of eigenvalues, and $\gamma $ is the
+maximum-row-sum norm of $A$.
+
+Recall that if ${\bf v}$ is an eigenvector, then so is $\alpha{\bf
+v}$ for any nonzero complex scalar $\alpha$.  More generally, if an
+eigenvalue, $\lambda$, of a complex Hermitian matrix occurs with
+multiplicity $k$, there will be an associated  $k$-dimensional
+complex subspace in which every vector is an eigenvector for
+$\lambda$.  This subroutine will return eigenvectors constituting an
+orthogonal basis for such an eigenspace.
+
+\subsection{Functional Description}
+
+Householder complex unitary similarity transformations are used to transform
+the matrix $A$ to a Hermitian tridiagonal matrix. Additional unitary
+similarity transformations are used to transform the matrix to a real
+tridiagonal matrix. From this point, this subroutine uses the same method as
+the subroutine SSYMQR of Chapter~5.1. As was the case there, all routines
+are minor modifications of EISPACK routines, \cite{Smith:1974:MER}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If the QL algorithm fails to converge in 30~iterations on the $J^{th}$
+eigenvalue the subroutine sets IERR = $J$. In this case $J-1$ eigenvalues
+are computed correctly but the eigenvalues are not ordered, and the
+eigenvectors are not computed. If N $\leq $ 0 on entry, IERR is set to $-$1.
+In either case an error message is printed using IERM1 of Chapter 19.2
+with an error level of 0, before the return.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DHERQL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DHERQL, DIMQL, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SHERQL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SHERQL, SIMQL}\\
+\end{tabular}
+
+Converted by: F. T. Krogh, JPL, October~1991.
+
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSHERQL}\vspace{10pt}
+\lstinputlisting{\codeloc{sherql}}
+
+\vspace{30pt}\centerline{\bf \large ODSHERQL}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sherql}}
+\end{document}

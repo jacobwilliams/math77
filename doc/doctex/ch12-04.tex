@@ -1,0 +1,627 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\usepackage{euscript}
+\begin{document}
+\hyphenation{DZVALS}
+\begmath 12.4 C$^0$ and C$^1$ Surface Interpolation to Scattered Data
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+Given a set of triples $(x_i,\ y_i,\ z_i)$,
+$i$ = 1, \ldots, NP, these routines implicitly construct a conveniently
+computable function $f(x,y)$ satisfying the conditions
+\begin{equation*}
+z_i = f(x_i, y_i), \ \ i=1, \ldots , NP,
+\end{equation*}
+and support evaluation of $f(x,y)$ and its first partial derivatives for
+user-provided values of $(x,y)$.  The data $(x_i,\ y_i)$ are not assumed
+to lie in any special pattern, but it is assumed that $(x_i,\ y_i) =
+(x_j,\ y_j)$ only if $i = j$.
+
+\subsection{Usage}
+
+To apply this method the user must first call STGGRD to build a Delaunay
+triangular grid having the given $(x_i,\ y_i)$ points as nodal points.
+For convenience from here on we shall let {$\EuScript S$} denote the given
+set of $(x_i,\ y_i)$ points.  The user must specify that $f$ is to have
+either C$^0$ or C$^1$ continuity.  For C$^1$ continuity the interpolation
+method needs values of first partial derivatives of the desired surface at
+the nodal points.  Most commonly the user will not have these values, in
+which case the subroutine STGPD can be called to compute estimated partial
+derivatives.
+
+Once the grid and partial derivatives (for the C$^1$ method) have been
+established, one can evaluate the interpolation function $f$ at any
+$(x,y)$ point by calling STGFI.  This evaluation operation can be repeated
+for any number of points.  Subroutine STGFI uses STGFND to determine which
+triangle of the grid contains the point $(x,y)$, and STGC0 or STGC1 to
+evaluate $f(x,y)$ in that triangle.  If the point is outside the
+triangular grid STGFI calls STGEXT to compute extrapolated values.
+
+We do not describe the separate usage of STGFND, STGEXT, STGC0, and STGC1,
+but a user could learn this from the comments in these subroutines and the
+code in STGFI, if desired for specialized applications.
+
+In some applications one wishes to produce a table of values of the
+interpolated surface at points of a regular rectangular grid.  The
+subroutine STGREC can be called to produce such a table.  STGREC makes
+a sequence of calls to STGFI.  The user must call STGGRD and optionally
+STGPD before calling STGREC.
+
+The subroutine STGPGR is provided to print the data structures that
+define the triangular grid.  This routine may also be useful as a
+model if one wishes to interface to a graphics system to draw the
+triangular grid.
+
+The following sections address usage for the following:
+
+\begin{tabular}{lp{2.2in}}
+B.1. STGGRD & Construct a Delaunay triangular grid\\
+B.2. STGPD & Estimate partial derivatives at grid nodes\\
+B.3. STGFI & Lookup and interpolate in a triangular grid\\
+B.4. STGREC & Construct a rectangular grid of function values by
+interpolation in a triangular grid\\
+B.5. STGPGR & Print the data structures defining the triangular grid
+\end{tabular}
+
+\subsubsection{Construct a Delaunay Triangular Grid}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER] NP, IP($\geq$NP), MT, TRIANG(MT), MB, B(4,~MB), NT, INFO(3)
+\item[REAL] X($\geq$NP), Y($\geq$NP), W($\geq$NP)
+\end{description}
+Assign values to NP, MT, MB, X(1:NP), and Y(1:NP).
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL STGGRD (X, Y, NP, IP, W,\\
+\rule{.25in}{0pt}TRIANG, MT, B, MB, NT, INFO)
+\end{tabular}}
+\end{center}
+Results are returned in TRIANG(), B(,), NT, and INFO(1:3)
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X(1:NP), Y(1:NP)] [in] The $(x,\ y)$
+coordinates of the NP data points constituting the set {$\EuScript S$}.
+\item[NP] [in] Number of data points.  Require NP $\geq $ 3.  The
+upper limit on NP will depend on the storage available for the array
+TRIANG().
+\item[IP()] [scratch] Working space.
+\item[W()] [scratch] Working space.
+\item[TRIANG()] [out] Defines the triangular grid.
+Each triangle is defined by six integer indices
+identifying up to three neighboring triangles and three vertex
+points.  The number of triangles will be
+NT = $2\times (\text{NP}-1)-\text{NB}$
+where NB is the number of points on the boundary of the convex hull
+of {$\EuScript S$}.
+\item[MT] [in] The declared dimension of TRIANG.  Must be $\geq
+6\times[2\times(\text{NP}-1)-\text{NB}]$.  If NB is not known, $12
+\times (\text{NP}-1)$ provides an upper bound for the required value of MT.
+\item[B(,)] [out] On return this contains a two--way linked list
+identifying the boundary points of the grid.
+\item[MB] [in] The declared second dimension of B(,).  Must be larger
+by one than the largest number of boundary points in any of the
+subsets of {$\EuScript S$} that STGGRD considers.  Setting MB = NP + 1
+would always
+be large enough, however, a much smaller value for MB will usually
+suffice.\newline
+The expected number of boundary points in {$\EuScript S$} when
+{$\EuScript S$} is a random set of
+points uniformly distributed in a disk is $3.4 \times \text{NP}^{1/3}$
+for NP $>$ 100.\newline
+We suggest setting MB = NP + 1 for NP $\leq $ 15, and MB = an integer
+exceeding $6 \times \text{NP}^{1/3}$ for NP $\geq $ 16.
+\item[NT] [out] The number of triangles in the
+triangular grid.  NT, NB, and NP are related by the equation
+$\text{NT} = 2 \times (\text{NP} - 1) - \text{NB}.$
+\item[INFO(1:3)] [out] Termination information.\vspace{-5pt}
+\begin{description}
+\item[INFO(1)] Status on termination.  The grid is complete if INFO(1) = 0
+and incomplete or not optimal otherwise.
+\begin{itemize}
+\item[=0] Normal termination, the triangular grid is complete and optimized.
+\item[=1] A complete triangular grid has been constructed, but the process
+of optimizing the shapes of the triangular cells did not complete.
+This should not happen.
+\item[=2] Either all given points are colinear or else some
+pair of the points are duplicates.
+\item[=3] Some pair of the points are duplicates.
+\item[=4] The dimension MB is not large enough.  Setting MB =
+NP + 1 will suffice.
+\item[=5] The dimension MT is not large enough.
+Setting $\text{MT} = 12 \times (\text{NP}-1)$ will suffice.
+\end{itemize}
+\item[INFO(2)] = NB, the number of boundary points in the convex
+hull of {$\EuScript S$}.
+\item[INFO(3)] = The minimum value that would have sufficed for
+the dimension MB on this execution of STGGRD.
+\end{description}
+\end{description}
+
+\subsubsection{Estimate Partial Derivatives at Grid Nodes}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  NP, TRIANG($\geq 6 \times$NP), NT,\newline
+IWORK($\geq $NP)
+\item[REAL] X($\geq$NP), Y($\geq$NP), Z($\geq$NP), DZ(2, $\geq$NP)
+\end{description}
+If one does not have partial derivative values available, this
+subroutine can be used to compute estimates of the partial derivatives
+after using subroutine STGGRD to
+construct a triangular grid.  The values of X(), Y(), and NP
+should be the same as were input to STGGRD.  The values of TRIANG()
+and NT should be those produced by STGGRD.  Values must be
+assigned to Z(1:NP).
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL STGPD (X, Y, Z, DZ, NP,\\
+\rule{.25in}{0pt}TRIANG, NT, IWORK)
+\end{tabular}}
+\end{center}
+Results are returned in DZ(1:2, 1:NP).
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X(1:NP), Y(1:NP), Z(1:NP)] [in] The user supplied data; Z(i) is
+the function value associated with the point (X(i), Y(i)).
+\item[DZ(1:2, 1:NP)] [out] Estimates of the first partial derivatives,
+stored as:\newline
+\hspace{.25in} DZ(1,i) = $\partial f / \partial x$ at (X(i), Y(i))
+\newline
+\hspace{.25in} DZ(2,i) = $\partial f / \partial y$ at (X(i), Y(i))
+\item[NP] [in] Number of data points.
+\item[TRIANG(), NT] [in] Defined as for STGGRD.
+\item[IWORK(1:NP)] [scratch] Working space.
+\end{description}
+
+\subsubsection{Lookup and Interpolate in a Triangular Grid}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  TRIANG($\geq 6 \times$NT), NT, NCONT,\newline
+MODE, MB, B(4,~MB)
+\item[REAL] X($\geq$NP), Y($\geq$NP), Z($\geq$NP), DZ(2,$\geq$NP),\newline
+Q(2), ZOUT, DZOUT(2), SAVWRK(28)
+\item[LOGICAL] WANTDZ
+\end{description}
+
+This subroutine is intended to be used after a triangular grid has been
+constructed using subroutine STGGRD.  The values of X(), Y(), and MB
+should be the same as were input to STGGRD.  The values of TRIANG(), NT,
+and B(), should be those produced by STGGRD.  The value of NP (used only
+in the text here) should be the same as was used in the call to STGGRD.
+Values must be assigned to Z(1:NP), NCONT, Q(1:2), WANTDZ, and SAVWRK(1).
+If C$^1$ interpolation is being requested, (NCONT = 1), values must be
+assigned to DZ(1:2, 1:NP), possibly by use of subroutine STGPD.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL STGFI (X, Y, Z, DZ, TRIANG, NT,\\
+\rule{.25in}{0pt}
+B, MB, NCONT, Q, ZOUT, WANTDZ,\\
+\rule{.25in}{0pt}DZOUT, MODE, SAVWRK)
+\end{tabular}}
+\end{center}
+
+Results are returned in ZOUT, DZOUT(1:2), and MODE, and the contents of
+SAVWRK(1:28) will generally be changed.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X(1:NP), Y(1:NP)] [in] The $(x,\ y)$ coordinates of the data points
+constituting the set {$\EuScript S$}, and thus the nodes of the triangular
+grid.
+\item[Z(1:NP)] [in] Z(i) is the value at (X(i), Y(i)) of the data to
+be interpolated.
+\item[DZ(1:2, 1:NP)] [in] Values, or estimates of values, of first
+partial derivatives at the nodal points.  These are needed only when
+NCONT = 1.  Otherwise this array will not be referenced.
+\newline
+\hspace{.25in} DZ(1,i) = $\partial f / \partial x$ at (X(i), Y(i))
+\newline
+\hspace{.25in} DZ(2,i) = $\partial f / \partial y$ at (X(i), Y(i))
+\item[TRIANG(), NT] [in] Defined as for STGGRD.
+\item[B(), MB] [in] Defined as for STGGRD.
+\item[NCONT] [in] Set NCONT = 0 for C$^0$ interpolation,
+and = 1 for C$^1$ interpolation.
+\item[Q(1:2)] [in] Lookup and interpolation will be done for the point
+$q = (x, y) =$ (Q(1), Q(2)).
+\item[ZOUT] [out] Interpolated value computed by this subroutine.
+\item[WANTDZ] [in] Turns on or off the computation of DZOUT(1:2).
+\item[DZOUT(1:2)] [out] If WANTDZ = .true., interpolated values of the
+partial derivatives at the point $q$ will be computed and returned in
+DZOUT(1:2).  No partial derivative interpolation is done if WANTDZ = .false.
+\item[MODE] [out] Indicates status on return.
+\begin{itemize}
+\item[=0] Point $q$ is within the convex hull of the set {$\EuScript S$}, or possibly
+outside this triangle by a small tolerance.  Interpolated results are
+returned.
+\item[=1] Point $q$ is outside the convex hull of {$\EuScript S$} by more
+than the built-in small tolerance.  Extrapolated results are returned.
+Accuracy degrades rapidly as the evaluation points move away from the
+convex hull.
+\item[=2] Error condition.  STGFND has tested the point $q$
+against
+NT triangles without resolving its status.  This would indicate an error
+in the definition of the triangular grid or in the design or coding
+of the subroutine.  No results are returned.
+\end{itemize}
+\item[SAVWRK(1:28)] [inout] Array used as work space and to save values
+that, in some circumstances, can be reused to reduce the amount of
+computation on subsequent calls.  The user must set SAVWRK(1) = 0.0 on the
+first call to this subroutine to signal that SAVWRK() does not contain any
+saved information at that time.  Generally SAVWRK(1) will be nonzero on
+returns from STGFI.  If subsequent calls do not involve changes to X, Y,
+Z, DZ, TRIANG, NT, B, MB, or NCONT, the user should not alter SAVWRK() on
+the subsequent calls.  If the user changes any of these quantities, the
+user should reset SAVWRK(1) = 0.0 to indicate that saved information
+should be ignored.  See Section C for further discussion of SAVWRK().
+\end{description}
+
+\subsubsection{Construct a Rectangular Grid of Function Values by
+Interpolation in a Triangular Grid}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[LOGICAL] WANTPD
+\item[INTEGER]  NP, TRIANG($\geq 6 \times$NT), NT, NX, NY,\newline
+MX, MY, NCONT, MB, B(4,~MB)
+\item[REAL] X($\geq$NP), Y($\geq$NP), Z($\geq$NP),
+DZ(2, $\geq$NP),\newline
+XYLIM(4), ZFILL, ZVALS(MX, MY),\newline
+DZVALS(MX, MY, 2)
+\end{description}
+Assign values to all of the subroutine arguments except ZVALS() and
+DZVALS().  STGGRD should be used to set values for TRIANG(), NT and B().
+Subroutine STGPD can be used to set values for DZ(,).
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL STGREC (X, Y, Z, DZ, NP,\\
+\rule{.15in}{0pt}TRIANG, NT, B, NB, XYLIM,\\
+\rule{.15in}{0pt}NX, NY, ZFILL, ZVALS, MX, MY,\\
+\rule{.15in}{0pt}NCONT, WANTPD, DZVALS)
+\end{tabular}}
+\end{center}
+Results are returned in ZVALS(,) and DZVALS(,,1:2)
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X(1:NP), Y(1:NP), Z(1:NP), DZ(1:2, 1:NP)] [in] Values of $x$, $y$,
+$z$, $\partial z / \partial x$, and $\partial z / \partial y$ at the NP
+points of the triangular grid.  Values are needed in DZ() only if NCONT =
+1.  See subroutine STGPD for computation of DZ().  \item[NP] [in] Number
+of data points.
+\item[TRIANG(), NT] [in] Defined as for STGGRD.
+\item[B(), MB] [in] Defined as for STGGRD.
+\item[XYLIM(), NX, NY] [in] Specifies the desired rectangular
+grid.  The $x$ grid values will run from XYLIM(1) to XYLIM(2) with $\text{NX}
+- 2$ equally spaced intermediate values.  The $y$ grid values will run
+from XYLIM(3) to XYLIM(4) with $\text{NY} - 2$ equally spaced intermediate
+values.
+\item[ZFILL] [in] Determines the action to be taken when a point of the
+rectangular grid is outside the convex region covered by the triangular
+grid.  If ZFILL is zero, extrapolated values will be returned.  Otherwise
+the value, ZFILL, will be returned as a function value in ZVALS() and
+optionally as a partial derivative value in DZVALS().
+\item[ZVALS(,)] [out] An MX by MY array in which STGREC stores the NX
+by NY set of values of the function $z = f(x, y)$ defined by
+interpolation in the triangular grid.  Thus for $i$ = 1, \ldots, NX, $j$
+= 1, \ldots, NY, STGREC computes
+\newline
+$x_i = \text{XYLIM}(1) + (i-1) \times $\newline
+\rule{.75in}{0pt}$[\text{XYLIM(2)} - \text{XYLIM(1)}] /
+(\text{NX} - 1)$\newline
+$y_j = \text{XYLIM}(3) + (j-1) \times $\newline
+\rule{.75in}{0pt}$[\text{XYLIM(4)} - \text{XYLIM(3)}] /
+(\text{NY} - 1)$\newline
+IF ($(x_i, y_j)$ is in the region covered by the triangular grid)
+THEN \newline
+\rule{.2in}{0pt}ZVAL($i,j$) = $f(x_i, y_j)$ (using
+interpolation)\newline
+ELSE\newline
+\rule{.2in}{0pt}IF (ZFILL .eq. 0.0E0) THEN\newline
+\rule{.4in}{0pt}$\text{ZVAL}(i,j) = f(x_i, y_j)$ (using
+extrapolation).\newline
+\rule{.2in}{0pt}ELSE\newline
+\rule{.4in}{0pt}$\text{ZVAL}(i,j) =$ ZFILL\newline
+\rule{.2in}{0pt}END IF\newline
+END IF
+\item[MX, MY] [in] Dimensions for the array ZVALS(,) and first two
+dimensions for DZVALS(,,1:2).  Require MX $\geq $ NX and MY $\geq $ NY.
+\item[NCONT] [in] Set NCONT = 0 for C$^0$ interpolation,
+and = 1 for C$^1$ interpolation.
+\item[WANTPD] [in] Set to .TRUE. if computation of DZVALS(,,1:2) is
+desired in addition to ZVALS(,) and to .FALSE. if only ZVALS(,) is
+desired.
+\item[DZVALS(,,1:2)] [out] An MX by MY by 2 array in which the NX by NY
+by 2 set of values of $\partial z / \partial x$ and
+$\partial z / \partial y$
+will be stored if WANTPD = .TRUE.  As in the computation of ZVALS(,),
+the value ZFILL determines the action when an $(x_i, y_j)$ point is
+outside the triangular grid.\newline
+If WANTPD = .FALSE. the array DZVALS() will not be referenced and the
+user can reduce all dimensions of DZVALS() to 1.
+
+\end{description}
+
+\subsubsection{Print the Data Structures defining a Triangular Grid}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER] NP, TRIANG($\geq 6 \times$NT), B(4,~MB), NB, NT
+\item[REAL] X($\geq$NP), Y($\geq$NP)
+\end{description}
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL STGPRG (X, Y, NP, TRIANG,\\
+\rule{.25in}{0pt}B, NB, NT)
+\end{tabular}}
+\end{center}
+
+\paragraph{Argument Definitions}
+
+All arguments are defined as for STGGRD, and should have the values
+they had on a return from subroutine STGGRD (NB = INFO(2)).
+
+\subsubsection{Modifications for Double Precision}
+
+Change the first letter of every subroutine name from ``S'' to ``D'', and
+change all REAL type statements to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+{\bf Example.}
+The program DRSTGFI1 contains a set of data:
+$(x_i,\ y_i), i = 1, \ldots, 28$.  The program calls STGGRD
+to generate a triangular grid having these points as
+nodal points.  The program runs two cases of C$^1$ interpolation to data
+over this grid.  The interpolation is done at a set of points along
+a line cutting across the region covered by the grid.
+
+For the first case, data are generated at the nodal points using a
+quadratic function.  Mathematically, the partial derivative
+estimation method in STGPD and the C$^1$ interpolation method
+in STGC1 are exact when the given $z_i$ data are a quadratic
+function of the $(x_i, y_i)$ data.
+Thus we observe that the errors in
+the interpolated values are of the order of magnitude of the
+precision of the machine arithmetic, which was IEEE single
+precision arithmetic for the output listed with this writeup.
+
+For the second case, data are generated using an
+exponential function.  The partial derivative
+estimation method in STGPD and the C$^1$ interpolation method
+in STGC1 will both introduce errors in processing this data,
+with the result that the interpolated values
+will deviate from
+the exponential function at points away from the nodal points.
+
+The first and last points at which interpolation is requested in each case
+are outside the convex hull of the given $(x_i, y_i)$ data.  The program
+used extrapolation for these points.
+
+Note that this program can be altered to run ten cases rather than
+just two by changing the comment status of the loop control lines
+involving the loop indices ``ncont" and ``KF".  A version of this
+program called DRSTGFI has this change made.
+
+{\bf Choosing between C$^0$ and C$^1$ interpolation.}
+Since these are interpolation, and not smoothing, methods, they are
+most appropriate for data that has very little noise.
+The C$^1$ method requires first partial derivative data, whereas the C$^0$
+method does not.  If the first partial derivative data have been estimated
+from the $z_i$ data by using STGPD, they will have errors that are
+larger as the data deviate more from having a locally quadratic shape.
+Estimates of first partial derivative values at points $(x_i, y_i)$
+on the boundary of the convex hull of {$\EuScript S$} may
+be particularly bad.  The interpolation surface defined by the
+C$^1$ method can easily have unwanted sharp peaks and valleys due to
+errors in the first partial derivative data, or simply due to the
+possibility that the shape of the data cannot be well represented
+by the type of piecewise cubic surface produced by this method.
+
+The C$^0$ method is more stable than the C$^1$ method,
+in the sense that it will not produce
+maxima higher than the data or minima lower than the data, however,
+being piecewise linear it will have a choppy appearance due to
+corners along all the edges of the triangular grid.
+
+{\bf Using multiple copies of SAVWRK().}
+
+Let us say the settings of X(), Y(), Z(), DZ(,), NP, TRIANG(), NT, B(,),
+and MB define a {\em grid and data}.  Applications may arise in which the
+user wishes to alternate between interpolations using STGFI with different
+{\em grid and data} sets.  In such cases one can simply reset SAVWRK(1) =
+0.0 each time the {\em grid and data} is changed.  For more computational
+efficiency, however, one could use a distinct SAVWRK() array for each
+distinct {\em grid and data}, say SAVW1(), SAVW2(), $\ldots$ One could set
+SAVW1(1) = 0, SAVW2(1) = 0, $\ldots$, only once initially.  Then on each
+call to STGFI, use the SAVW$n$() array associated with the current {\em
+grid and data}.  This permits some saving of computational time in lookups
+and C$^1$ interpolation.
+
+\subsection{Functional Description}
+
+{\bf Delaunay Triangulation.}
+Given a finite set, {$\EuScript S$}, of points in the plane there are
+generally many ways one could connect pairs of these points to form
+a triangular grid, i.e., a grid having triangular cells.  The
+Delaunay triangulation, constructed by subroutine STGGRD, has a number
+of favorable mathematical properties, specifically the max-min angle
+property, the empty circumcircle property, and duality with
+a proximity region tessellation.
+
+The max-min angle property has both a local and a global implication.
+Locally, in any pair of triangles that share a side and whose union
+is a strictly convex quadrilateral, the size of the smallest of the
+six interior angles of the two triangles would not be increased by
+replacing these two triangles by two triangles formed by
+partitioning the quadrilateral using its other diagonal.
+Globally, the smallest interior angle occurring in the whole triangulation
+could not be made larger by any other triangulation.
+
+The empty circumcircle property means that for each triangle of the grid,
+its circumcircle, i.e., the unique circle passing through its three
+vertices, contains no points of the set {$\EuScript S$} in its interior.
+
+The Delaunay triangulation of a set {$\EuScript S$} is unique, with the
+exception that if any set of four or more points of {$\EuScript S$} lie
+on a circle that contains no points of {$\EuScript S$} in its interior,
+it is arbitrary how triangles are formed using these vertices.
+
+A Delaunay triangulation is dual to a proximity tessellation
+associated with the names Dirichlet, Voronoi, and Thiessen.
+A Dirichlet tessellation associated with a set {$\EuScript S$} is
+a partitioning of the whole plane into regions with the property that
+the interior of region {\em i} contains all the points of the plane that
+are closer to point $(x_i, y_i)$ of {$\EuScript S$} than to any other
+point of {$\EuScript S$}.  These regions will be convex, polygonal, and
+some will be of infinite extent.  Clearly a one-to-one correspondence
+exists between regions of a Dirichlet tessellation and nodes of a
+Delaunay triangulation.  It also happens that a correspondence exists
+between triangles of a Delaunay triangulation and nodes of a
+Dirichlet tessellation.  Furthermore  edges in a Dirichlet tessellation
+are perpendicular bisectors of edges in a Delaunay triangulation.
+
+{\bf Algorithms.} The triangulation algorithm implemented in STGGRD is
+described in \cite{Lawson:SC1:1977}.  From both theoretical analysis and
+timing tests it appears that the execution time for STGGRD is proportional
+to NP$^{4/3}$.
+
+The method of estimating partial derivatives implemented in STGPD is
+described in \cite{Lawson:SC1:1977}.  To estimate the partial derivatives
+at a point $(x_i, y_i)$ of {$\EuScript S$}, this method locates up to 16
+points of {$\EuScript S$} that are near to $(x_i, y_i)$ in the sense of
+the grid connectivity, and does a uniformly weighted least squares fit of
+a 6-parameter quadratic polynomial to the grid data at these points.  A
+modification of this method is used if NP $<$ 6.  The first partial
+derivatives of this polynomial at $(x_i, y_i)$ are returned as the
+estimated partial derivatives.
+
+The lookup method used in STGFND is described in \cite{Lawson:SC1:1977}.
+This method starts by testing the given point $q$ for containment in the
+triangle whose index is INDTRI (or 1 if INDTRI is out of range.) If $q$ is
+outside of this triangle relative to side $j$, the search moves to the
+triangle adjacent to the current triangle across side $j$.  This process
+is repeated until either a triangle is found that contains $q$, or $q$ is
+found to be outside some triangle relative to an edge that is a boundary
+edge of the convex hull of {$\EuScript S$}.
+
+The tests for containment produce values that are also needed in
+both the C$^0$ and C$^1$ interpolation methods.  To avoid recomputation,
+these quantities are stored in an array by STGFND for subsequent
+use in STGC0 or STGC1.
+
+This method is quite efficient in general, and is particularly efficient
+when a sequence of lookups is done at points that are near to each
+other relative to the grid connectivity, and with each lookup being started
+in the triangle at which the previous lookup terminated.
+
+C$^0$ continuity implies continuity of values but allows the possibility
+of discontinuity of first partial derivatives, whereas
+C$^1$ continuity implies continuity of values and first partial
+derivatives,  but allows the possibility
+of discontinuity of second partial derivatives.
+
+The C$^0$ interpolation method implemented in STGC0
+defines a planar surface over each triangular
+cell of the grid.  Each such planar surface matches the values at
+the three vertices of its triangle.  This gives a piecewise linear
+surface over the whole grid.  The surface is continuous over the
+whole grid, but generally has jumps in its first derivative values
+when crossing from one triangle to another.
+
+For C$^1$ interpolation we use the Clough-Tocher method,
+\cite{Clough:1965:FES}, used in finite element computations.  The
+particular implementation in STGC1 is described in \cite{Lawson:1976:C1C}.
+Additional properties of the induced surface are described in
+\cite{Lawson:1976:IC1}.
+
+For one triangular cell of a grid this method implicitly partitions
+the triangle into three subtriangles, by inserting new edges from
+the vertices to the centroid.  Over each of these subtriangles the
+method implicitly defines a cubic polynomial having C$^1$ continuity
+across the newly inserted internal edges.  Along each of the original
+edges of a triangle the values and first partial derivatives depend
+only on the values and first partial derivatives
+given at the two vertices of that edge.
+This assures that two triangles that share an edge will have the
+same values and first partial derivatives along the common edge, and
+thus the surface over the whole triangular grid will have C$^1$
+continuity.
+
+The C$^0$ method is exact for linear data both in interpolation and
+extrapolation.  The C$^1$ method is exact for quadratic data in
+interpolation and for linear data in extrapolation.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+STGGRD returns status information in INFO(1).
+STGFI returns status information in MODE.
+The user should encode tests of these status flags.
+IERV1 is used for the output of some error messages.
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.  A common block STGCOM is
+used in the program units in the file STGPD.
+A common block DTGCOM is
+used in the program units in the file DTGPD.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+STGGRD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SSORTP, STGGRD, STGSET\rule[-5pt]{0pt}{8pt}}\\
+STGPD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SROT, SROTG, STGPD, STGSET\rule[-5pt]{0pt}{8pt}}\\
+STGFI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, STGC0, STGC1, STGEXT, STGFI,
+STGFND, STGSET\rule[-5pt]{0pt}{8pt}}\\
+STGREC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, STGC0, STGC1, STGEXT, STGFI,
+STGFND, STGREC, STGSET\rule[-5pt]{0pt}{8pt}}\\
+STGPRG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+STGPRG, STGSET\rule[-5pt]{0pt}{8pt}}\\
+DTGGRD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DSORTP, DTGGRD, DTGSET\rule[-5pt]{0pt}{8pt}}\\
+DTGPD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DROT, DROTG, DTGPD, DTGSET\rule[-5pt]{0pt}{8pt}}\\
+DTGFI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DTGC0, DTGC1, DTGEXT, DTGFI, DTGFND, DTGSET, ERFIN,
+ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DTGREC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DTGC0, DTGC1, DTGEXT, DTGFI, DTGFND, DTGREC, DTGSET,
+ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DTGPRG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DTGPRG, DTGSET}\\
+\end{tabular}
+
+Algorithm developed and subroutine designed and written by
+Charles L. Lawson, JPL, 1976.
+Adapted to Fortran 77 and the MATH77 library, 1991 and January, 1996.
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSTGFI1}\vspace{10pt}
+\lstinputlisting{\codeloc{stgfi1}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSTGFI1}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{stgfi1}}
+
+\end{document}

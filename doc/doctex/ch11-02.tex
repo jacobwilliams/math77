@@ -1,0 +1,350 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{DCPVAL DMDVAL}
+\begmath 11.2 Evaluation, Integration, and Differentiation of Polynomials
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This set of subroutines will evaluate, integrate, or differentiate
+polynomials. The polynomials may be represented by coefficients relative to
+either the monomial or Chebyshev basis. The data structure and
+parameterization used to represent a polynomial is the same as that used by
+the least-squares polynomial curve fit subroutines described in Chapter~11.1.
+Special procedures for evaluation of polynomials expressed using the
+Legendre and Laguerre bases are described in Chapters~2.11 and~2.12
+respectively.
+
+\subsection{Usage}
+
+\subsubsection{Usage for Evaluation}
+
+\paragraph{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NDEG}
+
+\item[REAL]  \ {\bf P}$(\geq $NDEG+3){\bf , X, Y, SCPVAL, SMPVAL}
+\end{description}
+Assign values to NDEG, X, and P($i$), $i = 1$, NDEG$+3$. If the Chebyshev
+basis is being used, use the statement:
+$$
+\fbox{{\bf Y = SCPVAL(P, NDEG, X)}}
+$$
+If the monomial basis is being used, use the statement:
+$$
+\fbox{{\bf Y = SMPVAL(P, NDEG, X)}}
+$$
+Following the appropriate one of these two statements the value of the
+polynomial at the argument X will be stored in Y.
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[P()]  \ [in] An array containing NDEG$+3$ parameters that define a
+polynomial as described in Section D.
+
+\item[NDEG]  \ [in] Degree of the polynomial.
+
+\item[X]  \ [in] Argument value at which the polynomial is to be evaluated.
+
+\item[SCPVAL]  \ [out] The value of the polynomial evaluated at X assuming
+the Chebyshev basis representation.
+
+\item[SMPVAL]  \ [out] The value of the polynomial evaluated at X assuming
+the monomial basis representation.
+\end{description}
+\subsubsection{Usage for Integration}
+
+\paragraph{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NDEGA, NDEGB}
+
+\item[REAL]  \ {\bf A}($\geq $NDEGA+3){\bf , B}($\geq $NDEGA+4)
+\end{description}
+Assign values to NDEGA and A($i$), $i = 1$, ..., NDEGA$+3$. If the Chebyshev
+basis is being used, use the statement:
+$$
+\fbox{{\bf CALL SCPINT (A, NDEGA, B, NDEGB)}}
+$$
+If the monomial basis is being used, use the statement:
+$$
+\fbox{{\bf CALL SMPINT (A, NDEGA, B, NDEGB)}}
+$$
+Following the appropriate one of these two call statements the results will
+be stored in B() and NDEGB.
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[A()]  \ [in] An array containing NDEGA$+3$ parameters that define the
+input polynomial, say $p(x)$. See Section D for the specification of the
+parameterization.
+
+\item[NDEGA]  \ [in] Degree of the input polynomial, $p(x).$
+
+\item[B()]  \ [out] On return B() will contain NDEGB$+3$ parameters defining
+the output polynomial, say $q(x)$, which is the indefinite integral of the
+input polynomial $p(x)$. Mathematically the constant term of $q(x)$ is an
+arbitrary constant of integration. This subroutine will set the constant
+term, B($3)$, to zero. The storage locations occupied by A() and B() must be
+distinct.
+
+\item[NDEGB]  \ [out] The subroutine sets NDEGB $= \text{NDEGA}+1$ to indicate
+the degree of the output polynomial. The storage locations occupied by NDEGA
+and NDEGB must be distinct.
+\end{description}
+\subsubsection{Usage for Differentiation}
+
+\paragraph{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NDEGC, NDEGD}
+
+\item[REAL]  \ {\bf C} $(\geq $NDEGC+3){\bf , D}($\geq \max(3,\text{NDEGC}+2%
+))$
+\end{description}
+Assign values to NDEGC and C($i$), $i = 1$, ..., NDEGC$+3$. If the Chebyshev
+basis is being used, use the statement:
+$$
+\fbox{{\bf CALL SCPDRV (C, NDEGC, D, NDEGD)}}
+$$
+If the monomial basis is being used, use the statement:
+$$
+\fbox{{\bf CALL SMPDRV (C, NDEGC, D, NDEGD)}}
+$$
+Following the appropriate one of these two call statements the results will
+be stored in D() and NDEGD.
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[C()]  \ [in] An array containing NDEGC$+3$ parameters that define the
+input polynomial, say $p(x)$. See Section D for the specification of the
+parameterization.
+
+\item[NDEGC]  \ [in] Degree of the input polynomial, $p(x).$
+
+\item[D()]  \ [out] On return D() will contain NDEGD$+3$ parameters defining
+the output polynomial, say $q(x)$, which is the derivative of the input
+polynomial $p(x)$. The storage locations occupied by C() and D() must be
+distinct.
+\newpage
+
+\item[NDEGD]  \ [out] The subroutine sets NDEGD $=\max (0$, NDEGC$-$1) to
+indicate the degree of the output polynomial. The storage locations occupied
+by NDEGC and NDEGD must be distinct.
+\end{description}
+\subsubsection{Usage for Double Precision Evaluation, Integration or
+Differentiation}
+
+For DOUBLE PRECISION usage change the REAL type statements to DOUBLE
+PRECISION and change the initial ``S'' of the function and subroutine names
+to a ``D.'' Note particularly that if the function names DCPVAL or DMPVAL
+are used they must be typed DOUBLE PRECISION either explicitly or via an
+IMPLICIT statement.
+
+\subsection{Examples and remarks}
+
+Let a cubic polynomial $p(x)$ be defined relative to the Chebyshev basis as $%
+p(x)=10+8T_1(u)+6T_2(u)+4T_3(u)$ where $u=(x-5)/2$. The DRSCPVAL program
+computes the indefinite integral of $p(x)$ calling it $q(x)$. This
+computation is checked by computing $r(x)$ as the derivative of $q(x)$. Note
+that $r(x)$ agrees with $p(x)$. Finally the program evaluates the definite
+integral%
+\begin{equation*}
+z=\int_4^6p(x)\,dx=q(6)-q(4)=10
+\end{equation*}
+The output from this program is shown in ODSCPVAL.
+
+\subsection{Functional Description}
+
+In typical expected usage the polynomial parameter vector input to any of
+the subprograms of this set will have been produced by the library curve
+fitting subroutine SPFIT (or DPFIT) or an integration or differentiation
+subroutine of this set. The subprograms of this set are thus intended to
+let the user do the operations of evaluation, integration or differentiation
+of polynomials without being concerned with the details of the parametric
+representation of polynomials or algorithmic details.
+
+The following description is provided for those who wish to know more of the
+internal details.
+
+For the purposes of this set of subprograms a polynomial of degree $n$, say $%
+p(x)$, is represented by a set of $n+3$ parameters, say $a_1$, ..., $a_{n+3}$%
+. The first two parameters define a linear transformation of the independent
+variable
+\begin{equation*}
+u=(x-a_1)/a_2
+\end{equation*}
+The remaining $n+1$ parameters are coefficients of an $n^{th}$ degree
+polynomial in the transformed variable $u$. If the Chebyshev basis is used
+this polynomial is%
+\begin{equation*}
+p(x)=q(u)=\sum_{i=0}^na_{i+3}T_i(u)
+\end{equation*}
+whereas if the monomial basis is used the polynomial is%
+\begin{equation*}
+p(x)=q(u)=\sum_{i=0}^na_{i+3}u^i
+\end{equation*}
+The Chebyshev polynomials $T_i(u)$ are defined by the equations%
+\begin{gather*}
+T_0(u)=1,\quad T_1(u)=u\\
+T_i(u)=2uT_{i-1}(u)-T_{i-2}(u),\quad i=2,3,...
+\end{gather*}
+The formulas for differentiation and integration of polynomials expressed
+using the Chebyshev basis may be derived from the following standard
+identities:
+\begin{align*}
+0&=dT_0(u)/du\\
+T_0(u)&=dT_1(u)/du\\
+T_1(u)&=\frac 14 dT_2(u)/du\\
+T_i(u)&=\frac 12\frac d{du}\left[ \frac{T_{i+1}(u)}{i+1}-
+\frac{T_{i-1}(u)}{i-1}\right] ,\quad i=2,3,...
+\end{align*}
+The algorithms used by this set of subprograms are specified as follows:
+
+\subsubsection{Monomial Basis Evaluation, SMPVAL or DMPVAL}
+
+Given an $n^{th}$ degree polynomial $p$ represented by the parameters $p_i$,
+$i=1$,\ ..., $n+3$ and an argument $x$, compute $y=p(x).$%
+\begin{align*}
+u&=(x-p_1)/p_2\\
+z_n&=p_{n+3}\\
+z_i&=u\,z_{i+1}+p_{i+3},\quad i=n-1,n-2,...,0\\
+y&=z_0.
+\end{align*}
+\subsubsection{Monomial Basis Integration, SMPINT or DMPINT}
+
+Given an $n^{th}$ degree polynomial $p$ represented by the parameters $a_i$,
+$i=1$,\ ..., $n+3$, compute the parameters $b_i$ that represent a polynomial
+$q$ that for arbitrary $u$ and $v$ satisfies%
+\begin{equation*}
+\int_u^vp(x)\,dx=q(v)-q(u).
+\end{equation*}
+The formulas used are%
+\begin{gather*}
+b_1=a_1,\quad b_2=a_2,\quad b_3=0\\
+b_{i+3}=a_2a_{i+2}/i,\ \ \ \ \ i=1,...,n+1
+\end{gather*}
+\subsubsection{Monomial Basis Differentiation, SMPDRV or DMPDRV}
+
+Given an $n^{th}$ degree polynomial $p$ represented by the parameters $c_i$,
+$i=1$,\ ..., $n+3$, compute the parameters $d_i$ that represent the
+polynomial $q$ satisfying%
+\begin{equation*}
+\frac d{dx}p(x)=q(x).
+\end{equation*}
+The formulas used are%
+\begin{gather*}
+d_1=c_1,\quad d_2=c_2\\
+d_{i+3}=(i+1)c_{i+4}/c_2,\quad i=0,...,n-1
+\end{gather*}
+with a special case of $d_3=0$ if $n=0.$
+
+\subsubsection{Chebyshev Basis Evaluation, SCPVAL or DCPVAL}
+
+Given an $n^{th}$ degree polynomial $p$ represented by the parameters $p_i$,
+$i=1$, ..., $n+3$ and an argument $x$ compute $y=p(x).$%
+\begin{align*}
+u&=(x-p_1)/p_2\\
+z_n&=p_{n+3}\\
+z_{n-1}&=2uz_n+p_{n+2}\\
+z_i&=2uz_{i+1}-z_{i+2}+p_{i+3},\quad i=n-2,...,1\\
+y&=uz_1-z_2+p_3
+\end{align*}
+\subsubsection{Chebyshev Basis Integration, SCPINT or DCPINT}
+
+Given an $n^{th}$ degree polynomial $p$ represented by the parameters $a_i$,
+$i = 1, $..., $n+3$, compute the parameters $b_i$ that represent a
+polynomial $q$ that for arbitrary $u$ and $v$ satisfies%
+\begin{equation*}
+\int_u^vp(x)\,dx=q(v)-q(u).
+\end{equation*}
+The formulas used are
+\begin{gather*}
+b_1=a_1,\quad b_2=a_2,\quad b_3=0\\
+b_4=a_2\left[ a_3-(1/2)a_5\right]\\
+b_{i+3}=a_2(a_{i+2}-a_{i+4})/(2i),\quad i=2,...,n+1,
+\end{gather*}
+where $a_i$ for $i>n+3$ is taken to be zero.
+
+\subsubsection{Chebyshev Basis Differentiation, SCPDRV or DCPDRV}
+
+Given an $n^{th}$ degree polynomial $p$ represented by the parameters $c_i$,
+$i=1$, ..., $n+3$, compute the parameters $d_i$ that represent the
+polynomial $q$ satisfying%
+\begin{equation*}
+\frac d{dx}p(x)=q(x)
+\end{equation*}
+The formulas used are%
+\begin{gather*}
+d_1=c_1,\quad d_2=c_2\\
+d_{i+3}=2(i+1)c_{i+4}/c_2,\quad i=n-1,n-2\\
+d_{i+3}=d_{i+5}+2(i+1)c_{i+4}/c_2,\quad i=n-3,...,1\\
+d_3=d_5/2 + c_4 / c_2
+\end{gather*}
+with a special case of $d_3=0$ if $n=0.$
+
+\subsection{Error Procedures and Restrictions}
+
+The degree of the input polynomial must be zero or positive. If it is
+negative the subprograms in this set will issue an error message
+using the error processor in Chapter 19.2 at level 0 and
+return.
+
+The given values of P($2)$, A(2), and C($2)$ must be nonzero.  These
+conditions are not tested.
+
+The storage locations for the input quantities in the integration and
+differentiation subroutines must be distinct from the storage locations for
+the output quantities.
+
+Since DCPVAL and DMPVAL are FUNCTION type subprograms, their names must be
+typed DOUBLE PRECISION in any program that uses them.
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCPDRV & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCPDRV, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DCPINT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCPINT, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DCPVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCPVAL\rule[-5pt]{0pt}{8pt}}\\
+DMPDRV & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DMPDRV, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DMPINT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DMPINT, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DMPVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DMPVAL\rule[-5pt]{0pt}{8pt}}\\
+SCPDRV & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SCPDRV\rule[-5pt]{0pt}{8pt}}\\
+SCPINT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SCPINT\rule[-5pt]{0pt}{8pt}}\\
+SCPVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SCPVAL\rule[-5pt]{0pt}{8pt}}\\
+SMPDRV & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SMPDRV\rule[-5pt]{0pt}{8pt}}\\
+SMPINT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SMPINT\rule[-5pt]{0pt}{8pt}}\\
+SMPVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SMPVAL}\\
+\end{tabular}
+
+The source language is Fortran~77.
+
+Designed by C. L. Lawson, JPL, 1970. Programmed by Lawson and D. Campbell,
+JPL, 1970. Adapted to Fortran~77 by Lawson and S. Y. Chiu, JPL, 1984.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSCPVAL}\vspace{10pt}
+\lstinputlisting{\codeloc{scpval}}
+
+\vspace{30pt}\centerline{\bf \large ODSCPVAL}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{scpval}}
+\end{document}

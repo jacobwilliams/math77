@@ -1,0 +1,127 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 2.11 Finite Legendre Series
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine computes the value of a finite sum of Legendre polynomials,
+\begin{equation*}
+y=\sum_{j=0}^{\text{N}}a_jP_j(x)
+\end{equation*}
+for a specified summation limit, N, argument, $x$, and sequence of
+coefficients, $a_j$. The Legendre polynomials are defined in \cite{ams55:or-poly}.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  \ {\bf X, Y, A}($0:m\geq $ N)
+\end{description}
+
+Assign values to X, N, and A(0), A(1), ... A(N).
+$$
+\fbox{{\bf CALL SLESUM (S, N, A, Y)}}
+$$
+The sum will be stored in Y.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument of the polynomials.
+
+\item[N]  \ [in] Highest degree of polynomials in sum.
+
+\item[A()]  \ [in] The coefficients must be given in A(J), J = 0, ..., N.
+
+\item[Y]  \ [out] Computed value of the sum.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage, change the REAL statement to DOUBLE PRECISION
+and change the subroutine name from SLESUM to DLESUM.
+
+\subsection{Examples and Remarks}
+
+See DRSLESUM and ODSLESUM for an example of the usage of SLESUM. DRSLESUM
+evaluates the following identity, the coefficients of which were obtained
+from Table~22.9, page~798, of~\cite{ams55:or-poly}.
+\begin{equation*}
+z = y - w = 0,
+\end{equation*}
+where
+\begin{multline*}
+y = 0.07P_0(x) + 0.27P_1(x) + 0.20P_2(x)\\
++ 0.28P_3(x) + 0.08P_4(x) + 0.08P_5(x),
+\end{multline*}
+and
+\begin{equation*}
+w = 0.35x^4 + 0.63x^5.
+\end{equation*}
+
+\subsection{Functional Description}
+
+The sum is evaluated by the following algorithm:
+\begin{gather*}
+b_{N+2}=0,\quad b_{N+1}=0,\\
+b_k=\frac{2k+1}{k+1}b_{k+1}x-\frac{k+1}{k+2}b_{k+2}+a_k,\ \ k=N,...,0,\\
+y=b_0.
+\end{gather*}
+For an error analysis applying to this algorithm see \cite{Ng:1968:DSS} and
+\cite{Ng:1971:RAC}. The first four Legendre polynomials are \begin{gather*}
+P_0(x) = 1,\quad P_1(x) = x,\\
+P_2(x) = 1.5x^2 - 0.5,\quad P_3(x) = 2.5x^3 - 1.5x.
+\end{gather*}
+For $k \geq 2$ the Legendre polynomials satisfy the recurrence
+\begin{equation*}
+kP_k(x) = (2k-1)xP_{k-1}(x) - (k-1)P_{k-2}(x).
+\end{equation*}
+
+The Legendre polynomials are orthogonal relative to integration over the
+interval [$-$1,~1] and are normally used only with an argument, $x$, in this
+interval.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+The subroutine will return Y = 0 if N $< 0$. It is recommended that $x$
+satisfy $|x| \leq 1.$
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.2in} {\bf Required Files}\vspace{2pt} \\
+DLESUM & \hspace{.35in}DLESUM\rule[-5pt]{0pt}{8pt}\\
+SLESUM & \hspace{.35in}SLESUM\\
+\end{tabular}
+
+Based on a 1974 program by E. W. Ng, JPL. Present version by C. L. Lawson
+and S. Y. Chiu, JPL, 1983.
+
+
+\begcodenp
+
+\medskip
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSLESUM}\vspace{10pt}
+\lstinputlisting{\codeloc{slesum}}
+
+\vspace{30pt}\centerline{\bf \large ODSLESUM}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{slesum}}
+
+\end{document}

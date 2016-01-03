@@ -1,0 +1,564 @@
+      SUBROUTINE SINTDL (WORK)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+c>> 1996-04-27 SINTDL Krogh  Changes to use .C. and C%%.
+C>> 1996-03-31 SINTDL Krogh  Removed unused variable in common.
+c>> 1996-03-30 SINTDL Krogh  Change specific intrinsics to generics.
+c>> 1995-11-28 SINTDL Krogh  Converted from SFTRAN to Fortran 77.
+C>> 1994-11-14 SINTDL Krogh  Declared all vars.
+C>> 1994-10-19 SINTDL Krogh  Changes to use M77CON
+C>> 1994-08-22 SINTDL Krogh -- Modified data for C conversion.
+c>> 1994-07-07 SINTDL Snyder set up for CHGTYP.
+C>> 1994-05-24 SINTDL Krogh -- Fixes data and max's for C conversion.
+C>> 1994-05-02 SINTDL Snyder Structured some spaghetti code
+C>> 1993-05-18 SINTDL Krogh -- Changed "END" to "END PROGRAM"
+C>> 1991-09-20 SINTDL Krogh converted '(1)' dimensioning to '(*)'.
+C>> 1987-11-19 SINTDL Snyder  Initial code.
+C
+C     THIS SUBPROGRAM FORMS AND ANALYZES DIFFERENCE LINES FOR SINT
+C
+c--S replaces "?": ?INT, ?INTA, ?intc, ?intec, ?INTDL, ?INTNC, ?INTO
+C
+C     *****     FORMAL ARGUMENT   **************************************
+C
+C WORK    IS THE USER WORK ARRAY.  IT IS NOT USED HERE, BUT IS
+C         PASSED INTO SINTO.
+      REAL             WORK(*)
+C
+C     *****    EXTERNAL REFERENCES   ***********************************
+C
+C SINTO   USED FOR PRINTING OUTPUT.
+C
+C     *****    INTERNAL AND COMMON VARIABLES   *************************
+C
+C ALOCAL  IS THE LEFT END OF THE CURRENT PANEL.
+      REAL             ALOCAL
+C BETAS   ARE COEFFICIENTS USED TO COMPUTE DIFFERENCE LINES
+      REAL             BETAS (133)
+C BLOCAL  IS THE RIGHT END OF THE CURRENT PANEL.
+      REAL             BLOCAL
+C DTLENT  IS A TABLE OF INITIAL DIFFERENCE TABLE LENGTHS.
+      INTEGER DTLENT(3)
+C FATA    IS THE FUNCTION VALUE AT ALOCAL.
+      REAL             FATA
+C FATAS   INDICATES WHEN FATA HAS USEFUL DATA.
+      LOGICAL FATAS
+C FATB    IS THE FUNCTION VALUE AT BLOCAL.
+      REAL             FATB
+C FATBS   INDICATES WHEN FATB HAS USEFUL DATA.
+      LOGICAL FATBS
+C IB1     ARE STARTING VALUES FOR INDEXING THE BETAS TABLE
+      INTEGER IB1(3)
+C PHIT    IS THE BACKWARD DIFFERENCE LINE.  PHIT IS EQUIVALENCED
+C         WITH PHI (BELOW).
+      REAL             PHIT(17)
+C PMAX    IS THE MAXIMUM OF THREE ADJACENT VALUES OF PHI OR PHIT.  THIS
+C         IS USED WHEN EXAMINING JUMPS TO AVOID OVERFLOWS.
+      REAL             PMAX
+C XJUMPN  IS THE VALUE TO USE FOR XJUMP WHEN NOT DOING A SEARCH.
+      REAL             XJUMPN
+C XJUMPS  IS THE VALUE TO USE FOR XJUMP WHEN DOING A SEARCH.
+      REAL             XJUMPS
+C Z5      IS AN ADJUSTABLE PARAMETER USED DURING DEVELOPMENT.
+      REAL             Z5
+      INTEGER INSTOP, IC2, IC1
+C
+C SEE SINTA FOR A DESCRIPTION OF REMAINING COMMON VARIABLES
+C
+C     *****    COMMON STORAGE ******************************************
+C
+C     COMMON /SINTNC/ CONTAINS VARIABLES NOT SEPARATELY SAVED FOR
+C     EACH DIMENSION OF A MULTIPLE QUADRATURE.  COMMON /SINTC/
+C     CONTAINS VARIABLES THAT MUST BE SAVED FOR EACH DIMENSION OF THE
+C     QUADRATURE.  THE VARIABLES IN EACH COMMON BLOCK ARE STORED IN THE
+C     ORDER - ALWAYS DOUBLE, DOUBLE IF DOUBLE PRECISION PROGRAM, DOUBLE
+C     IF DOUBLE PRECISION PROGRAM AND EXPONENT RANGE OF DOUBLE AND
+C     SINGLE VERY DIFFERENT, SINGLE, INTEGER, LOGICAL.  A PAD OF LOGICAL
+C     VARIABLES IS INCLUDED AT THE END OF /SINTC/.  THE DIMENSION OF
+C     THE PAD MAY NEED TO BE VARIED SO THAT NO VARIABLES BEYOND THE END
+C     OF THE COMMON BLOCK ARE ALTERED.
+C
+C     DECLARATIONS OF COMMON /SINTNC/ VARIABLES.
+C
+      REAL             AINIT, BINIT, FNCVAL, S, TP
+      REAL             FER, FER1, RELOBT, TPS, XJ, XJP
+      INTEGER     FEA,       FEA1,      INC,       INC2,      IPRINT,
+     1 ISTOP(2,2),JPRINT,    KDIM,      KK,        KMAXF,     NDIM,
+     2 NFINDX,    NFMAX,     NFMAXM,    RELTOL,    REVERM,    REVERS,
+     3 WHEREM
+      LOGICAL NEEDH
+C
+C     DECLARATIONS OF COMMON /SINTC/ VARIABLES.
+C
+c--D Next line special: S => D, X => Q, D => D, P => D
+      DOUBLE PRECISION ACUM, PACUM, RESULT(2)
+C     139 $.TYPE.$ VARIABLES
+      REAL
+     1 AACUM,     ABSCIS,    DELMIN,    DELTA,     DIFF,      DISCX(2),
+     2 END(2),    ERRINA,    ERRINB,    FAT(2),    FSAVE,
+     3 FUNCT(24), F1,        F2,        LOCAL(4),  PAACUM,    PF1,
+     4 PF2,       PHISUM,    PHTSUM,    PX,        SPACE(6),
+     5 STEP(2),   START(2),  SUM,       T,         TA,        TASAVE,
+     6 TB,        TEND,      WORRY(2),  X,         X1,
+     7 X2,        XT(17),    FT(17),    PHI(34)
+c Note XT, FT, and PHI above are last, because they must be in adjacent
+c locations in SINTC.
+C     30 $DSTYP$ VARIABLES
+      REAL
+     1 ABSDIF,    COUNT,     EDUE2A,    EDUE2B,    EP,        EPNOIZ,
+     2 EPS,       EPSMAX,    EPSMIN,    EPSO,      EPSR,      EPSS,
+     3 ERR,       ERRAT(2),  ERRC,      ERRF,      ERRI,      ERRT(2),
+     4 ESOLD,     EXTRA,     PEPSMN,    RE,        RELEPS,    REP,
+     5 REPROD,    RNDC,      TLEN,      XJUMP
+C     29 INTEGER VARIABLES
+      INTEGER     DISCF,     DISCHK,    ENDPTS,    I,         INEW,
+     1 IOLD,      IP,        IXKDIM,    J,         J1,        J1OLD,
+     2 J2,        J2OLD,     K,         KAIMT,     KMAX,      KMIN,
+     3 L,         LENDT,     NFEVAL,    NFJUMP,    NSUB,      NSUBSV,
+     4 NXKDIM,    PART,      SEARCH,    TALOC,     WHERE,     WHERE2
+C     11 TO 18 LOGICALS (7 ARE PADDING).
+      LOGICAL     DID1,      FAIL,      FATS(2),   FSAVED,    HAVDIF,
+     1 IEND,      INIT,      ROUNDF,    XCDOBT(2), PAD(7)
+C
+C     THE COMMON BLOCKS.
+C
+      COMMON /SINTNC/
+c        1       2       3     4        5       6       7        8
+     W AINIT,  BINIT,  FNCVAL, S,      TP,     FER,    FER1,   RELOBT,
+c       9      10       11      12      13       1       2        3
+     X TPS,    XJ,     XJP,    FEA,    FEA1,   KDIM,    INC,    INC2,
+c     4 (2,2)    8       9     10       11      12       13      14
+     Y ISTOP,  JPRINT, IPRINT, KK,     KMAXF,  NDIM,   NFINDX, NFMAX,
+c        15     16       17      18      19      20
+     Z NFMAXM, RELTOL, REVERM, REVERS, WHEREM, NEEDH
+      COMMON /SINTC/
+     1 ACUM,   PACUM,  RESULT
+      COMMON /SINTC/
+c        1     2 (4)     6      7        8       9      10     11 (2)
+     1 AACUM,  LOCAL,  ABSCIS, TA,     DELTA,  DELMIN, DIFF,   DISCX,
+c     13 (2)     15      16    17 (2)   19     20 (24) 44
+     2 END,    ERRINA, ERRINB, FAT,    FSAVE,  FUNCT,  F2,
+c       45      46     47       48      49     50      51 (6)
+     3 PAACUM, PF1,    PF2,    PHISUM, PHTSUM, PX,     SPACE,
+c      57 (2)  59 (2)   61     62        63    64       65
+     4 STEP,   START,  SUM,    T,      TASAVE, TB,     TEND,
+c      66 (2)  68      69      70      71       72
+     5 WORRY,  X1,     X2,     X,      F1,     COUNT,
+c      73 (17) 90 (17) 107 (34)
+     6 XT,     FT,     PHI
+      COMMON /SINTC/
+c       141     142    143     144      145     146
+     1 ABSDIF, EDUE2A, EDUE2B, EP,     EPNOIZ, EPSMAX,
+c       147     148     149    150 (2)  152     153
+     2 EPSO,   EPSR,   EPSS,   ERRAT,  ERRC,   ERRF,
+c     154 (2)   156     157     158     159    160
+     3 ERRT,   ESOLD,  EXTRA,  PEPSMN, RELEPS, REP,
+c       161     162     163
+     4 RNDC,   TLEN,   XJUMP,
+c       164    165      166    167    168       169
+     5 ERRI,   ERR,    EPSMIN, EPS,    RE,     REPROD
+      COMMON /SINTC/
+c       170     171     172
+     1 DISCF,  DISCHK, ENDPTS, INEW,   IOLD,   IP,     IXKDIM,
+     2 J,      J1,     J1OLD,  J2,     J2OLD,  KMAX,   KMIN,
+     3 L,      LENDT,  NFJUMP, NSUBSV, NXKDIM, TALOC,  WHERE2,
+c      1       2          3      4       5         6      7       8
+     4 I,      K,      KAIMT,  NSUB,   PART,   SEARCH, WHERE, NFEVAL
+      COMMON /SINTC/
+     1 DID1,   FAIL,   FATS,   FSAVED, HAVDIF, IEND,   INIT,   ROUNDF,
+     2 XCDOBT, PAD
+      SAVE /SINTNC/, /SINTC/
+C
+C     THE VARIABLES HERE DEFINE THE MACHINE ENVIRONMENT.  ALL ARE SET
+C     IN DINTOP.  THE MEANING ATTACHED TO THESE VARIABLES CAN BE
+C     FOUND BY LOOKING AT THE DEFINITIONS IN DINTOP.
+      REAL
+     1  EMEPS,  EEPSM8, EDELM2, EDELM3, ESQEPS, ERSQEP, ERSQE6, EMINF,
+     2  ESMALL, ENZER,  EDELM1, ENINF
+      COMMON /SINTEC/
+     1  EMEPS,  EEPSM8, EDELM2, EDELM3, ESQEPS, ERSQEP, ERSQE6, EMINF,
+     2  ESMALL, ENZER,  EDELM1, ENINF
+      SAVE /SINTEC/
+C
+C     *****    EQUIVALENCE STATEMENTS    *******************************
+C
+      EQUIVALENCE (PHI(18),PHIT)
+      EQUIVALENCE (FAT(1),FATA),(FAT(2),FATB)
+      EQUIVALENCE (FATS(1),FATAS),(FATS(2),FATBS)
+      EQUIVALENCE (LOCAL(1),ALOCAL),(LOCAL(2),BLOCAL)
+      EQUIVALENCE (ISTOP(1,1),IC1),(ISTOP(1,2),IC2)
+C
+C     *****    DATA STATEMENTS   ***************************************
+C
+      DATA DTLENT /5,7,15/
+      DATA IB1 /1,10,30/
+      DATA XJUMPN /0.25E0/
+      DATA XJUMPS /0.5E0/
+      DATA Z5 /0.01E0/
+C
+C     BETAS( 1:  9) are for computing 5-point difference line.
+C     BETAS(10: 29) are for computing 7-point difference line.
+C     BETAS(30:133) are for computing 15-point difference line.
+C
+c++ Save data by elements if ~.C.
+      DATA BETAS(1) /   .3436491673103708451E+001 /
+      DATA BETAS(2) /   .2909944487358056275E+000 /
+      DATA BETAS(3) /   .1000000000000000001E+001 /
+      DATA BETAS(4) /   .1549193338482966760E+001 /
+      DATA BETAS(5) /  -.1878361089654305178E+000 /
+      DATA BETAS(6) /   .2909944487358056232E+000 /
+      DATA BETAS(7) /   .1878361089654305149E+000 /
+      DATA BETAS(8) /   .1878361089654305149E+000 /
+      DATA BETAS(9) /   .1000000000000000015E+001 /
+      DATA BETAS(10) /  .1830891918707665993E+001 /
+      DATA BETAS(11) /  .5461818853326139665E+000 /
+      DATA BETAS(12) /  .1275863152521727801E+001 /
+      DATA BETAS(13) /  .1877974359956861711E+001 /
+      DATA BETAS(14) / -.2908356455650225802E+000 /
+      DATA BETAS(15) /  .1000000000000000003E+001 /
+      DATA BETAS(16) /  .1121212539609889453E+001 /
+      DATA BETAS(17) /  .1411118538882285126E+001 /
+      DATA BETAS(18) /  .2061029159147656548E+000 /
+      DATA BETAS(19) /  .7837831181373271228E+000 /
+      DATA BETAS(20) /  .6990495472071992051E+000 /
+      DATA BETAS(21) /  .6990495472071992051E+000 /
+      DATA BETAS(22) /  .7764649827988754109E+000 /
+      DATA BETAS(23) / -.2654374897523893370E+000 /
+      DATA BETAS(24) /  .5461818853326139587E+000 /
+      DATA BETAS(25) /  .3710664836162815639E+000 /
+      DATA BETAS(26) /  .2948330583120690783E+000 /
+      DATA BETAS(27) /  .2654374897523893283E+000 /
+      DATA BETAS(28) /  .2654374897523893275E+000 /
+      DATA BETAS(29) /  .1000000000000000036E+001 /
+      DATA BETAS(30) /  .2160483964289764787E+001 /
+      DATA BETAS(31) /  .4628592558560086054E+000 /
+      DATA BETAS(32) /  .1580721165376834188E+001 /
+      DATA BETAS(33) /  .2788648704047761366E+001 /
+      DATA BETAS(34) / -.1659797647456139336E+000 /
+      DATA BETAS(35) /  .1348061361080862260E+001 /
+      DATA BETAS(36) /  .1938801234758797259E+001 /
+      DATA BETAS(37) /  .3001371201600030120E+001 /
+      DATA BETAS(38) /  .5530131183278168619E-001 /
+      DATA BETAS(39) /  .1217373546890437278E+001 /
+      DATA BETAS(40) /  .1549754626219785878E+001 /
+      DATA BETAS(41) /  .2074091833232865716E+001 /
+      DATA BETAS(42) /  .2928362520543975785E+001 /
+      DATA BETAS(43) / -.1888472190338949389E-001 /
+      DATA BETAS(44) /  .1128427531866524394E+001 /
+      DATA BETAS(45) /  .1318613567768740554E+001 /
+      DATA BETAS(46) /  .1600194155392385446E+001 /
+      DATA BETAS(47) /  .2022328205978644955E+001 /
+      DATA BETAS(48) /  .2663864875210043425E+001 /
+      DATA BETAS(49) /  .7089219156396005268E-002 /
+      DATA BETAS(50) /  .1059422356252840359E+001 /
+      DATA BETAS(51) /  .1156722975732715836E+001 /
+      DATA BETAS(52) /  .1303394479759645425E+001 /
+      DATA BETAS(53) /  .1518037435357655518E+001 /
+      DATA BETAS(54) /  .1829746290708357198E+001 /
+      DATA BETAS(55) /  .2281090415029519236E+001 /
+      DATA BETAS(56) / -.3107820325615749339E-002 /
+      DATA BETAS(57) /  .1000000000000000007E+001 /
+      DATA BETAS(58) /  .1028853894914960778E+001 /
+      DATA BETAS(59) /  .1089361496056109992E+001 /
+      DATA BETAS(60) /  .1187656139924609753E+001 /
+      DATA BETAS(61) /  .1334063529367354927E+001 /
+      DATA BETAS(62) /  .1544285866555422247E+001 /
+      DATA BETAS(63) /  .1839592669101145570E+001 /
+      DATA BETAS(64) /  .1689406778911703374E-002 /
+      DATA BETAS(65) /  .9439106076041133657E+000 /
+      DATA BETAS(66) /  .9174389213758399244E+000 /
+      DATA BETAS(67) /  .9174389213758399244E+000 /
+      DATA BETAS(68) /  .9435097871391599084E+000 /
+      DATA BETAS(69) /  .9977420273821314863E+000 /
+      DATA BETAS(70) /  .1084782404725432559E+001 /
+      DATA BETAS(71) /  .1211987194763725285E+001 /
+      DATA BETAS(72) /  .1388740619829111076E+001 /
+      DATA BETAS(73) / -.1216502747013758565E-002 /
+      DATA BETAS(74) /  .8861889414785074481E+000 /
+      DATA BETAS(75) /  .8116449626771402972E+000 /
+      DATA BETAS(76) /  .7665628757411781400E+000 /
+      DATA BETAS(77) /  .7453813701489683382E+000 /
+      DATA BETAS(78) /  .7453813701489683365E+000 /
+      DATA BETAS(79) /  .7659548081345759537E+000 /
+      DATA BETAS(80) /  .8082259176409903757E+000 /
+      DATA BETAS(81) /  .8747663621098320137E+000 /
+      DATA BETAS(82) /  .9688039688731088254E+000 /
+      DATA BETAS(83) /  .1255674817712366966E-002 /
+      DATA BETAS(84) /  .8214405533571194637E+000 /
+      DATA BETAS(85) /  .7029626866105575496E+000 /
+      DATA BETAS(86) /  .6238580132970762736E+000 /
+      DATA BETAS(87) /  .5722253065058340695E+000 /
+      DATA BETAS(88) /  .5411220158316336791E+000 /
+      DATA BETAS(89) /  .5265875548985245415E+000 /
+      DATA BETAS(90) /  .5265875548985245415E+000 /
+      DATA BETAS(91) /  .5404122752915469377E+000 /
+      DATA BETAS(92) /  .5682467824057592445E+000 /
+      DATA BETAS(93) /  .6105250012592685202E+000 /
+      DATA BETAS(94) / -.2056713181478912089E-002 /
+      DATA BETAS(95) /  .7418059955358485150E+000 /
+      DATA BETAS(96) /  .5827083724168839593E+000 /
+      DATA BETAS(97) /  .4801712113071248704E+000 /
+      DATA BETAS(98) /  .4122773863015805726E+000 /
+      DATA BETAS(99) /  .3670318230087162626E+000 /
+      DATA BETAS(100) / .3375820566477249038E+000 /
+      DATA BETAS(101) / .3199261416708740619E+000 /
+      DATA BETAS(102) / .3117418541236820569E+000 /
+      DATA BETAS(103) / .3117418541236820569E+000 /
+      DATA BETAS(104) / .3192575114045456230E+000 /
+      DATA BETAS(105) / .3337942651525015294E+000 /
+      DATA BETAS(106) / .6161619285278180942E-002 /
+      DATA BETAS(107) / .6326226420594590703E+000 /
+      DATA BETAS(108) / .4398667200206020996E+000 /
+      DATA BETAS(109) / .3286669728647044621E+000 /
+      DATA BETAS(110) / .2600621241862664580E+000 /
+      DATA BETAS(111) / .2157588962131737290E+000 /
+      DATA BETAS(112) / .1863878189966076094E+000 /
+      DATA BETAS(113) / .1668253817995868195E+000 /
+      DATA BETAS(114) / .1541355533671636686E+000 /
+      DATA BETAS(115) / .1465855112207078905E+000 /
+      DATA BETAS(116) / .1431347342606662998E+000 /
+      DATA BETAS(117) / .1431347342606662993E+000 /
+      DATA BETAS(118) / .1460769330400709832E+000 /
+      DATA BETAS(119) /  -.4218064520555042749E-001 /
+      DATA BETAS(120) / .4628592558560086436E+000 /
+      DATA BETAS(121) / .2623677271576596603E+000 /
+      DATA BETAS(122) / .1694821597218475388E+000 /
+      DATA BETAS(123) / .1200403163514239665E+000 /
+      DATA BETAS(124) / .9113109297367898293E-001 /
+      DATA BETAS(125) / .7309959229942654766E-001 /
+      DATA BETAS(126) / .6136503430084129995E-001 /
+      DATA BETAS(127) / .5355473492811662567E-001 /
+      DATA BETAS(128) / .4835640867710043200E-001 /
+      DATA BETAS(129) / .4500777786787335424E-001 /
+      DATA BETAS(130) / .4304768732135345497E-001 /
+      DATA BETAS(131) / .4218064520555042532E-001 /
+      DATA BETAS(132) / .4218064520555042532E-001 /
+      DATA BETAS(133) / .1000000000000000051E+001 /
+C
+C     *****    PROCEDURES     ******************************************
+C
+      IF (WHERE.EQ.0) THEN
+C
+C     PREPARE TO COMPUTE THE DIFFERENCES.
+C
+         HAVDIF=.TRUE.
+         XJUMP=XJUMPN
+         IF (ABS(WORRY(PART)-START(PART)).LT.ABS(BLOCAL-START(PART))
+     1   .OR.DISCHK.GT.0) XJUMP=XJUMPS
+C        PACK THE ABSCISSA AND FUNCTION TABLES.
+         KK=min(K,4)
+C        KK MUST BE RECOMPUTED BECAUSE IT IS NOT SAVED IN EACH DIMENSION
+         LENDT=DTLENT(KK-1)
+         J1=L
+         IF (K.EQ.2) J1=0
+         DO 10 J=1,LENDT
+            XT(J)=XT(J1+1)
+            FT(J)=FT(J1+1)
+            J1=J1+L
+10       CONTINUE
+C
+C     COMPUTE MODIFIED DIVIDED DIFFERENCES.
+C
+         PHIT(LENDT)=FT(LENDT)
+         PHI(1)=FT(1)
+         PHIT(1)=FT(2)-FT(1)
+         PHI(2)=-PHIT(1)
+         L=IB1(KK-1)
+         DO 40 I=3,LENDT
+            PHIT(I-1)=FT(I)-FT(I-1)
+            DO 20 J=3,I
+               PHIT(I-J+1)=PHIT(I-J+2)-BETAS(L)*PHIT(I-J+1)
+               L=L+1
+20          CONTINUE
+            PHI(I)=PHIT(1)*BETAS(L)
+            L=L+1
+40       CONTINUE
+         NFJUMP=NFEVAL
+C
+C     COMPUTE THE SUMS OF THE ABSOLUTE VALUES OF THE MIDDLE DIFFERENCES.
+C
+         L=(LENDT+1)/2
+         PHISUM=ABS(PHI(L))
+         PHTSUM=ABS(PHIT(L))
+         IF (K.GE.3) THEN
+            PHISUM=ABS(PHI(L-1))+PHISUM+ABS(PHI(L+1))
+            PHTSUM=ABS(PHIT(L-1))+PHTSUM+ABS(PHIT(L+1))
+         END IF
+C
+C     IF THE CURRENT PANEL CONTAINS THE END OF A PART,
+C     WE ARE NOT USING A T**N TRANSFORMATION AND PHISUM IS LESS THAN
+C     PHTSUM, TURN THE PROBLEM AROUND AND INTEGRATE IN THE OPPOSITE
+C     DIRECTION.
+C
+         IF (IEND) THEN
+            IF (NSUB.EQ.0) THEN
+               IF (PHISUM.LT.PHTSUM) THEN
+C                 REVERSE DIRECTION OF INTEGRATION STEP ACCUMULATION.
+                  IF (WORRY(PART).EQ.BLOCAL) WORRY(PART)=ALOCAL
+                  START(PART)=BLOCAL
+                  END(PART)=ALOCAL
+                  ALOCAL=BLOCAL
+                  BLOCAL=END(PART)
+                  LOCAL(3)=ALOCAL
+                  LOCAL(4)=BLOCAL
+                  TEND=BLOCAL
+                  TA=START(PART)
+                  TB=BLOCAL-TA
+                  X1=XJ
+                  XJ=XJP
+                  XJP=X1
+                  J1=L-1
+                  DO 60 I=1,J1
+                     FUNCT(I+17)=FUNCT(I+1)-FUNCT(I+17)
+                     S=XT(L-I)
+                     XT(L-I)=XT(L+I)
+                     XT(L+I)=S
+                     S=FT(L-I)
+                     FT(L-I)=FT(L+I)
+                     FT(L+I)=S
+                     S=PHI(L-I)
+                     PHI(L-I)=PHIT(L+I)
+                     PHIT(L+I)=S
+                     S=PHIT(L-I)
+                     PHIT(L-I)=PHI(L+I)
+                     PHI(L+I)=S
+60                CONTINUE
+                  S=PHI(L)
+                  PHI(L)=PHIT(L)
+                  PHIT(L)=S
+                  DIFF=-DIFF
+                  STEP(PART)=-STEP(PART)
+                  S=FATA
+                  FATA=FATB
+                  FATB=S
+                  FSAVED=FATAS
+                  FATAS=FATBS
+                  FATBS=FSAVED
+                  FSAVED=.FALSE.
+C     IF WE ARE TURNING AROUND THE END OF PART 2, HAVE NOT YET DONE
+C     ANYTHING IN PART 2 AND HAVE NO DISCONTINUITY DIAGNOSTIC
+C     PENDING, UNDO THE SUBDIVISION AND RETURN TO MARCHING.
+                  IF (PART.EQ.2) THEN
+                     IF (DISCF.EQ.0) THEN
+                        IF (START(1).EQ.BLOCAL) THEN
+                           START(1)=START(2)
+                           PART=1
+                           IEND=.FALSE.
+                        END IF
+                     END IF
+                  END IF
+                  IF (IPRINT.GT.3) CALL SINTO (4,WORK)
+               END IF
+            END IF
+         END IF
+      END IF
+C
+C     EXAMINE THE DIFFERENCE LINES.
+C
+      I=2
+      J=2
+      KK=1
+      INC=1
+      INC2=2
+      INSTOP=LENDT
+      J2=0
+      IF (.NOT.DID1) J2=NSUB+4
+      S=100.0e0*EPSMIN/DELTA
+      IF (SEARCH.EQ.4) S=0.0e0
+C     do forever
+80    continue
+         L=I
+         ISTOP(1,KK)=L
+         TP=ABS(PHI(J-INC))+Z5*S
+         XJ=XJUMP
+         J1=0
+C        While
+90       if (I.ne.INSTOP) then
+            I=I+INC
+            TP=TP+ABS(PHI(J))
+            J=J+INC
+            IF (ABS(PHI(J-INC))+2.0e0*ABS(PHI(J))
+     1      .lt.S+ABS(PHI(J-INC2))) then
+               L=I+(L+INC2-I)/2
+               IF (L.EQ.I) GO TO 80
+               if (i .le. j2) GO TO 80
+            else
+               IF (SIGN(1.0e0,PHI(J))*PHI(J-INC).GE.0.0e0) GO TO 120
+            end if
+            IF (SEARCH.NE.4) XJ=XJ+XJ
+120         continue
+            IF (ABS(PHI(J)*XJ).LE.TP) GO TO 90
+            XJ=MAX(4.0e-4,TP/ABS(PHI(J)))
+            J1=I
+            GO TO 90
+         end if
+C        end while
+         IF (ABS(XJ).GE.XJUMP) J1=0
+         ISTOP(2,KK)=J1
+         IF (INC.lt.0) GO TO 140
+         J2=0
+         XJP=XJ
+         INSTOP=1
+         INC2=-2
+         INC=-1
+         I=I+INC
+         J=16+LENDT
+         KK=2
+         GO TO 80
+C     end forever
+140   continue
+C     WEAKEN JUMPS IF A LOT OF CONVERGENCE OVERLAP WITH JUMP, THEN TEST
+C     IF JUMP CAN BE IGNORED.
+      J1=ISTOP(2,1)
+      J2=ISTOP(2,2)
+C     do block
+         IF (J1.ne.0) then
+            I=J1-IC2-1
+            IF (I.gt.0) then
+               XJP=XJP*6.0e0**I
+               IF (XJP.GE.1.0e0) GO TO 160
+            end if
+            S=1.0E-4
+            IF (J1.NE.LENDT) S=0.1e0**MAX(J1-J2+1,1)
+            PMAX=MAX(ABS(PHI(J1-2)),MAX(ABS(PHI(J1-1)),ABS(PHI(J1))))
+      IF (ABS(S*(PHI(J1)/PMAX)*PHI(J1-2)).GE.(PHI(J1-1)/PMAX)*PHI(J1-1))
+     1          XJP=-XJP
+            IF (J1.LT.LENDT) GO TO 170
+            IF (ABS(XJP).LT.1.0E-3) GO TO 170
+            IF (IC1.NE.2) GO TO 170
+         end if
+160      continue
+         ISTOP(2,1)=18
+         XJP=ABS(XJP)
+C     end block
+170   continue
+C     do block
+         IF (J2.ne.0) then
+            I=IC1-J2-1
+            IF (I.gt.0) then
+               XJ=XJ*6.0e0**I
+               IF (XJ.GE.1.0e0) GO TO 190
+            end if
+            S=1.0E-4
+            IF (J2.NE.1) S=0.1e0**MAX(J1-J2+1,1)
+            PMAX=MAX(ABS(PHIT(J2)),MAX(ABS(PHIT(J2+1)),ABS(PHIT(J2+2))))
+            IF(ABS(S*(PHIT(J2)/PMAX)*PHIT(J2+2))
+     1         .GE.(PHIT(J2+1)/PMAX)*PHIT(J2+1)) XJ=-XJ
+            IF (J2.GE.2) GO TO 200
+            IF (ABS(XJ).LT.1.0E-3) GO TO 200
+            IF (IC2.NE.LENDT-1) GO TO 200
+190         ISTOP(2,2)=0
+         end if
+         XJ=ABS(XJ)
+C     end block
+200   continue
+      IF (J2.EQ.1) THEN
+         IF (ABS(PHIT(2)).GT.100.0e0*ABS(PHIT(3))) XJ=ABS(XJ)
+      END IF
+      IF (J1.EQ.LENDT) THEN
+         IF(ABS(PHI(LENDT-1)).GT.100.0e0*ABS(PHI(LENDT-2))) XJP=ABS(XJP)
+      END IF
+      IF (IPRINT.GT.3) CALL SINTO (5,WORK)
+      RETURN
+      END

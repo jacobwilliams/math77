@@ -1,0 +1,125 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 15.3 Cumulative Distribution Function for Chi-Square
+\hbox{Probability Distribution}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The procedure described in this Section computes the Cumulative Distribution
+Function (CDF) of the Chi-Square probability distribution. The CDF is
+sometimes called the lower tail. The
+lower tail, or CDF, $P(\chi ^2|\nu )$, and the upper tail, $Q(\chi ^2|\nu )$
+for the Chi-Square probability distribution with argument $\chi $ and $\nu $
+degrees of freedom are defined by%
+\begin{gather*}
+\hspace{-5pt}P(\chi ^2|\nu )=\frac{2^{-\nu /2}}{\Gamma (\nu /2)}\int_0^{
+\chi^2}t^{(\nu / 2)-1}e^{-t/2}dt,\phantom{=1-P(\chi ^2|\nu )}\\
+\hspace{-5pt}Q(\chi ^2|\nu )=\frac{2^{-\nu /2}}{\Gamma (\nu /2)}
+\int_{\chi ^2}^\infty t^{(\nu / 2)-1}e^{-t/2}dt\phantom{,}=1-P(\chi ^2|\nu )
+\end{gather*}
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf CHISQ, NU, P, Q}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to CHISQ and NU, and obtain P $=P(\chi ^2|\nu )$ and Q $%
+=Q(\chi ^2|\nu )$ by using
+$$
+\fbox{{\bf CALL SCDCHI (CHISQ, NU, P, Q, IERR)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[CHISQ]  \ [in] Argument $\chi ^2$ of the functions $P(\chi ^2|\nu )$
+and $Q(\chi ^2|\nu ).$  Must be nonnegative.  Must be positive if NU = 0.
+
+\item[NU]  \ [in] Degrees of freedom $\nu $ of the functions $P(\chi ^2|\nu )
+$ and $Q(\chi ^2|\nu ).$  Must be nonnegative.  Must be positive if
+CHISQ = 0.
+
+\item[P]  \ [out] The value of the function $P(\chi ^2|\nu ).$
+
+\item[Q]  \ [out] The value of the function $Q(\chi ^2|\nu ).$
+
+\item[IERR]  \ [out] A flag that normally is zero to indicate successful
+computation. See Section E below for discussion of non-zero values.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision computation, change the REAL type statement to DOUBLE
+PRECISION and change the initial letter of the procedure name to D.
+
+\subsection{Example and Remarks}
+
+See DRDCDCHI and ODDCDCHI for an example of the usage of this subprogram.
+
+The procedures SGAMIK and SGAMIE, described in Chapter~2.19, are used to
+control the procedure SGAMI and determine the error estimate it returns.
+SGAMI is used as described in Section D below.
+
+\subsection{Functional Description}
+
+\subsubsection{Method}
+
+The identities $P(\chi ^2|\nu ) = P(a,x)$ and $Q(\chi ^2|\nu ) = Q(a,x)$,
+with $a = \nu /2$ and $x = \chi ^2/2$, where $P(a,x)$ and $Q(a,x)$ are
+incomplete gamma function ratios, are used. The procedure SGAMI described in
+Chapter~2.19 is used to evaluate $P(a,x)$ and $Q(a,x).$
+
+\subsubsection{Accuracy Tests}
+
+See Section~2.19.D.
+
+\subsection{Error Procedures and Restrictions}
+
+The procedure SGAMI issues error messages, under several conditions, at
+level 2 + MSGOFF, where MSGOFF is zero unless specified by a call to SGAMIK
+(see Chapter~2.19) at some time before calling SCDCHI. If error termination
+is suppressed by setting MSGOFF $< 0$, or by calling ERMSET (see Chapter
+19.2), IERR will be set to a non-zero value.
+
+If the desired tolerance could not be achieved, IERR is set to~2.
+
+If SCDCHI is called with both CHISQ and NU zero, IERR is set to~3 and P is
+set to~3.0.
+
+If SCDCHI is called with one or both of CHISQ and NU negative, IERR is set
+to~4 and P is set to~4.0.
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCDCHI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCDCHI, DCSEVL, DERF, DERM1, DERV1, DGAM1, DGAMMA, DINITS, DRCOMP,
+DREXP, DRLOG, DXPARG, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SCDCHI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCDCHI, SCSEVL, SERF, SERM1, SERV1,
+SGAM1, SGAMMA, SINITS, SRCOMP, SREXP, SRLOG, SXPARG}\\
+\end{tabular}
+
+Designed and programmed by W. V. Snyder, JPL, 1993.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDCDCHI}\vspace{10pt}
+\lstinputlisting{\codeloc{dcdchi}}
+
+\vspace{30pt}\centerline{\bf \large ODDCDCHI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dcdchi}}
+\end{document}

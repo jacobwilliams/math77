@@ -1,0 +1,460 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-05}
+\hyphenation{ODSBESJN}
+\begmath 2.5 Bessel Functions of General Orders $J_\nu $ and $Y_\nu $
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subroutines compute a sequence of values $J_\nu (x)$ or $Y_\nu (x)$
+for $\nu = \alpha $, $\alpha + 1$, ..., $\alpha +\text{NUM} - 1$. $J_\nu $
+and $Y_\nu $ are Bessel functions of the first and second kinds,
+respectively, as described in \cite{ams55:bes}. $J_\nu $ and $Y_\nu $ are a
+pair of linearly independent solutions of the differential equation
+\begin{equation*}
+x^2\frac{d^2w}{dx^2} + x\frac{dw}{dx} + (x^2 - \nu ^2)w = 0
+\end{equation*}
+$Y_\nu $ is also sometimes called the Neumann function and denoted by $N_\nu
+.$
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf X, ALPHA, BJ}($\geq $NUM){\bf ,BY}($\geq $NUM)
+
+\item[INTEGER]  \ {\bf NUM}
+\end{description}
+
+Assign values to X, ALPHA, and NUM. To evaluate J Bessel functions:
+$$
+\fbox{{\bf CALL SBESJN (X, ALPHA, NUM, BJ)}}
+$$
+To evaluate Y Bessel functions:
+$$
+\fbox{{\bf CALL SBESYN (X, ALPHA, NUM, BY)}}
+$$
+The results are stored in BJ() or BY(), respectively.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument for function evaluation. Require X $\geq 0$ for
+the J function and X $>0$ for the Y function. Require X $<(16\rho
+)^{-1}$ for both functions, where $\rho $ denotes the machine
+precision.
+
+\item[ALPHA]  \ [in] Lowest order, $\nu $, for which $J_\nu (x)$ or $Y_\nu
+(x)$ is to be computed. Require ALPHA $\geq 0$. For sufficiently large $\nu $%
+, depending on $x$, positive values of $J_\nu (x)$ will be smaller than the
+computer's underflow limit and the magnitude of $Y_\nu (x)$ will exceed the
+overflow limit. SBESYN issues an error message before overflow occurs.
+
+\item[NUM]  \ [in] Number of values of $\nu $ for which $J_\nu (x)$ or $%
+Y_\nu (x)$ is to be computed. Require NUM $\geq 1.$
+
+\item[BJ()]  \ [out] Array in which SBESJN will store results. BJ($%
+i)=J_{\alpha +i-1}(x)$ for $i=1$, 2, ..., NUM.
+
+\item[BY()]  \ [out] Array in which SBESYN will store results. BY($%
+i)=Y_{\alpha +i-1}(x)$ for $i=1$, 2, ..., NUM.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage, change the REAL statement to DOUBLE PRECISION
+and change the subroutine names to DBESJN and DBESYN, respectively.
+
+\subsection{Examples and Remarks}
+
+These Bessel functions satisfy the Wronskian identity (\cite{ams55:bes},
+Eq.\,9.1.16)
+\begin{equation*}
+z(\nu ,x) = \frac{x\pi }{2} \left[J_{\nu +1}(x) Y_\nu (x) - J_\nu (x) Y_{\nu
++1}(x)\right] - 1 = 0
+\end{equation*}
+The program DRSBESJN evaluates this expression for a few values of $\nu $
+and $x$. The results are shown in ODSBESJN.
+
+\subsection{Functional Description}
+
+\subsubsection{Properties of J and Y}
+
+In the region $x \geq \nu $, both J and Y are oscillatory and are bounded in
+magnitude by one. For fixed $\nu \geq 0$ and increasing $x$ these functions
+have asymptotic behavior described by (\cite{ams55:bes}, Eqs.\,9.2.1~--~9.2.2)
+\begin{align}
+\label{O1}J_\nu (x) &\sim [2/(\pi x)]^{1/2} \cos (x-(\nu + 0.5)\pi /2)
+\hspace{-1in}\\
+\label{O2}Y_\nu (x) &\sim [2/(\pi x)]^{1/2} \sin (x - (\nu + 0.5)\pi /2)
+\hspace{-1in}
+\end{align}
+In the region $\nu \geq x$, $J_\nu (x)$ is positive and bounded and
+approaches zero as $\nu $ increases with fixed $x > 0$, while $Y_\nu (x)$ is
+negative and unbounded and approaches $-\infty $ as $\nu $ increases with
+fixed $x > 0$. For fixed $x > 0$ and increasing $\nu $, these functions have
+asymptotic behavior described by (\cite{ams55:bes}, Eqs.\,9.3.1~--~9.3.2).
+\begin{align}
+\label{O3}J_\nu (x) &\sim (2\pi \nu )^{-1/2}(ex/(2\nu ))^\nu\\
+\label{O4}Y_\nu (x) &\sim -(2/(\pi \nu ))^{\frac{1}{2}}(ex/(2\nu))^{-\nu}
+\end{align}
+where $e = 2.718\cdots .$
+
+Both J and Y satisfy the recursion (\cite{ams55:bes}, Eq.\,9.1.27)
+\begin{equation}
+\label{O5}f_{\nu +1}(x) - (2\nu /x) f_\nu (x) + f_{\nu - 1}(x) = 0
+\end{equation}
+For $\nu > x$ this recursion is stable in the forward direction for Y and in
+the backward direction for J. For $x > \nu $ the recursion is stable in
+either direction for both J and Y.
+
+%\vspace{10pt}
+% \hspace{.3in}\mbox{\input pl02-05a }\vspace{12pt}
+%\centerline{$x$}
+%\centerline{Figure 1. ~ $J_{\nu}(x)$}
+%\vspace{15pt}
+
+%\vspace{10pt}
+
+% \hspace{.3in}\mbox{\input pl02-05b }\vspace{12pt}
+%\centerline{$x$}
+%\centerline{Figure 2. ~ $Y_{\nu}(x)$}\vspace{10pt}
+%
+\subsubsection{Machine dependent quantities}
+
+Let $\rho $ denote the machine precision, $i.e.$, R1MACH(3) or
+D1MACH(3) of Chapter~19.1. Let $\Omega $ denote the overflow limit, $i.e.$,
+R1MACH(2) or D1MACH(2). Define
+\begin{equation*}
+\mathit{XPQ} = 1.1293(-\log _{10}(\rho /4)) - 0.59
+\end{equation*}
+The asymptotic series used in these subroutines is valid for $x \geq
+\mathit{XPQ}$ and $0 \leq \nu \leq 2.$
+
+Let $\nu ^*(x)$ denote the value of $\nu $ for which Eq.\,(4) reaches the overflow
+limit, $\Omega $, for a given value of $x$. It happens that $\nu ^*(x)$ is very
+close to the value of $\nu $ for which Eq.\,(3) reaches the underflow limit on the
+same machine. The figure below shows plots of $\nu ^*(x)$ for some
+computer systems currently in use at JPL.
+\vspace{5pt}
+
+\mbox{\input pl02-05c }
+
+%\centerline{$x$}
+%\centerline{Figure 3. ~Underflow limit for $J_{\nu}$; overflow limit
+%for $Y_{\nu}$}\vspace{5pt}
+
+\subsubsection{Computation of $J_\nu (x)$}
+
+Given $x$, $\alpha $, and NUM, define $\beta = \alpha +\text{NUM} - 1$.
+Thus, $\beta $ is the largest requested order.
+
+For $x = 0$ the result is 1 if $\nu = 0$, and 0 if $\nu > 0.$
+
+For $0 < x \leq 0.1$ the Taylor series in $x$ is used
+(\cite{ams55:bes},Eq.\,9.1.10).  For $0.1 < x \leq \max (\beta ,
+\mathit{XPQ})$ forward recursion on $\nu $ is used to determine a starting
+point for backward recursion.  The execution time in this region increases
+linearly with $\beta $ and can be substantial for large $\beta .$
+
+For $\max (\beta , \mathit{XPQ}) < x < (16\rho )^{-1}$ the subroutine
+evaluates the asymptotic series in $x$ (\cite{ams55:bes}, Eqs.\,9.2.5,
+9.2.9, and~9.2.10) for two values of $\nu $ in the range [0,~2], and then
+uses forward recursion.  The execution time in this region increases
+linearly with $\beta $ and decreases with increasing $x.$
+
+If $x > (16\rho )^{-1}$ an error message is issued
+because the phase of the sine and cosine functions will not be known with
+any accuracy.
+
+\subsubsection{Computation of $Y_\nu (x)$}
+
+If $x = 0$ an error message is issued since the result would be $-\infty $.
+The output values are set to $-\Omega /2.$
+
+For $0 < x \leq \rho $ and $\nu = 0$, the result is $(2/\pi ) (\gamma +\ln
+(x/2))$ (\cite{ams55:bes}, Eq.\,9.1.13), where $\gamma $ denotes Euler's
+constant, $0.57721\cdots$.  For $0 < x \leq \rho $ and $\nu > 0$, the result is
+$-\pi ^{-1} \Gamma (\nu ) (x/2)^{-\nu }$ (\cite{ams55:bes}, Eq.\,9.1.9).
+
+For $\rho < x < \mathit{XPQ}$ the subroutine first computes values of J. From
+these values it computes Y for two values of $\nu $ in [0,~2], and then uses
+forward recursion on $\nu $ to obtain the requested values.
+
+For $\mathit{XPQ} \leq x \leq (16\rho )^{-1}$ the subroutine evaluates the
+asymptotic series in $x$ for two values of $\nu $ in [0,~2], and then uses
+forward recursion.
+
+If $x > (16\rho )^{-1}$ an error message is issued as noted
+previously for J.
+
+\subsubsection{Accuracy tests}
+
+The subroutines SBESJN and SBESYN were tested on an
+IBM compatible PC using IEEE arithmetic by comparison with
+the corresponding double precision subroutines.  Tables 1 and
+2 give a summary of the errors found in these tests.  Each
+number in a rectangular cell is the maximum value of the
+error observed at 2592 points tested in the indicated range.
+Each number in a triangular cell is the maximum over 1296
+points.  The underflow limit for $J_{\nu}$, and the overflow
+limit for $Y_{\nu}$, actually extend down the $\nu $ axis
+(see Figure~3).  Where the function underflows or overflows,
+fewer samples are used.
+
+\begin{quote}Table 1. Maximum errors found in indicated regions for SBESJN.
+Relative error is shown above the diagonal and absolute error below. Error
+is shown as a multiple of the machine precision, $\approx 1.19
+\times 10^{-7}$ for these tests.
+\end{quote}\vspace{10pt}
+
+\setlength{\unitlength}{1pt}
+\begin{picture}(218, 160)(-36, -20)
+\put(-30, 75){$\nu$}
+\multiput(0, 0)(0, 25){7}{\line(1, 0){180}}
+\put(0, 0){\line(0, 1){150}}
+\put(30, 0){\line(0, 1){125}}
+\multiput(60, 0)(30, 0){5}{\line(0, 1){150}}
+\put(-2, -10){0}
+\put(28, -10){2}
+\put(58, -10){5}
+\put(85, -10){10}
+\put(115, -10){20}
+\put(144, -10){50}
+\put(170, -10){100}
+\put(-24, -10){\makebox(20, 20)[r]{0}}
+\put(-24, 15){\makebox(20, 20)[r]{2}}
+\put(-24, 40){\makebox(20, 20)[r]{5}}
+\put(-24, 65){\makebox(20, 20)[r]{10}}
+\put(-24, 90){\makebox(20, 20)[r]{20}}
+\put(-24, 115){\makebox(20, 20)[r]{50}}
+\put(-24, 140){\makebox(20, 20)[r]{100}}
+\put(0, 0){\line (6, 5){180}}
+\put(90, -20){$x$}
+\put(0, 125){\makebox(60, 25){\small OVERFLOW}}
+\put(0, 100){\makebox(30, 25){17}}
+\put(0, 75){\makebox(30, 25){27}}
+\put(0, 50) {\makebox(30, 25){10}}
+\put(0, 25) {\makebox(30, 25){4}}
+\put(0, 0)    {\makebox(30, 25){~\raisebox{5pt}{2} \hfill
+\raisebox{-5pt}{1}~}}
+\put(30, 100){\makebox(30, 25){17}}
+\put(30, 75){\makebox(30, 25){10}}
+\put(30, 50) {\makebox(30, 25){7}}
+\put(30, 25) {\makebox(30, 25){~\raisebox{5pt}{3} \hfill
+\raisebox{-5pt}{1}~}}
+\put(30, 0)    {\makebox(30, 25){1}}
+\put(60, 125){\makebox(30, 25){18}}
+\put(60, 100){\makebox(30, 25){24}}
+\put(60, 75){\makebox(30, 25){10}}
+\put(60, 50){\makebox(30, 25){~\raisebox{5pt}{5} \hfill
+\raisebox{-5pt}{2}~}}
+\put(60, 25) {\makebox(30, 25){1}}
+\put(60, 0) {\makebox(30, 25){1}}
+\put(90, 125){\makebox(30, 25){30}}
+\put(90, 100){\makebox(30, 25){26}}
+\put(90, 75){\makebox(30, 25){~\raisebox{5pt}{9} \hfill
+\raisebox{-5pt}{4}~}}
+\put(90, 50){\makebox(30, 25){2}}
+\put(90, 25) {\makebox(30, 25){1}}
+\put(90, 0) {\makebox(30, 25){1}}
+\put(120, 125){\makebox(30, 25){44}}
+\put(120, 100){\makebox(30, 25){~\raisebox{5pt}{21} \hfill
+\raisebox{-5pt}{27}~}}
+\put(120, 75){\makebox(30, 25){4}}
+\put(120, 50){\makebox(30, 25){2}}
+\put(120, 25) {\makebox(30, 25){2}}
+\put(120, 0) {\makebox(30, 25){2}}
+\put(150, 125){\makebox(30, 25){~\raisebox{5pt}{39} \hfill
+\raisebox{-5pt}{96}~}}
+\put(150, 100){\makebox(30, 25){16}}
+\put(150, 75){\makebox(30, 25){3}}
+\put(150, 50){\makebox(30, 25){3}}
+\put(150, 25) {\makebox(30, 25){3}}
+\put(150, 0) {\makebox(30, 25){3}}
+\end{picture}
+
+As a test of the double precision subroutines, and an additional test of the
+single precision subroutines, the expression $z(\nu ,x)$ defined in Section
+C was evaluated at 40 points. Nine values are shown in Table 3 from these
+tests of SBESJN and SBESYN and in Table 4 from the tests of DBESJN and
+DBESYN.
+
+These subroutines are designed for use with arithmetic precision to about $%
+10^{-20}$. The auxiliary subroutine DBESPQ has no inherent accuracy
+limitations.
+
+\begin{quote}Table 2. Maximum errors found in indicated regions for SBESYN.
+Relative error is shown above the diagonal and absolute error below. Error
+is shown as a multiple of the machine precision, $\approx 1.19
+\times 10^{-7}$ for these tests.
+\end{quote}\vspace{10pt}
+
+\begin{picture}(208, 160)(-36, -20)
+\put(-30, 75){$\nu$}
+\multiput(0, 0)(0, 25){7}{\line(1, 0){180}}
+\put(0, 0){\line(0, 1){150}}
+\put(30, 0){\line(0, 1){125}}
+\multiput(60, 0)(30, 0){5}{\line(0, 1){150}}
+\put(-2, -10){0}
+\put(28, -10){2}
+\put(58, -10){5}
+\put(85, -10){10}
+\put(115, -10){20}
+\put(144, -10){50}
+\put(170, -10){100}
+\put(-24, -10){\makebox(20, 20)[r]{0}}
+\put(-24, 15){\makebox(20, 20)[r]{2}}
+\put(-24, 40){\makebox(20, 20)[r]{5}}
+\put(-24, 65){\makebox(20, 20)[r]{10}}
+\put(-24, 90){\makebox(20, 20)[r]{20}}
+\put(-24, 115){\makebox(20, 20)[r]{50}}
+\put(-24, 140){\makebox(20, 20)[r]{100}}
+\put(0, 0){\line (6, 5){180}}
+\put(90, -20){$x$}
+\put(0, 125){\makebox(60, 25){\small OVERFLOW}}
+\put(0, 100){\makebox(30, 25){44}}
+\put(0, 75){\makebox(30, 25){24}}
+\put(0, 50) {\makebox(30, 25){8}}
+\put(0, 25) {\makebox(30, 25){9}}
+\put(0, 0)    {\makebox(30, 25){~\raisebox{5pt}{12} \hfill
+\raisebox{-5pt}{28}~}}
+\put(30, 100){\makebox(30, 25){84}}
+\put(30, 75){\makebox(30, 25){25}}
+\put(30, 50) {\makebox(30, 25){9}}
+\put(30, 25) {\makebox(30, 25){~\raisebox{5pt}{9} \hfill
+\raisebox{-5pt}{14}~}}
+\put(30, 0)    {\makebox(30, 25){15}}
+\put(60, 125){\makebox(30, 25){162}}
+\put(60, 100){\makebox(30, 25){128}}
+\put(60, 75){\makebox(30, 25){27}}
+\put(60, 50){\makebox(30, 25){~\raisebox{5pt}{9} \hfill
+\raisebox{-5pt}{9}~}}
+\put(60, 25) {\makebox(30, 25){15}}
+\put(60, 0) {\makebox(30, 25){10}}
+\put(90, 125){\makebox(30, 25){286}}
+\put(90, 100){\makebox(30, 25){143}}
+\put(90, 75){\makebox(30, 25){~\raisebox{5pt}{29} \hfill
+\raisebox{-5pt}{4}~}}
+\put(90, 50){\makebox(30, 25){2}}
+\put(90, 25) {\makebox(30, 25){1}}
+\put(90, 0) {\makebox(30, 25){1}}
+\put(120, 125){\makebox(30, 25){585}}
+\put(120, 100){\makebox(30, 25){~\raisebox{7pt}{153}
+\hspace{-4pt}\raisebox{-5pt}{19}\hspace{2pt}~}}
+\put(120, 75){\makebox(30, 25){3}}
+\put(120, 50){\makebox(30, 25){2}}
+\put(120, 25) {\makebox(30, 25){2}}
+\put(120, 0) {\makebox(30, 25){2}}
+\put(150, 125){\makebox(30, 25){~\raisebox{7pt}{659}
+\hspace{-4pt}\raisebox{-5pt}{68}\hspace{2pt}~}}
+\put(150, 100){\makebox(30, 25){21}}
+\put(150, 75){\makebox(30, 25){3}}
+\put(150, 50){\makebox(30, 25){3}}
+\put(150, 25) {\makebox(30, 25){3}}
+\put(150, 0) {\makebox(30, 25){3}}
+\end{picture}
+
+\begin{center}
+\centerline{Table 3. Single precision Wronskian test.}
+\centerline{Tabulated value is $z(\nu ,x)/\text{R1MACH}(3)$}
+\centerline{where R1MACH(3) $\approx 5.96 \times 10^{-8}.$}\vspace{-5pt}
+\begin{tabular}{r|rrr}
+\multicolumn{1}{c}{$\nu $} & $x \Rightarrow $ 5.1 & 15.3 & 30.6\\\hline
+30.6 & 6.2 & 24.6 & 3.5\\
+15.3 & 5.9 & 5.9 & 0.2\\
+5.1 & 1.3 & 0.7 & 3.5\\
+\end{tabular}\vspace{10pt}
+
+\centerline{Table 4. Double precision Wronskian test.}
+\centerline{Tabulated value is $z(\nu ,x)/\text{D1MACH}(3)$}
+\centerline{where D1MACH(3) $\approx 1.11 \times 10^{-16}.$}\vspace{-5pt}
+\begin{tabular}{r|rrr}
+\multicolumn{1}{c}{$\nu $} & $x \Rightarrow $ 5.1 & 15.3 & 30.6\\\hline
+30.6 & 32.2 & 17.2 & 16.0\\
+15.3 & 3.9 & 5.8 & 0.4\\
+5.1 & 1.0 & 1.8 & 0.1
+\end{tabular}
+\end{center}
+\nocite{Olver:1972}
+\nocite{Amos:1977:CSI}
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+These subroutines require $x \geq 0$, ALPHA $\geq 0$, and NUM $\geq 1$.
+Violation of any of these conditions causes an error message and an
+immediate return.
+
+The subroutines attempt to anticipate and avoid overflow conditions.
+Intermediate overflows are avoided by dynamic rescaling. If a final value of
+Y would be beyond the overflow limit the value is set to $-\Omega /2$ and
+an error message is issued. It is assumed that the host
+system will set underflows to zero. No messages are issued for underflow.
+
+If $x > (16\rho )^{-1}$ an error message is issued
+since no accuracy can be obtained.
+
+Subroutines SBESYN and DBESYN each contain an internal array AJ() to hold
+values of $J_\nu (x)$ needed to compute $Y_\nu (x)$. The size requirement of
+this array varies with the machine precision and is about $3(-\log _{10}
+\rho ) + 3$. For example, for precisions of $10^{-10}$, $10^{-20}$,
+and $10^{-30}$ the required size is 33, 63, and~95. The array is nominally
+dimensioned~95 to handle all anticipated computers. An error message will be
+issued in the unlikely event that a larger dimension is needed.
+
+Error messages are issued by the error message processor of
+Chapter~19.2.
+
+The user should be aware that these subroutines require a substantial amount
+of execution time, generally increasing linearly with the sum, ALPHA$+\text{%
+NUM}.$
+
+\subsection{Supporting Information}
+
+The source language for these subroutines is ANSI Fortran 77.
+
+Original subroutines SBJNU, SBYNU, DBJNU, DBYNU, BESJ, and BESY were
+designed and programmed by W. V. Snyder and E. W. Ng, JPL, 1973, with
+modifications by S.\ Singletary in 1974. The present subroutines are
+modifications of the earlier subroutines to improve portability and
+accuracy, avoid overflows, and conform to Fortran~77. These
+subroutines were produced in 1984 by C. L. Lawson and S. Y. Chiu in
+consultation with Snyder and Ng.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DBESJN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DBESJN, DBESPQ, DERM1, DERV1, DGAMMA, ERFIN, ERMSG,
+ IERV1\rule[-5pt]{0pt}{8pt}}\\
+DBESYN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DBESPQ, DBESYN, DERM1, DERV1, DGAMMA, DLGAMA, ERFIN,
+ERMOR, ERMSG, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SBESJN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERV1, SBESJN, SBESPQ, SERM1, SERV1,
+SGAMMA\rule[-5pt]{0pt}{8pt}}\\
+SBESYN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMOR, ERMSG, IERV1, SBESPQ, SBESYN, SERM1,
+SERV1, SGAMMA, SLGAMA\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSBESJN}\vspace{10pt}
+\lstinputlisting{\codeloc{sbesjn}}
+
+\vspace{30pt}\centerline{\bf \large ODSBESJN}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sbesjn}}
+\closegraphsfile
+\end{document}

@@ -1,0 +1,591 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 17.2 Computation Using Partial Derivative Arrays or
+\hbox{Multivariate Taylor Series}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This set of subroutines performs computations in which each variable is
+represented by its value, and its first and second partial derivatives with
+respect to N independent variables, evaluated at a specified value of these
+variables. Such a set of numbers can alternatively be regarded as a scaled
+representation of the low order coefficients of the multivariate Taylor
+series of the dependent variable expanded at the evaluation point.
+
+More specifically let $u({\bf x})$ denote a scalar valued function of an
+N-component argument vector, ${\bf x}$. Let $u_0$, ${\bf g}_0$, and $H_0$ denote,
+respectively, the value of $u$, the gradient vector, and the Hessian matrix,
+evaluated at ${\bf x}_0$. Then $\{u_0$, ${\bf g}_0$, $H_0\}$ is the set of data these
+programs carry to represent $u$ evaluated at ${\bf x}_0$. The Taylor series for $u$
+through second order, expanded at ${\bf x}_0$, is
+\begin{equation*}
+u({\bf x}) = u_0 + {\bf g}^t_0({\bf x}-{\bf x}_0) + \frac{1}{2}({\bf
+x}-{\bf x}_0)^t H_0({\bf x}-{\bf x}_0)
+\end{equation*}
+This package provides a way of computing values of the first and second
+partial derivatives of a multivariate function that is defined by a sequence
+of computational steps involving arithmetic and elementary functions,
+without the need to derive and code expressions for the partial derivatives.
+
+\subsection{Usage}
+
+\subparagraph{Definition of a U-variable}
+
+We shall use ${\bf x}$ as the generic name of the N-dimensional independent
+variable vector with respect to which all partial derivatives are defined.
+The term U-variable is used to denote a sequence of values, consisting of a
+function value, values of the function's gradient vector, and optionally the
+(packed) Hessian matrix, evaluated at some point. We assume the Hessian
+matrix is symmetric, so only one copy of each symmetric pair of elements
+needs to be stored. We store the lower triangle of the Hessian matrix by
+rows. Equivalently, one could regard this as representing the upper triangle
+by columns. Thus if U() is an array containing a U-variable, $\{u$, ${\bf
+g}$, $H\}$, its contents are defined as follows:
+\begin{alignat*}{2}
+\text{U}(1) &=u\\
+\text{U}(1+j) &= g_j &= &\:\partial u/\partial x_j,\ j = 1,\ ...,N\\
+\hspace{-15pt}\text{U}(1+\text{N}+j+i(i-1)/2)&=\: h_{i,j}\: &= &\:
+\partial ^2u/\partial x_i\partial x_j,\\
+&&&\hspace{-.5in}i = 1,\ ..., N;\ j = 1,\ ...,\ i.
+\end{alignat*}
+
+The required dimension size for a U-variable is $dimu$ = N + 1 if only first
+partial derivatives will be requested, and $dimu$ = (N +2)(N + 1) / 2 if both
+first and second partial derivatives are to be computed. For convenience we
+list the value of $dimu$ {\bf for the second derivative case} for some values
+of N:
+
+\begin{tabular}{@{}r*{15}{@{\ }r}}
+N = & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15\\
+$dimu$ = & 3 & 6 & 10 & 15 & 21 & 28 & 36 & 45 & 55 & 66 & 78 & 91 & 105 &
+120 & 136
+\end{tabular}
+
+\subparagraph{Distinguishing property of an independent variable}
+
+For $i$ in [1, N] the scalar component, $x_i$, of the independent variable
+vector, ${\bf x}$, is distinguished by the unique property that all of its first
+and second partial derivatives are zero except its first partial derivative
+with respect to $x_i$, which has the value~1.
+
+\subparagraph{The variables N, M1, and M2.}
+
+N specifies the number of independent
+variables, and implicitly specifies the storage layout of components within
+a U-variable.  M1 and M2 specify the lowest and highest order of partial
+derivatives which the called subroutines are to produce.  A program that
+uses these subroutines must initially call SUSETN (or DUSETN)
+to set N, M1, and M2.
+
+\subparagraph{The subroutines}
+
+The subroutines of this package are described in the following sections:
+
+\begin{description}
+\item[B.1]  SUSETN, Assigning values to N, M1, and M2.
+
+\item[B.2]  SUGETN, Fetching values of N, M1, M2, L1, and L2.
+
+\item[B.3]  SUSET, Assigning a value to a U-variable.
+
+\item[B.4]  The computational subroutines, except SUREV.
+
+\item[B.5]  SUREV, series reversion, or function inversion.
+
+\item[B.6]  Modifications for double-precision.
+\end{description}
+
+\subsubsection{SUSETN, Assigning values to N, M1, and M2}
+
+Subroutine SUSETN must be called prior to calling any of the other
+subroutines of this package.
+
+\paragraph{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf N, M1, M2}
+\end{description}
+
+Assign values to N, M1, and M2.
+$$
+\fbox{{\bf CALL SUSETN(N, M1, M2)}}
+$$
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[N]  \ [in] N specifies the number of independent
+variables, and implicitly specifies the storage layout of components within
+a U-variable.
+
+\item[M1, M2]  \ [in] M1 and M2 specify the lowest and highest order of partial derivatives
+which the called subroutines are to produce.  M1 and M2 must satisfy:
+ 0 $\leq $ M1 $\leq $ M2 $\leq 2.$
+
+Most commonly one will probably
+choose to set (M1, M2) = (0,0), (0,1), or (0,2), and leave the setting
+unchanged throughout a computation. See Section C for discussion of other
+strategies for setting (M1,M2).
+\end{description}
+
+\subsubsection{SUGETN, Fetching values of N, M1, M2, L1, and L2}
+
+\paragraph{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf N, M1, M2, L1, L2}
+$$
+\fbox{{\bf CALL SUGETN(N, M1, M2, L1, L2)}}
+$$
+Values are returned in N, M1, M2, L1, and L2.
+\end{description}
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[N, M1, M2]  \ [out] Returns the values that were set on the
+previous call to SUSETN.
+
+\item[L1, L2]  \ [out] Returns values computed from N, M1, and M2.
+L1 and L2 are the indices of the first and last locations in a
+U-variable array that will be subject to change due to the settings
+of N, M1, and M2.\vspace{5pt}
+\begin{gather*}
+L1 = \begin{cases}
+1 & \text{if} ~ \text{M1} = 0 \\
+2 & \text{if} ~ \text{M1} = 1 \\
+N+2 & \text{if} ~ \text{M1} = 2
+\end{cases}\\
+L2 = \begin{cases}
+1 & \text{if} ~ \text{M1} = 0 \\
+N+1 & \text{if} ~ \text{M1} = 1 \\
+1+N+((N*(N+1))/2) & \text{if} ~ \text{M1} = 2
+\end{cases}
+\end{gather*}
+\end{description}
+
+\subsubsection{SUSET, Assigning a value to a U-variable}
+
+The integer values N, M1, and M2 must be set by a call to SUSETN
+before calling SUSET.  SUSET will only set partial derivatives of orders
+M1 through M2.
+
+\paragraph{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KEY}
+
+\item[REAL]  \ {\bf VAL, U}($\geq dimu)$\newline
+[$dimu = \text{N}+1 \text{ or (N}+2)(\text{N}+1)/2$, see above.]
+
+\end{description}
+
+Assign values to N, M1, M2, VAL, and KEY.
+$$
+\fbox{{\bf CALL SUSET(VAL, KEY, U)}}
+$$
+Computed quantities are returned in U().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[VAL]  \ [in] Value to be assigned to the U-variable, U().
+
+\item[KEY]  \ [in] Integer in the range, [0, N]. If KEY = 0, U() is set to
+represent a variable that is constant relative to the N independent
+variables, $i.e.$, all of its first and second partial derivatives are set
+to zero.
+
+If 1 $\leq $ KEY $\leq $ N, U() is set to represent the $\text{KEY}^{th}$
+independent variable, $i.e.$, its $\text{KEY}^{th}$ first partial derivative is set
+to~1.0. All of its other first partial derivatives and all of its second
+partial derivatives are set to zero.
+
+\item[U()]  \ [out] Array in which this subroutine will define a U-variable
+having the value, VAL, and having partial derivative values as specified by
+KEY. Only derivative values of orders M1 through M2 are set.
+\end{description}
+
+\subsubsection{The computational subroutines, except SUREV}
+
+The integer values N, M1, and M2 must be set by a call to SUSETN
+before calling any of these subroutines.  These subroutines will only set
+partial derivatives of orders M1 through M2.  To use these subroutines
+with M1 $>$ 0 read the remarks about M1 $>$ 0 in Section C.
+
+In describing the following subroutines, U() and V() denote input
+U-variables and Z() denotes an output U-variable. The variables A and I are
+input variables that are constant relative to ${\bf x}.$
+
+In most of these subroutines the output array Z() must occupy storage
+locations distinct from any of the input data. Exceptions to this rule are
+SUSUM, SUDIF, SUPRO, SUSUM1, SUDIF1, and SUPRO1. The subroutine SUQUO, which
+computes $u/v \rightarrow z$, permits $u$ and $z$ to occupy the same
+storage, but $v$ and $z$ must occupy distinct storage.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf I}
+
+\item[REAL]  \ {\bf A, U}($\geq dimu)${\bf ,V}($\geq dimu)${\bf , Z}($\geq
+dimu)$\\
+{[$dimu = \text{N}+1 \text{ or (N}+2)(\text{N}+1)/2$, see page~1.]}
+\end{description}
+
+Assign values to I, A, U(), and V(), as appropriate.
+
+\begin{center}
+{\bf Two-argument operations with both arguments depending on ${\bf x}.$}
+
+\fbox{%
+\begin{tabular}{@{\bf \ }lr}
+CALL\ SUSUM(U,\ V,\ Z) & $u+v \rightarrow z$\\
+CALL\ SUDIF(U,\ V,\ Z) & $u-v \rightarrow z$\\
+CALL\ SUPRO(U,\ V,\ Z) & $u\times v \rightarrow z$\\
+CALL\ SUQUO(U,\ V,\ Z) & $u/v \rightarrow z$\\
+CALL\ SUATN2(U,\ V,\ Z) & atan2($u,v) \rightarrow z$\\
+\multicolumn{2}{c}{where for atan2: $-\pi <z \leq \pi \text{ and } \tan (z)
+= u/v$}\\
+\end{tabular}}
+\end{center}
+
+\pagebreak
+\begin{center}
+{\bf Two-argument operations with only one argument depending on $u.$}
+
+\fbox{%
+\begin{tabular}{@{\bf \ }lr}
+CALL SUSUM1(A, V, Z) & $a+v \rightarrow z$\\
+CALL SUDIF1(A, V, Z) & $a-v \rightarrow z$\\
+CALL SUPRO1(A, V, Z) & $a\times v \rightarrow z$\\
+CALL SUQUO1(A, V, Z) & $a/v \rightarrow z$\\
+CALL SUPWRI(I, V, Z) & $v^i \rightarrow z$\\
+\multicolumn{2}{c}{(See following note.)}\\
+\end{tabular}}
+\end{center}
+
+Note: I may be positive, negative, or zero. If I = 0, SUPWRI sets Z(1) = 1.0
+and all derivative values of $z$ to~0.0, regardless of the given value of $v$%
+. It is an error to have $v = 0.0$ when I $<$ 0.
+
+\begin{center}
+{\bf One-argument operations with the argument depending on ${\bf x}.$}
+
+\fbox{%
+\begin{tabular}{@{\bf \ }lr}
+CALL SUSQRT(U, Z) & $\sqrt u \rightarrow z$\\
+CALL SUEXP(U, Z) & $\exp (u) \rightarrow z$\\
+CALL SULOG(U, Z) & $\log (u) \rightarrow z$\\
+CALL SUSIN(U, Z) & $\sin (u) \rightarrow z$\\
+CALL SUCOS(U, Z) & $\cos (u) \rightarrow z$\\
+CALL SUTAN(U, Z) & $\tan (u) \rightarrow z$\\
+CALL SUASIN(U, Z) & asin$(u) \rightarrow z$\\
+CALL SUACOS(U, Z) & acos$(u) \rightarrow z$\\
+CALL SUATAN(U, Z) & atan$(u) \rightarrow z$\\
+CALL SUSINH(U, Z) & sinh$(u) \rightarrow z$\\
+CALL SUCOSH(U, Z) & cosh$(u) \rightarrow z$\\
+CALL SUTANH(U, Z) & tanh$(u) \rightarrow z$\\
+\end{tabular}}
+\end{center}
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A]  \ [in] Floating point value that is independent of ${\bf x}.$
+
+\item[I]  \ [in] Integer value that is independent of ${\bf x}.$
+
+\item[U()]  \ [in] An input U-variable. Must contain defined values for
+derivatives of orders~0 through M2.
+
+\item[V()]  \ [in] An input U-variable. Must contain defined values for
+derivatives of orders~0 through M2.
+
+\item[Z()]  \ [inout] If M1 $>$ 0, this array must contain defined values of
+derivatives of orders~0 through M1 $-$ 1 on entry. On return it will also contain
+computed values of derivatives of orders M1 through M2. If M1 = 0, no input
+values are required in Z().
+\end{description}
+
+\subsubsection{SUREV, Series Reversion or Function Inversion}
+
+Let $u_i$, $i = 1$, ..., $n$, be $n$ functions of an $n$-vector, ${\bf t}$.
+Suppose values of the $u_i$'s and their first and second partial
+derivatives with respect to the components of ${\bf t}$ are known for a particular
+value of ${\bf t}$. Then, if the Jacobian matrix of the transformation is
+nonsingular at this point, one can regard the $t_j$'s as functions
+of the $u_i$'s in some neighborhood of this point in $u$-space. In
+this situation this subroutine can compute values of the first and second
+partial derivatives of the $t_j$'s with respect to the $%
+u_i$'s at this point.
+
+Given:
+\begin{gather}
+\hspace{-15pt}t_j \text{ in TU}(1,\ j),\ j = 1,\ ...,\ n,\\
+\hspace{-15pt}u_i \text{ in UT}(1,\ i),\ i = 1,\ ...,\ n,\\
+\hspace{-15pt}\partial u_i/\partial t_j\text{ in UT}(1+j,\ i),\ j = 1,\
+...,\ n;\ i = 1,\ ...\ n,\hspace{-1in}\\
+\hspace{-15pt}\partial ^2u_i/\partial t_j\partial t_k \text{ in UT}
+(1+n+k+j(j-1)/2),\ i),\\
+\hspace{.5in}j= 1,\ ...,\ n;\ k = 1,\ ...,\ j;\ i = 1,\ ...,\ n.
+\notag
+\end{gather}
+If the Jacobian matrix with elements $\partial u_i/\partial t_j$ is
+nonsingular, this subroutine will compute the first and second partial
+derivatives of the $t_j$'s with respect to the $u_i$'s and
+store them as
+\begin{gather}
+\hspace{-15pt}\text{TU}(1+i, j) = \partial t_j/\partial u_i,\ i =
+1,\ ...,\ n;\ j = 1,\ ...,\ n,\hspace{-1in}\\
+\hspace{-15pt}\text{TU}(1+n+k+i(i-1)/2,\ j) = \partial ^2t_j/\partial
+u_i\partial u_k,\\
+\hspace{.5in}i =1,\ ...,\ n;\ k = 1,\ ...,\ i;\ j = 1,\ ...,\ n,\notag
+\end{gather}
+The integer values N, M1, and M2 must be set by a call to SUSETN
+before calling SUREV.  N gives
+the value of $n$ for Eqs.(1--6) above.
+Require 0 $\leq $ M1 $\leq $ M2 $\leq $ 2.
+
+If M2 = 0, SUREV returns with no action.
+
+If M2 = 1, SUREV only computes Eq.(5), and it is not necessary to provide
+the data of Eq.(4).
+
+If M2 = 2 and M1 = 0 or~1, SUREV computes Eqs.(5--6).
+
+If M2 = 2 and M1 = 2, it is assumed that the assignment of Eq.(5) has
+already been done, and thus SUREV only computes Eq.(6).
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf IWORK}(N){\bf , LDIM}
+
+\item[REAL]  \ {\bf RCOND, TU}(LDIM, $\geq $N){\bf , UT}(LDIM, $\geq $N){\bf %
+, WORK}($\geq 3\times \text{N}^2$) \ [LDIM $\geq dimu = \text{N}+1 \text{ or}\\
+(\text{N}+2)(\{text{N}+1)/2$, see page 1.]
+\end{description}
+
+Assign values to LDIM, UT() and part of TU().
+
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+CALL SUREV( UT, TU, LDIM,\\
+RCOND, IWORK, WORK)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in RCOND and TU().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[UT(,)]  \ [in] Must contain the data of Eqs.(2--4) on entry, except as
+noted above for certain values of M1 and M2.
+
+\item[TU(,)]  \ [inout] Must contain the data of Eq.(1) on entry, and will
+have the data of Eqs.(5--6) assigned by SUREV, except as noted above for
+particular values of M1 and M2.
+
+\item[LDIM]  \ [in] Leading dimension for the arrays UT(,) and TU(,).
+Require LDIM $\geq dimu$, where $dimu  = \text{N}+1 \text{ or }
+(\text{N}+2)(\text{N}+1)/2$, see
+page~1.
+
+\item[RCOND]  \ [out] Estimate of the reciprocal condition number of the
+Jacobian matrix with elements $\partial u_i/\partial t_j$, given in UT().
+Only computed when M1 $\leq $ 1 and M2 $\geq 1$. Is in the range [0.0,~1.0].
+
+A well conditioned problem has values near~1.0. Near zero means badly
+conditioned. Equal to zero means singular, in which case the subroutine
+cannot complete its computation.
+
+\item[IWORK()]  \ [scratch] Integer work space of size at least N.
+
+\item[WORK()]  \ [scratch] Floating-point work space of size at least $%
+3\times \text{N}^2.$
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double-precision usage, replace the initial S in the name of each
+subroutine by D, and replace the REAL declarations by DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+\subsubsection{Example}
+
+As a demonstration problem, consider the following formulae for transforming
+a set of 3-dimensional rectangular coordinates $(x,y,z)$ to spherical
+coordinates $(r,\varphi ,\theta )$ and the inverse transformation formulae:
+\begin{align*}
+s &= \sqrt{x^2 + y^2}\\
+r &= \sqrt{s^2 + z^2}\\
+\varphi &= \atan2(y,\ x)\\
+\theta &= \tan^{-1}(z/s)\\
+x &= r\ \cos \ \varphi \ \cos \ \theta \\
+y &= r\ \sin \ \varphi \ \cos \ \theta \\
+z &= r\ \sin \ \theta
+\end{align*}
+The demonstration program, DRSUCOMP, performs this mapping from $(x,y,z)$ to
+$(r,\varphi ,\theta )$ with computation of all of the first and second partial
+derivatives of $r$, $\varphi $, and $\theta $ with respect to $x$, $y$, and $z$%
+. As a check on the computation the program then transforms back to $(x,y,z)$%
+. Results are shown in ODSUCOMP. Note that the final $(x,y,z)$ agrees with
+the initial $(x,y,z)$ in the values and the first and second partial
+derivatives.
+
+To demonstrate series reversion (or function inversion) the program assigns
+the values of $(r,\varphi ,\theta )$ and its first and second partial
+derivatives with respect to $(x,y,z)$ to the array UT(,), and then assigns the
+values of $(x,y,z)$ to TU(1,~1:3). It then uses SUREV to compute the first
+and second partial derivatives of $(x,y,z)$ with respect to $(r,\varphi ,\theta
+)$, storing these in TU(2:10,~1:3). This computation is checked by computing
+the same quantities in a different way.
+
+\subsubsection{Omitting derivative computation}
+
+To save time when developing new code using this package, one may run with
+(M1, M2) = (0,~0) until one is satisfied that the function evaluation is as
+desired, and then increase M2 to activate the derivative computation.
+
+\subsubsection{Setting M1 $>$ 0}
+
+There are some algorithms, such as for optimization, in which one does not
+need to compute partial derivatives at every point at which the function is
+evaluated. Depending on how significant efficiency is in a particular
+application, one may wish to consider methods of separating the function and
+derivative computation using this package. One can compute only the function
+value by setting (M1, M2) = (0,~0), or one can compute the function value
+and first partial derivatives by setting (M1, M2) = (0,~1).
+
+If one has computed the function value at an argument value, ${\bf x}$, with (M1,
+M2) = (0,~0), and has kept all intermediate quantities in distinct storage
+locations, then one can repeat the sequence of subroutine calls with (M1,
+M2) = (1,~1) to compute the first partial derivatives at the same point,
+${\bf x}$%
+, without the function value being recomputed. In general, computation with
+M1 $>$ 0 is only valid if all $in$ and $inout$ arrays in each subroutine call
+contain values of all derivatives of orders~0 through M1 $-$ 1 computed
+previously with the same ${\bf x}.$
+
+\subsection{Functional Description}
+
+This U-computation package is based on the ideas presented in
+\cite{Wengert:1964:ASA}.  See the description of W-computation in
+Chapter~17.1 for a summary of these ideas.  Whereas the W-computation
+package generalizes the order of differentiation, this U-computation
+package generalizes the number of independent variables.
+
+Let $f()$ be a scalar-valued function of the scalar variable $u$, and use
+primes to denote differentiation with respect to $u$. Let $u$ depend on the
+N-vector ${\bf x}$ and denote partial derivatives of $u$ with respect to $x_i$ by
+appropriate subscripts. This package computes first and second partial
+derivatives of $f()$ using the formulae:
+\begin{align*}
+\partial f(u)/\partial x_i &= f^{\prime}(u) u_i\\
+\partial ^2f(u)/\partial x_i\partial x_j &= f^{\prime}(u) u_{i,j} +
+f^{\prime\prime}(u) u_i u_j
+\end{align*}
+
+\nocite{Griewank:1991:ADA}
+\nocite{Lawson:1971:CDU}
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+N must be positive. M1 and M2 must satisfy 0\ $\leq $ M1
+$\leq $ M2 $\leq $ 2. See the discussion in Section~C for cautions regarding
+usage with M1 $>$ 0. These conditions on N, M1, and M2 are not tested by
+the subroutines and their violation may cause unpredictable actions.
+
+\subsubsection{Invalid arguments for derivative computation}
+
+The user will likely be accustomed to avoiding sending invalid arguments to
+the elementary functions, such as a negative argument to the square root. In
+computing derivatives there are some additional singularities to avoid. Note
+that the derivative is infinite at zero for the square root, and at $\pm $1
+for arcsin and arccosine.
+
+\subsubsection{Error handling}
+
+Following is a list of error conditions the package detects and for which error
+messages are issued. These errors are fatal in the sense that the requested
+operation cannot be done; however, the default action is to return after
+issuing an error message. The user can use the MATH77 library subroutine,
+ERMSET of Chapter~19.2, to alter this action to cause a STOP if desired. Error conditions
+not on this list, $e.g.$, negative argument in log, will be handled by the
+usual host system error handler.
+
+\begin{tabular}{@{}l@{\ \ }l}
+\bf Error No.\\
+\bf \& Program & \multicolumn{1}{c}{\bf Explanation}\\
+\bf 1 SUASIN & Infinite derivative when arg = $-$1\ or +1\\
+\bf 1 SUACOS & Infinite derivative when arg = $-1$\ or +1\\
+\bf 2 SUSQRT & Infinite derivative when arg = 0\\
+\bf 3 SUQUO1 & Zero divisor\\
+\bf 4 SUPWRI & $\text{U}^{\text{M}}$ is infinite when U = 0 and M $<$ 0\\
+\bf 5 SUQUO & Zero divisor\\
+\bf 6 SUREV & Singular Jacobian matrix
+\end{tabular}
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77. All program units reference
+COMMON blocks /UCOM1/ and /UCOM2/.
+
+All of the double precision entry points except DUREV require files:
+
+DUCOMP, ERFIN, ERMSG, IERM1, and IERV1.
+
+All of the single precision entry points except SUREV require files:
+
+SUCOMP, ERFIN, ERMSG, IERM1, and IERV1.
+
+DUREV requires: DASUM, DAXPY, DDOT, DGECO, DGEFA, DGEI, DSCAL, DSWAP,
+DUREV, ERFIN, ERMSG, and IDAMAX.
+
+SUREV requires: SASUM, SAXPY, SDOT, SGECO, SGEFA, SGEI, SSCAL, SSWAP,
+SUREV, ERFIN, ERMSG, and ISAMAX.\vspace{-5pt}
+\begin{center}
+\begin{tabular}{llll}
+\multicolumn{4}{c}{\bf Entries}\\
+DUACOS & DUASIN & DUATAN & DUATN2\\
+DUCOS & DUCOSH & DUDIF & DUDIF1\\
+DUEXP & DUGETN & DULOG & DUPRO\\
+DUPRO1 & DUPWRI & DUQUO & DUQUO1\\
+DUREV & DUSET & DUSETN & DUSIN\\
+DUSINH & DUSQRT & DUSUM & DUSUM1\\
+DUTAN & DUTANH & SUACOS & SUASIN\\
+SUATAN & SUATN2 & SUCOS & SUCOSH\\
+SUDIF & SUDIF1 & SUEXP & SUGETN\\
+SULOG & SUPRO & SUPRO1 & SUPWRI\\
+SUQUO & SUQUO1 & SUREV & SUSET\\
+SUSETN & SUSIN & SUSINH & SUSQRT\\
+SUSUM & SUSUM1 & SUTAN & SUTANH\\
+\end{tabular}
+\end{center}\vspace{-5pt}
+Designed by C. L. Lawson, JPL, 1971. Adapted to Fortran~77 for the JPL
+MATH77 library, Aug.~1987. Added SUREV/DUREV, February~1992.  Added
+SUSETN, DUSETN, SUGETN, and DUGETN August~1994.
+
+
+%\rule{0pt}{80pt}
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSUCOMP}\vspace{10pt}
+\lstinputlisting{\codeloc{sucomp}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSUCOMP}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sucomp}}
+\end{document}

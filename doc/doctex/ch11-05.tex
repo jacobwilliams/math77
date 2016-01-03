@@ -1,0 +1,1246 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl11-05}
+\hyphenation{DSFITC KORDER DSDIF DSBASD}
+\begmath 11.5 Least-Squares Data Fitting using $K^{th}$ Order Splines
+\hbox{with Constraints}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This package contains two subprograms, DSFIT and DSFITC, for fitting a {\em
+polynomial spline function} to discrete data. A {\em polynomial spline function}
+is a piecewise polynomial function having specified orders of continuity at the
+abscissae, called {\em internal knots}, at which one polynomial piece ends and
+another begins. Spline functions have been found to be very useful in many
+computational processes due to their capability of representing a wide
+variety of shapes in a controlled way.
+
+DSFIT can be used either for a weighted least-squares fit or for
+interpolation. DSFITC adds capabilities for the user to specify constraints
+on the fit in the form of equality or inequality conditions on the value or
+derivative (of specified order), of the spline function at specified points,
+or the integral of the spline function over a specified interval. These
+constraints can be used, for example, to assure monotonicity or convexity of
+the fitted spline function over specified intervals. Figure~1 illustrates a
+monotone nondecreasing least-squares spline fit to data computed using
+DSFITC.\vspace{10pt}
+\vspace{10pt}
+
+\mbox{\input pl11-05a }
+
+\centerline{\bf Figure 1: Constrained spline fit to data.\rule[-8pt]{0pt}{8pt}}
+
+The fitting subprograms return coefficients of a spline function relative
+to {\em B-spline basis functions} using the parameterization conventions
+given by Carl de Boor in \cite{deBoor:1978:APG}.  In this approach the
+spline function will be of a user-specified order, $K$, which means the
+polynomial pieces are of degree at most $K-1$.  By default the continuity
+at knots will be of order K $-$ 2, however the user can specify a lower
+order of continuity at selected internal knots to allow the curve to
+change direction more sharply.
+
+Subprogram DSVAL can be used to evaluate a spline function represented
+relative to the B-spline basis or any of its derivatives, at a specified
+point, and subprogram DSQUAD can be used to evaluate the definite integral
+of the function between specified limits.
+
+The B-spline representation has the desirable property that usual continuity
+conditions at knots are ``built-in". This keeps down the number of
+coefficients that must be determined in interpolation or least-squares
+fitting. A disadvantage is that evaluation of a function represented in the
+B-spline representation is more expensive than is the use of an alternative
+representation using the {\em power} basis.
+
+If one is going to do a large number of evaluations of a spline function one
+may choose to convert the representation of the spline function from the
+B-spline basis to the power basis to allow for more efficient evaluation.
+Subprogram DSTOP can be used to do this conversion. Then DPVAL can be used
+to evaluate the function or any of its derivatives at a specified point, and
+DPQUAD can be used to evaluate the definite integral of the function between
+specified limits.
+
+\subsection{Usage}
+
+Described below in Section B.1 to B.8, are:
+
+\begin{tabular*}{3.3in}{ll}
+B.1 & Usage of DSFIT for fitting without\\
+ & constraints \dotfill \pageref {dsfit}\\
+B.2 &  Usage of DSFITC for fitting with\\
+ & constraints \dotfill \pageref {dsfitc}\\
+B.3 & Usage of DSVAL for evaluation using\\
+ & the B-spline basis \dotfill \pageref{dsval}\\
+B.4 & Usage of DSQUAD for integration\\
+ & using the B-spline basis \dotfill \pageref{dsquad}\\
+B.5 & Usage of DSTOP to convert from the\\
+ & B-spline basis to the power basis \dotfill \pageref{dsquad}\\
+B.6 & Usage of DPVAL for evaluation using\\
+ & the power basis \dotfill \pageref{dpval}\\
+B.7 & Usage of DPQUAD for integration using\quad \quad ~\\
+ & the power basis \dotfill \pageref{dpquad}\\
+B.8 & Modifications for Single Precision \dotfill \pageref{modsp}
+\end{tabular*}
+\subsubsection{Usage of DSFIT for fitting without constraints\label{dsfit}}
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NXY, KORDER, NCOEF, LDW, IERR1}
+
+\item[DOUBLE PRECISION]  \ {\bf BCOEF}($\geq $NCOEF){\bf ,\\ X}($\geq $NXY)%
+{\bf , Y}($\geq $NXY){\bf , SD}($\geq $NXY){\bf ,\\ TKNOTS}($\geq $%
+NCOEF+KORDER){\bf ,\\
+W}(LDW, $\geq $KORDER+1){\bf , SIGFAC}
+\end{description}
+Assign values to X(), Y(), SD(), NXY, KORDER, NCOEF, TKNOTS(), and LDW.
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+CALL DSFIT(X, Y, SD, NXY, KORDER,\\
+NCOEF, TKNOTS, BCOEF, SIGFAC,\\
+IERR1, LDW, W)
+\end{tabular}}
+\end{center}
+Results are returned in BCOEF(), SIGFAC, and IERR1. Following
+use of DSFIT, the user may use DSVAL to compute values or specified
+derivatives of the fitted curve, DSQUAD to compute the definite integral of
+the fitted curve over a specified interval, or DSTOP to convert the
+representation to the power basis.
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[X(), Y()]  \ [in] Data pairs (X$(i)$, Y($i)$, $i=1$, ..., NXY). Must
+be ordered so the X($i)$'s are either nondecreasing or
+nonincreasing.
+
+\item[SD()]  \ [in] If SD($1)>0.$, each SD($i$) must be positive and must be
+the user's a priori estimate of the standard deviation of the uncertainty $%
+(e.g.$, observational error) in the corresponding data value Y($i).$
+
+If SD($1)<0.$, $|\text{SD}(1)|$ will be used as the a priori standard
+deviation of each data value Y(I). In this case the array SD() may be
+dimensioned as SD(1).
+
+An error condition is reported if SD(1) = 0 or if SD(1) $>$ 0 and
+SD($i) \leq 0$ for $1 < i \leq \text{NXY}.$
+
+\item[NXY]  \ [in] Number of data points. Require NXY $\geq \max ($NCOEF,
+KORDER).
+
+\item[KORDER]  \ [in] Order of the spline function. Each polynomial piece
+will be of degree at most KORDER $-$ 1. The default order of continuity at
+each internal knot will be KORDER $-$ 2. The popular case of a cubic spline
+with $C^2$ continuity at the knots is selected by setting KORDER = 4.
+Require KORDER $\geq 1$. Internal arrays in this package impose an upper
+limit of $kmax=20$ on KORDER.
+
+\item[NCOEF]  \ [in] Number of terms in the sum representing the spline
+function. Require NCOEF $\leq $ NXY.
+
+\item[TKNOTS()]  \ [in] The knots, $t_i$, $i=1$, ..., NCOEF + KORDER. The
+interval $[t_{\text{KORDER}}$, $t_{\text{NCOEF}+1}]$ will be the {\em proper
+interpolation interval} for the problem. This interval should contain all the
+X($j)$ values, so it is reasonable to set $t_{\text{KORDER}}\leq \min ($%
+X(1), X(NXY)) and $t_{\text{NCOEF}+1}\geq \max ($X(1), X(NXY)). It is
+convenient and reasonable to set the KORDER $-$ 1 knots with indices less
+than KORDER equal to $t_{\text{KORDER}}$, and the KORDER $-$ 1 knots with
+indices greater than NCOEF + 1 equal to $t_{\text{NCOEF}+1}.$
+
+Knots indexed from KORDER + 1 through NCOEF are {\em internal} knots. Internal
+knots specify abscissae at which one polynomial piece ends and the next
+begins. Successively indexed internal knots may have the same value. A knot
+appearing with multiplicity $\mu $ means the order of continuity of the
+spline at this knot will be at least $\text{KORDER}-\mu - 1$. Require $1\leq
+\mu \leq $ KORDER.
+
+Require $t_i\leq t_{i+1}$ for $i=1$, ..., NCOEF + KORDER $-$ 1; $t_i<t_{i+%
+\text{KORDER}}$ for $i=1$, ..., NCOEF; $t_{\text{KORDER}}<t_{\text{KORDER}%
++1} $; and $t_{\text{NCOEF}}<t_{\text{NCOEF}+1}$. See Sections C and D for
+further discussion of knot placement.
+
+\item[BCOEF()]  \ [out] Coefficients $c_i$, $i=1$, NCOEF, in the sum
+representing the spline function as a sum of coefficients times B-spline
+basis functions.
+
+\item[SIGFAC]  \ [out] Set by the subroutine as a measure of the residual
+error of the fit. The subroutine sets%
+\begin{align*}
+\text{SIGFAC}&=\frac{\text{RNORM}}{\text{DOF}^{1/2}},\quad \text{where}\\
+\text{RNORM}&=\left[ \sum_{i=1}^{\text{NXY}}\left(\frac{\text{yfit}_i-\text{Y}_i}
+{\text{SD}_i}\right) ^2\right] ^{1/2},\quad \text{and}\\
+\text{DOF}&=\max (1,\text{NXY}-\text{NCOEF}).
+\end{align*}
+Here $\text{SD}_i$ denotes SD($i$) if SD($1)>0$, and $|\text{SD}(1)|$ otherwise.
+
+\item[IERR1]  \ [out] Error status indicator. Set on the basis of tests done
+in DSFIT as well as error indicators IERR2 set by DBACC and IERR3 set by
+DBSOL, both in Chapter~4.5. IERR1 is set as follows:
+
+{\bf IERR1} \hspace{.4in} {\bf Meaning}\vspace{-6pt}
+\begin{description}
+\item[\rm \phantom{100}0] \ No errors detected.
+\item[\rm \phantom{1}100] \  NCOEF $<1$ or NCOEF $>$ NXY
+\item[\rm \phantom{1}150] \  KORDER $>kmax$ (= 20)
+\item[\rm \phantom{1}200] \  TKNOTS($i$) $>$ TKNOTS($i$+1)
+\item[\rm \phantom{1}250] \  TKNOTS($i)\geq $TKNOTS($i$+KORDER)
+\item[\rm \phantom{1}300] \  LDW $<$ NCOEF + 2
+\item[\rm \phantom{1}400] \  The X($i)$'s are neither nondecreasing nor
+nonincreasing.
+\item[\rm \phantom{1}600] \  LDW $<$ NCOEF + 2.
+\item[\rm \phantom{1}700+IERR2] \ DBACC set IERR2 $\neq 0$
+\item[\rm \phantom{1}800+IERR2] \ DBACC set IERR2 $\neq 0$
+\item[\rm \phantom{1}900+IERR2] \ DBACC set IERR2 $\neq 0$
+\item[\rm 1000+IERR3] \ DBSOL set IERR3 $\neq 0$. Indicates singularity.
+\item[\rm 1100] \  SD(1) = 0.0
+\item[\rm 1200] \  SD(1) $>$ 0.0, and SD($i) \leq 0.0$ for some $i \in $ {[2,
+NXY]}.
+\end{description}
+\item[LDW]  \ [in] Leading dimension for the work array W(). Require LDW $%
+\geq \text{NCOEF}+2$. Let $\alpha $ denote the maximum number of data
+abscissae, X($i)$, in any one knot interval, $i.e$. between TKNOTS$(j)$ and
+TKNOTS$(j+1)$ for some $j$. The subroutine will be more efficient if LDW is
+at least $\text{NCOEF}+1+\alpha .$
+
+\item[W(,)]  \ [scratch] Working space, dimensioned W(LDW, $\geq $KORDER+1).
+\end{description}
+\subsubsection{Usage of DSFITC for fitting with constraints\label{dsfitc}}
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, NCOEF, ISET}(3){\bf ,\\ INFO}({\em ninfo})
+
+\item[DOUBLE PRECISION]  \ {\bf X}({\em mdim}){\bf , Y}({\em mdim}){\bf ,\\ SD}($%
+mdim $){\bf , TKNOTS}($\geq $NCOEF+KORDER){\bf ,\\ BCOEF}($\geq $NCOEF){\bf %
+, RNORM, W}({\em nwork})
+
+\item[CHARACTER*4]  \ {\bf CCODE}({\em mdim})
+\end{description}
+The dimension {\em mdim} must be large enough to provide for specification of
+all constraint and least-squares equations as described below in the
+description of CCODE(). See ISET() for the specifications of {\em ninfo} and $%
+nwork $.
+
+Assign values to CCODE(), X(), Y(), SD(), KORDER, NCOEF, TKNOTS(), and
+ISET().
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+CALL DSFITC(CCODE, X, Y, SD,\\
+KORDER, NCOEF, TKNOTS, BCOEF,\\
+RNORM, ISET, INFO, W)
+\end{tabular}}
+\end{center}
+Computed quantities are returned in BCOEF(), RNORM, and INFO(). Following
+use of DSFITC, the user may use DSVAL to compute values or specified
+derivatives of the fitted curve, DSQUAD to compute the definite integral of
+the fitted curve over a specified interval, or DSTOP to convert the
+representation to the power basis.
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[CCODE()]  \ [in] CCODE(i), or in some cases CCODE(i) and
+CCODE$(i+1)$ together, give specifications for one constraint equation or
+one least-squares equation. CCODE(i) is regarded as consisting of four
+single-character fields.
+\begin{description}
+\item[\rm CCODE$(i$)(1:1) =]  $kind_i=$ $^{\prime}$1$^{\prime}$, $%
+^{\prime}$2$^{\prime}$, $^{\prime}$3$^{\prime}$, $^{\prime}$4$^{\prime}$.
+
+\item[\rm CCODE$(i$)(2:2) =]  $deriv_i=$ $^{\prime}$0$^{\prime}$, $%
+^{\prime}$1$^{\prime}$, ..., $^{\prime}$9$^{\prime}$.
+
+\item[\rm CCODE$(i$)(3:3) =]  $relop_i=$ $^{\prime}${$\sim $}$^{\prime}$, $%
+^{\prime }$=$^{\prime }$, $%
+^{\prime }${$<$}$^{\prime }$, $^{\prime }${$>$}$^{\prime }.$
+
+\item[\rm CCODE$(i$)(4:4) =]  $active_i=$ $^{\prime}$A$^{\prime}$, $%
+^{\prime }$N$^{\prime }$, $^{\prime}$!$^{\prime}$.
+\end{description}
+Where alphabetic characters are shown, the corresponding lower case
+character is also acceptable.
+\begin{description}
+\item[\rm $active_i =\,^{\prime}$!$^{\prime}$]  signals the end of information
+in this array. The user must provide this termination signal. The other
+fields in this array element will be ignored. $active_i=\,^{\prime }$A$^{\prime
+} $ means CCODE(i) is active so CCODE(i) will be processed. $%
+active_i=\,^{\prime }$N$^{\prime }$ means CCODE(i) is inactive so processing
+will advance to CCODE$(i+1)$. To activate or inactivate a pair [CCODE(i),
+CCODE$(i+1)]$ in which $kind_i=3$ or 4, place the same
+code $^{\prime }$A$^{\prime}$ or $^{\prime }$N$^{\prime }$ in
+both $active_i$ and $active_{i+1}.$
+
+\item[\rm $relop_i =$ $^{\prime}{=}^{\prime}$, $^{\prime}{<}^{\prime}$,
+or $^{\prime}{>}^{\prime}$]  denotes a constraint equation
+with $^{\prime }{=}^{\prime }$ meaning equal
+to, $^{\prime }{<}^{\prime }$ meaning less than or equal to, and $^{\prime
+}{>}^{\prime }$ meaning greater than or equal to. $relop_i=$ $^{\prime
+}{\sim }^{\prime }$ denotes a least-squares equation. For a least-squares
+equation the value SD($i$) (or $|\text{SD}(1)|$) will be used as the a
+priori standard deviation.
+
+\item[\rm $kind_i = 1$]  specifies an equation of the form
+\begin{equation*}
+f^{(di)}(\text{X}(i))\ relop_i\ \text{Y}(i)
+\end{equation*}
+where $f^{(di)}$ denotes the derivative of order $deriv_i$ of the spline
+function to be determined. The zero$^{th}$ order derivative is the function
+itself.
+
+\item[\rm $kind_i = 2$]  specifies an equation of the form
+\begin{equation*}
+f^{(di)}(\text{X}(i))-f^{(di)}(\text{Y}(i))\ relop_i0
+\end{equation*}
+Note that Y($i)$ is an independent variable value in this case.
+
+\item[\rm $kind_i = 3$]  uses items indexed by both $i$ and $i+1$ and
+specifies an equation of the form
+\begin{equation*}
+\hspace{-36pt}f^{(di)}(\text{X}(i))-\text{Y}(i+1)\times f^{(di+1)}
+(\text{X}(i+1))\ relop_i \text{Y}(i)
+\end{equation*}
+where $f^{(di+1)}$ denotes the derivative of order $deriv_{i+1}$ of the
+spline function to be determined.
+
+\item[\rm $kind_i = 4$]  uses items indexed by both $i$ and $i+1$ and
+specifies an equation of the form
+\begin{equation*}
+\int_{\text{X}(i)}^{\text{X}(i+1)}f(x)\,dx\quad relop_i\text{ Y}(i)
+\end{equation*}
+\end{description}
+See Section C for discussion of expected applications of these different
+equation forms.
+
+\item[X(), Y()]  \ [in] Data for use in building constraint or fitting
+equations as specified by the contents of CCODE().
+
+\item[SD()]  \ [in] SD($i$) specifies the a priori standard deviation of the
+error in the equation specified by CCODE(i) when $relop_i=$ $^{\prime
+}{\sim }^{\prime }$. The weighted fitting algorithm will take account of these
+SD($i$) values. Optionally, the user may set SD(1) to a negative value. Then
+this subroutine will use $|\text{SD}(1)|$ as the standard deviation for the
+right-side value in each fitting equation. In this latter case the SD()
+array can be dimensioned SD(1). Note that a negative value in SD(1) will
+always be interpreted in this way regardless of the contents of CCODE(1). An
+error condition is reported if SD(1) = 0 or if SD(1) $>$ 0 and
+SD($i) \leq 0$ for $1 < i \leq \text{NXY}.$
+
+\item[KORDER]  \ [in] Order of the spline function. Each polynomial piece
+will be of degree at most KORDER $-$ 1. The default order of continuity at
+each internal knot will be KORDER $-$ 2. The popular case of a cubic spline
+with $C^2$ continuity at the knots is selected by setting KORDER = 4.
+Require KORDER $\geq 1$. Internal arrays in this package impose an upper
+limit of {\em kmax} = 20 on KORDER.
+
+\item[NCOEF]  \ [in] Number of terms in the sum representing the spline
+function.
+
+\item[TKNOTS()]  \ [in] The knots, $t_i$, $i=1$, ..., NCOEF + KORDER. The
+interval $[t_{\text{KORDER}}$, $t_{\text{NCOEF}+1}]$ will be the {\em proper
+interpolation interval} for the problem. This interval should contain all the
+abscissa values occurring in the least-squares and constraint equations, so
+it is reasonable to set $t_{\text{KORDER}}$ less than or equal to the
+minimum of these abscissae and $t_{\text{NCOEF}+1}$ greater than or equal to
+the maximum. It is convenient and reasonable to set the KORDER $-$ 1 knots
+with indices less than KORDER equal to $t_{\text{KORDER}}$, and the KORDER $-$
+1 knots with indices greater than NCOEF + 1 equal to $t_{\text{NCOEF}+1}.$
+
+Knots indexed from KORDER + 1 through NCOEF are {\em internal} knots. Internal
+knots specify abscissae at which one polynomial piece ends and the next
+begins. Successively indexed internal knots may have the same value. A knot
+appearing with multiplicity $\mu $ means the order of continuity of the
+spline at this knot will be at least $\text{KORDER}-\mu -1$. Require $1\leq \mu
+\leq $ KORDER.
+
+Require $t_i\leq t_{i+1}$ for $i=1$, ..., NCOEF + KORDER $-$ 1; $t_i<t_{i+%
+\text{KORDER}}$ for $i=1$, ..., NCOEF; $t_{\text{KORDER}}<t_{\text{KORDER}+1}$;
+and $t_{\text{NCOEF}}<t_{\text{NCOEF}+1}$. See Sections C and D for
+further discussion of knot placement.
+
+\item[BCOEF()]  \ [out] Coefficients $c_i$, $i=1$, NCOEF, in the sum
+representing the spline function as a sum of coefficients times B-spline
+basis functions.
+
+\item[RNORM]  \ [out] Set by the subroutine as a measure of the residual
+error of the fit. RNORM$=\left[ \sum_i \left( \frac{resid_i}{\text{SD}_i}%
+\right) ^2\right] ^{1/2},$ where the summation is over indices for which $%
+relop_i=\,^{\prime }{\sim }^{\prime }$, and $resid_i$ denotes the residual after the
+fit in the equation specified by CCODE(i).  Here $\text{SD}_i$ denotes SD($i$)
+if SD($1)>0$, and $|\text{SD}(1)|$ otherwise.
+
+\item[ISET()]  \ [in] Array of length~3. These specifications use the
+following values:
+\begin{description}
+\item[\rm $ns =$]  the number of elements in CCODE() containing $%
+relop=\,^{\prime }{<}^{\prime }$ or $^{\prime }{>}^{\prime }$ and $active
+=\,^{\prime }$A$^{\prime }.$
+
+\item[\rm $m1 =$]  the number of elements in CCODE() containing $%
+relop=\,^{\prime }{=}^{\prime }$, $^{\prime }{<}^{\prime }$ or $^{\prime
+}{>}^{\prime }$ and $active =\,^{\prime }$A$^{\prime }.$
+
+\item[\rm $mfit =$]  the number of elements in CCODE() containing $relop
+=\,^{\prime }{\sim }^{\prime }$ and $active =\,^{\prime }$A$^{\prime }.$
+
+\item[\rm $ntot =$]  NCOEF + {\em ns},
+
+\item[\rm $mtot =$]  $m1+mfit$,
+
+\item[\rm $minmn =$]  $\min (mtot,ntot).$\rule[-5pt]{0pt}{8pt}
+
+\item[\rm ISET(1) =]  {\em ninfo}, the dimension of INFO(). A sufficiently large
+value is $7+2\,ntot$.
+
+\item[\rm ISET(2) =]  {\em nwork}, the dimension of WORK(). A sufficiently large
+value is $nwork=mtot\times ntot+3\,mtot+6\,ntot+3\,minmn+m1.$
+
+\item[\rm ISET(3) =]  {\em kprint}, a diagnostic print flag in the range~[0,~4].
+It is passed on to DBLSE. Zero means no printing. Larger values produce more
+printing.
+\end{description}
+\item[INFO()]  \ [out and scratch] The first 7~elements of INFO() are used
+to return information about the problem. The following $2\times (\text{NCOEF}%
++ns)$ locations are used as scratch. The dimension of INFO() is {\em ninfo}
+given in ISET(1).
+\begin{description}
+\item[\rm INFO(1) $= ierr5$,]  a status indicator incorporating information
+from IERR4 issued by DBLSE. Possible values of {\em ierr5} are as follows:
+\begin{itemize}
+\item[0]  No errors detected.
+
+\item[100]  NCOEF $<1$
+
+\item[150]  KORDER $>kmax(=20)$
+
+\item[200]  TKNOTS$(i)>\text{TKNOTS}(i+1)$
+
+\item[250]  TKNOTS$(i)\geq \text{TKNOTS}(i+\text{KORDER})$
+
+\item[300]  {\em ninfo} or {\em nwork} is too small. Recommended values
+are returned in INFO(2) and INFO(3).
+
+\item[500]  $deriv_i$ has bad value for some $i.$
+
+\item[600]  $relop_i$ has bad value for some $i.$
+
+\item[700]  $kind_i$ has bad value for some $i.$
+
+\item[800]  $active_i$ has bad value for some $i.$
+
+\item[1000]  + IERR4 \quad IERR4 $\neq 0$ due to error detected in DBLSE.
+For the interpretation of IERR4 see Section~E.
+
+\item[\rm 1100] \  SD(1) = 0.0
+
+\item[\rm 1200] \  SD(1) $>$ 0.0, and SD($i) \leq 0.0$ for some $i$
+for which $relop_i =\,^{\prime}{\sim }^{\prime}$.
+
+\end{itemize}
+\item[\rm INFO(2) $= need1$,]  the dimension needed for INFO().
+
+\item[\rm INFO(3) $= need2$,]  the dimension needed for WORK().
+
+\item[\rm INFO(4) $= m1$,]  the number of constraint rows in the matrix
+representation of the problem. This will be the number of elements in
+CCODE() containing $relop=\,^{\prime }{=}^{\prime }$, $^{\prime }{<}^{\prime }$
+or $^{\prime }{>}^{\prime }$ and $active =\,^{\prime }$A$^{\prime }$
+
+\item[\rm INFO(5) $= mfit$,]  the number of least-squares equations. This
+will be the number of elements in CCODE() containing $relop=\,^{\prime
+}{\sim }^{\prime }$ and $active=\,^{\prime }$A$^{\prime }.$
+
+\item[\rm INFO(6) $= ns$,]  the number of slack variables. This will be the
+number of elements in CCODE() containing $relop=\,^{\prime }{<}^{\prime }$ or $%
+^{\prime }{>}^{\prime }$ and $active=\,^{\prime }$A$^{\prime }.$
+
+\item[\rm INFO(7) $= nsets$,]  the number of variables in ``Set S" at
+termination. These variables are at values determined by solution of a
+system of equations. The other $\text{NCOEF}+ns-nsets$ variables will be at fixed
+values, either at one of their bounds or at zero.
+\end{description}
+\item[WORK()]  \ [scratch] Work space dimensioned {\em nwork}. See ISET(2) above.
+\end{description}
+\subsubsection{Usage of DSVAL for evaluation using the B-spline basis\label
+{dsval}}
+
+DSVAL returns the value at argument X of the derivative of order IDERIV of
+the spline function defined by the parameter sequence [KORDER, NCOEF,
+TKNOTS(), BCOEF()].
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NCOEF, KORDER, IDERIV}
+
+\item[DOUBLE PRECISION]  \ {\bf DSVAL,\\
+TKNOTS}($\geq $NCOEF+KORDER){\bf ,\\
+BCOEF}($\geq $NCOEF){\bf , X}
+\end{description}
+Assign values to all arguments.
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+D = DSVAL(KORDER, NCOEF, TKNOTS,\\
+BCOEF, X, IDERIV)
+\end{tabular}}
+\end{center}
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER, NCOEF, TKNOTS(), BCOEF()]  \ [in] Quantities defining a spline
+function relative to the B-spline basis as returned by DSFIT or DSFITC.
+Internal arrays in this subprogram impose an upper limit of $kmax=20$ on
+KORDER.
+
+\item[X]  \ [in] Argument at which the IDERIV order derivative of the spline
+function will be evaluated.
+
+\item[IDERIV]  \ [in] Derivative order desired. Require IDERIV $\geq 0$.
+Zero means to evaluate the spline function itself.
+\end{description}
+\subsubsection{Usage of DSQUAD for integration using the B-spline basis\label
+{dsquad}}
+
+DSQUAD returns the value of the integral from X1 to X2 of the spline
+function defined by the parameter sequence [KORDER, NCOEF, TKNOTS(),
+BCOEF()].
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, NCOEF}
+
+\item[DOUBLE PRECISION]  \ {\bf DSQUAD,\\
+TKNOTS}($\geq $NCOEF+KORDER){\bf ,\\
+BCOEF}($\geq $NCOEF){\bf , X1, X2}
+\end{description}
+Assign values to all arguments.
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+D = DSQUAD(KORDER, NCOEF,\\
+TKNOTS, BCOEF, X1, X2)
+\end{tabular}}
+\end{center}
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER, NCOEF, TKNOTS(), BCOEF()]  \ [in] Quantities defining a spline
+function relative to the B-spline basis as returned by DSFIT or DSFITC.
+
+\item[X1, X2]  \ [in] Limits of the integral to be evaluated. Permit X1 $<$
+X2 or X1 $\geq $ X2.
+\end{description}
+\subsubsection{Usage of DSTOP to convert from the B-spline basis to the power
+basis\label{dstop}}
+
+DSTOP converts the representation of a spline function from the B-spline
+parameterization [KORDER, NCOEF, TKNOTS(), BCOEF()] to the power
+basis form [KORDER, NPC, XI(), PCOEF()]. KORDER will not be changed.
+Typically the B-spline parameters will have come from DSFIT or DSFITC.
+The power coefficients can be used by DPVAL and DPQUAD.
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, NCOEF, NPC}
+
+\item[DOUBLE PRECISION]  \ {\bf TKNOTS}($\geq $NCOEF+\\ KORDER){\bf ,
+BCOEF}($\geq $NCOEF){\bf ,\\ BDIF}($\geq \text{NCOEF}\times $KORDER){\bf ,
+XI}({\em mpc}+1){\bf ,\\ PCOEF}($\geq $KORDER$\times mpc)$
+\end{description}
+The dimension {\em mpc} must be as large as the output value NPC. In terms of
+input quantities it suffices to set $mpc \geq $ NCOEF $-$ KORDER + 1. Assign
+values to KORDER, NCOEF, TKNOTS(), and BCOEF().\vspace{-10pt}
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+CALL DSTOP(KORDER, NCOEF, TKNOTS,$\negthickspace \negthickspace$\\
+BCOEF, BDIF, NPC, XI, PCOEF)
+\end{tabular}}
+\end{center}
+Results are returned in NPC, XI(), and PCOEF().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER, NCOEF, TKNOTS(), BCOEF()]  \ [in] Quantities defining a spline
+function relative to the B-spline basis, as returned by DSFIT or DSFITC.
+
+\item[BDIF()]  \ [scratch] Work space of size NCOEF $\times $ KORDER.
+
+\item[NPC]  \ [out] NPC + 1 will be the number of distinct values in the
+sequence [TKNOTS($i),\ i=$ KORDER, ..., NCOEF + 1]. NPC will satisfy
+NPC $\leq $ NCOEF $-$ KORDER + 1.
+
+\item[XI()]  \ [out] A strictly increasing sequence of length NPC + 1
+consisting of all the distinct values from the sequence [TKNOTS($i),\ i=$
+KORDER, ..., NCOEF + 1].
+
+\item[PCOEF()]  \ [out] PCOEF$(i+(j-1)\times $ KORDER) will be be the
+coefficient of $(t-\text{XI}(j))^{(i-1)}$ in the power basis representation
+of the spline function. $(i=1$, ..., KORDER; $j=1$, ..., NPC)
+\end{description}
+\subsubsection{Usage of DPVAL for evaluation using the power basis\label
+{dpval}}
+
+DPVAL returns the value at argument X of the derivative of order IDERIV of
+the spline function defined by the parameter sequence [KORDER, NPC, XI(),
+PCOEF()].
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NPC, KORDER, IDERIV}
+
+\item[DOUBLE PRECISION]  \ {\bf DPVAL,\\
+XI}($\geq $NPC+KORDER){\bf ,\\
+PCOEF}($\geq $KORDER$\times $NPC){\bf , X}
+\end{description}
+Assign values to all arguments.
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+D = DPVAL(KORDER, NPC, XI,\\
+PCOEF, X, IDERIV)
+\end{tabular}}
+\end{center}
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER, NPC, XI(), PCOEF()]  \ [in] Quantities defining a spline
+function relative to the power basis, as returned by DSTOP.
+
+\item[X]  \ [in] Argument at which the IDERIV order derivative of the spline
+function will be evaluated.
+
+\item[IDERIV]  \ [in] Derivative order desired. Require IDERIV $\geq 0$.
+Zero means to evaluate the spline function itself.
+\end{description}
+\subsubsection{Usage of DPQUAD for integration using the power basis\label
+{dpquad}}
+
+DPQUAD returns the value of the integral from X1 to X2 of the spline
+function defined by the parameter sequence [KORDER, NPC, XI(), PCOEF()].
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, NPC}
+
+\item[DOUBLE PRECISION]  \ {\bf DPQUAD,\\
+XI}($\geq $NPC+KORDER){\bf ,\\
+PCOEF}($\geq $KORDER$\times $NPC){\bf , X1, X2}
+\end{description}
+Assign values to all arguments.
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+D = DPQUAD(KORDER, NPC, XI,\\
+PCOEF, X1, X2)
+\end{tabular}}
+\end{center}
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER, NPC, XI(), PCOEF()]  \ [in] Quantities defining a spline
+function relative to the power basis, as returned by DSTOP.
+
+\item[X1, X2]  \ [in] Limits of the integral to be evaluated. Permit X1 $<$
+X2 or X1 $\geq $ X2.
+\end{description}
+\subsubsection{Modifications for Single Precision\label{modsp}}
+
+For single precision usage change the DOUBLE PRECISION statements to REAL
+and change the initial ``D" in the subprogram names to ``S".
+
+\subsection{Examples and Remarks}
+
+\subsubsection{Demonstration of DSFIT.}
+
+The demonstration driver DRDSFIT sets up a curve fitting problem having 12~$%
+(x,y)$ pairs of data. It uses DSFIT to do a least-squares fit to this data
+with an 8-parameter cubic spline function. It uses DSVAL to evaluate the
+fitted function over the given set of $x$ values. It uses DSQUAD to compute
+the definite integral of the fitted function from~5.0 to~20.0. It uses DSTOP
+to convert the B-spline representation to the power representation. It then
+uses DPVAL and DPQUAD to repeat the function evaluation and integral
+computation using the power representation. The output is listed in ODDSFIT.
+
+\subsubsection{Demonstration of DSFITC.}
+
+The program DRDSFITC illustrates the use of DSFITC to compute a constrained
+least-squares spline fit to data. Output from DRDSFITC is listed in ODDSFITC
+and graphs prepared using {\tt splot} from Chapter~16-03 are shown in
+Figures~1 and~2. We have 24~data points, given in the the first 24~entries
+of the arrays XI() and YI() in the DATA statement in DRDSFITC. These points
+are shown as circles in Figure~1.
+
+Suppose these data are measurements of some phenomenon that is known to be
+monotone nondecreasing and we wish to find a monotone nondecreasing function
+that closely fits the data. An unconstrained least-squares fit to this data
+by a single polynomial or by a polynomial spline function will have unwanted
+oscillations. There are rational functions and exponential functions with
+three parameters that are monotone and of somewhat the desired shape, but
+these functions do not have enough free parameters to allow the function to
+fit the data really closely. A satisfactory fit can be obtained using a
+cubic spline function having $C^2$ continuity.
+
+The data abscissae range from~0 to~6. We shall place quadruple knots at these
+two points and internal knots at~1.5, 2.5, 3.3, 4.0, and~4.7. The number and
+locations of these internal knots were selected by some trial and error.
+These knot values are stored in TKNOTS(). Their locations are shown by
+triangles in Figures 1 and~2. Since we have selected a total of 13~knots and
+we have KORDER = 4 to specify a cubic spline, the number of coefficients
+will be set to NCOEF $= 13 - 4 = 9.$
+
+We shall require the curve to be concave up over [0,~2.5] by requiring $%
+f^{\prime \prime} \geq 0$ at~0 and at the first two internal knots. These
+constraints, along with the constraint $f^{\prime}(0) \geq 0$, will force$%
+f^{\prime}$ to be nonnegative over [0,~2.5]. Similarly we require the curve
+to be concave down over [3.3,~6] by requiring $f^{\prime \prime} \leq 0$ at
+the last three internal knots and at~6. These constraints, along with the
+constraint $f^{\prime}(6) \geq 0$, will force $f^{\prime}$ to be nonnegative
+over [3.3,~6]. It follows that $f^{\prime}\geq 0$ over [2.5,~3.3] since in
+this interval $f^{\prime}$ is a quadratic polynomial that is nonnegative and
+nondecreasing at~2.5 and nonnegative and nonincreasing at~3.3.
+
+The second derivative of a cubic spline is linear between knots. Thus
+the conditions $f^{\prime \prime}(2.5) \geq 0$ and $f^{\prime \prime}(3.3)
+\leq 0$ imply that $f^{\prime \prime}$ can have at most one sign change in the
+interval between the successive knots at~2.5 and~3.3.
+This assures the only inflection point of the curve over (0,~6) will occur
+in the interval [2.5,~3.3]. See Figure~2 for graphs of the
+resulting $f^{\prime}$ and $f^{\prime \prime}.$
+
+Supposing we also wish to have the fitted curve take the value 1 at~0 and
+the value 5 at~6, we also impose these constraints.
+
+Recall that the four characters in each entry of CCODE() are interpreted as
+({\em kind}, {\em deriv}, {\em relop}, {\em active}). All but the last element of CCODE()
+have $active =\,^{\prime}$a$^{\prime}$ meaning these elements are active, while
+the last element has $active =\,^{\prime}!^{\prime}$, which is the termination
+signal. All of the active elements have $kind =\,^{\prime}1^{\prime}$,
+meaning the specified equation is of the form
+\begin{equation*}
+f^{(di)}(\text{XI}(i))\ relop_i \text{ YI}(i).
+\end{equation*}
+The first 24~entries have $relop =\,^{\prime}{\sim }^{\prime}$ meaning that
+each specifies one of the least-squares equations. The ten elements of CCODE()
+beginning with CCODE(25) specify the constraints. For example CCODE(26) has $%
+deriv =\,^{\prime}1^{\prime}$ and $relop =\,^{\prime}{>}^{\prime}$ meaning the
+first derivative at XI(26) is constrained to be $\geq $ YI(26).
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl11-05b }
+
+\centerline{\bf Figure 2: First and second derivatives\newline}
+\centerline{\bf of fitted function.\rule[-8pt]{0pt}{8pt}}
+
+\subsubsection{Using constraints to control shape.}
+
+A function with at least $C^1$ continuity is nondecreasing over $[c,~d]$ if
+its first derivative is nonnegative throughout $[c,~d]$. A function with at
+least $C^2$ continuity is concave up over an interval $[c,~d]$ if its second
+derivative is nonnegative throughout $[c,~d]$. Although these are properties
+defined over an interval, it is possible to impose these conditions on
+spline functions by appropriate assignment of constraints at a finite number
+of points.
+
+Note that if $f$ is a cubic spline function with $C^2$ continuity, then $%
+f^{\prime}$ is a quadratic spline with $C^1$ continuity, and $f^{\prime
+\prime}$ is a linear spline function with $C^0$ continuity, $i.e.$, $%
+f^{\prime \prime}$ is a continuous piecewise linear function with possible
+slope changes only at knots. It follows that by requiring $f^{\prime \prime}
+\geq 0$ at $c$ and $d$, and at any knots between $c$ and $d$, $f^{\prime
+\prime}$ will necessarily be nonnegative throughout $[c,~d]$, and therefore $%
+f $ will be concave up throughout $[c,~d].$
+
+If one wants $f$ to be monotone nondecreasing as well as concave up over $%
+[c,~d]$ it suffices to require $f^{\prime}(c) \geq 0$ along with the second
+derivative conditions already discussed, since with $f^{\prime \prime} \geq
+0 $ throughout $[c,~d]$, $f^{\prime}$ cannot have a smaller value anywhere
+in $[c,~d]$ than it has at $c.$
+
+If one wants monotonicity for $f$ without second derivative constraints, one
+could let $f$ be a quadratic spline rather than a cubic spline. Then $%
+f^{\prime}$ will be piecewise linear and one can control the sign of $%
+f^{\prime}$ over an interval by constraining $f^{\prime}$ at knots as was
+done above for $f^{\prime \prime}$. If one prefers to use cubic splines, one
+can do trial and error placement of constraints on $f^{\prime}$ and
+eventually keep $f^{\prime}$ from changing sign.
+
+\subsubsection{\bf Periodicity.}
+
+When periodicity is desired it should be specified for the function value
+and all orders of derivatives that are continuous at the points referenced in
+the specification. For example suppose one wants periodicity of 360~degrees.
+The {\em proper interpolation interval} could be set as [a,~b] = [0.0,~360.0].
+If one uses KORDER = 4 one should specify periodicity for $f$, $f^{\prime}$,
+and $f^{\prime \prime}$. This can be done by setting CCODE(1:3) $=\,^{\prime}$%
+20=a$^{\prime}$, $^{\prime}$21=a$^{\prime}$, $^{\prime}$22=a$^{%
+\prime}$; X(1:3) $= 0.0$, 0.0, 0.0; and Y(1:3) $= 360.0$, 360.0, 360.0.
+
+Although it does not change the fit obtained, one may wish to have the
+periodicity reflected in the coefficients. Letting $p$ denote the period, and
+assuming $p+t_{\text{KORDER}} = p+a = b = t_{\text{NCOEF}+1}$, this can be done
+by setting the initial knots as $t_i = -p+t_{\text{NCOEF}+1-\text{KORDER}+i}$,
+for $i = 1$, ..., KORDER $-$ 1, and the final knots as $t_{\text{NCOEF}+1+i}
+= p+t_{\text{KORDER}+i}$, for $i = 1$, ..., KORDER $-$ 1. Then the
+coefficients will reflect the periodicity by satisfying $c_{\text{NCOEF}+1-%
+\text{KORDER}+i} = c_i$, for $i = 1$, ..., KORDER $-$ 1.
+
+\subsubsection{Differential equations.}
+
+Using $kind = 3,$ conditions such as $f^{\prime}(x) - c f(x) = d$, or $%
+f^{\prime}(x) - c f(x) \sim d$ (and slightly more general expressions) can be
+specified for given values of $x$, $c$ and $d$. Thus DSFITC can be used to
+implement the collocation method of computing an approximate solution to
+linear differential equations.
+
+\subsubsection{Assignment of knots.}
+
+Many discussions of spline interpolation are based on the assumption that
+many, or all, of the knots will be assigned to coincide with data abscissae.
+This is not necessary, either for interpolation or least-squares fitting.
+
+Let, $\{B_i$: $i$ = 1, ..., NCOEF$\}$, be a family of B-spline basis
+functions of order $K$. An unconstrained interpolation or least-squares
+fitting problem using this family gives rise to a full-rank matrix, and thus
+has a unique solution if and only if there are at least NCOEF distinct data
+abscissae, and it is possible to choose NCOEF of these and relabel them, say
+as $u_i$, $i = 1$, NCOEF, so they will satisfy $B_i(u_i) \neq 0$ for $i = 1$%
+, ..., NCOEF. This condition will be satisfied if the (possibly relabled) $%
+u_i$'s relate to the knots according to $t_i < u_i < t_{i+K}$ for $i
+= 1$, ..., NCOEF.
+
+Consider an interpolation problem with NXY data points, all data abscissae
+being distinct. Choose a spline order $K \geq 2$. We must use exactly NCOEF =
+NXY B-spline basis functions. Thus NCOEF + $K$ knots must be assigned. Let $a$
+and $b$ be the minimum and maximum data abscissae respectively. Assign the
+first $K$ knots the value a and the last $K$ knots the value $b$. Then $\text{%
+NCOEF} - K$ knots remain to be assigned and there are NCOEF $-$ 2 data
+abscissae distinct from $a$ and $b$. One simple approach is to use
+any $\text{NCOEF}-K$ of these NCOEF $-$ 2 data abscissae as knots. In the
+popular case of cubic spline interpolation($K = 4$) there would be just two
+data abscissae not used as knots. It is common to choose these to be the
+first one after $a$ and the last one before $b.$
+
+Another method suggested in \cite{deBoor:1978:APG}, pp.~218--219, for
+assigning the interior knots for interpolation is the formula
+\begin{multline*}
+t_i = (u_{i-K+1} + ... + u_{i-1})/(K-1),\\
+i = K+1,\ ...,\ NCOEF
+\end{multline*}
+where the ordered set of data abscissae is denoted by $\{u_i$: $i = 1$, ...,
+NCOEF$\}$.
+
+For least-squares fitting one must choose NCOEF $<$ NXY.
+
+\subsection{Functional Description}
+
+\subsubsection{Representation of an individual B-spline basis function.}
+
+Let $\{t_1$, ..., $t_{K+1}\}$ be a sequence of strictly increasing real numbers
+that we will call {\em knots}. To within a multiplicative scale factor, there is
+one, and only one, spline polynomial function of order $K$ $(i.e.$, having
+polynomial pieces of degree at most $K-1$), having at least $C^{K-2}$
+continuity at these knots, and being nonzero throughout the open interval $%
+(t_1$,\ $t_{K+1})$, and zero outside this interval. With some convention for
+assigning the scale factor, such a function is called a B-spline basis
+function. The interval $\langle t_1$, $t_{K+1}\rangle $ will be called the
+{\em support interval} for this B-spline basis function. We use angle
+brackets $\langle \ \rangle $ to indicate that we are not specifying whether
+the endpoints are included or not. Graphs of B-spline basis functions of orders
+1, 2, 3, and~4 over uniformly spaced knots are given in
+Figures~3--5.
+
+Following \cite{deBoor:1978:APG}, these definitions can be generalized to
+allow knots to coalesce.  This has a natural mathematical interpretation
+of reducing the order of continuity at the affected knots.  At an ordinary
+non-multiple knot, a spline function of order $K$ has $C^{K-2}$
+continuity.  At a knot of multiplicity $\mu $ a spline function of order
+$K$ has $C^{K-\mu -1}$ continuity.  For example a B-spline basis function
+of order~4 defined over the knot set $\{0$, 1, 1, 5, $6\}$ consists of
+only three nontrivial cubic pieces, and these have $C^2$ continuity at 0,
+5, and~6, but only $C^1$ continuity at~1.  This freedom to lower the order
+of continuity at specified places can be useful in allowing a curve to
+change direction more sharply at such a point.  Graphs of B-spline basis
+functions of order 4 having multiple knots at the left end are given in
+Figure~6.
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl11-05c }
+
+\centerline{\bf Figure 3: B-spline basis functions\newline}
+\centerline{\bf of orders 1 and 2.\rule[-8pt]{0pt}{8pt}}
+
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl11-05d }
+
+\centerline{\bf Figure 4: B-spline basis function of order 3.
+\rule[-8pt]{0pt}{8pt}}
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl11-05e }
+
+\centerline{\bf Figure 5: B-spline basis function of order 4.
+\rule[-8pt]{0pt}{8pt}}
+
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl11-05f }
+
+\centerline{\bf Figure 6: Cubic B-spline basis functions}
+\centerline{\bf having multiple knots at the left.\rule[-8pt]{0pt}{8pt}}
+
+\subsubsection{Representation of a spline function using the B-spline basis.}
+
+Suppose we wish to construct a family of spline functions of order $K$, and
+having NCOEF degrees of freedom, over an interval $[a,~b]$, which will be
+called the {\em proper interpolation interval} for this spline family. We
+require $a<b$ and NCOEF $\geq K.$ Construct a {\em knot sequence} T $=\{t_1$,
+..., $t_{\text{NCOEF}+K}\}$. This sequence must be nondecreasing and have $t_K=
+a$ and $t_{\text{NCOEF}+1}=b$. The values of the knots indexed before $K$ or
+after NCOEF + 1 do not affect the shapes that can be achieved by the family of
+splines to be defined. A convenient way to set these knots is to set $t_1=..$%
+. $=t_K=a$, and $t_{\text{NCOEF}+1}=..$. $=t_{\text{NCOEF}+K}=b.$
+
+The knots indexed from $K + 1$ through NCOEF are called {\em internal} knots.
+Internal knots define where the different polynomial pieces meet. Their
+placement determines the shapes that the resulting spline family can
+achieve. We require $t_K < t_{K+1}$, and $t_{\text{NCOEF}} < t_{\text{NCOEF}%
++1}$, and $t_i < t_{i+K}$ for $i = 1$, ..., NCOEF. Within the limitations of
+these constraints, successive interior knots need not be distinct. At
+an internal knot of multiplicity $\mu $ members of this spline family will
+have $C^{K-\mu -1}$ continuity.
+
+For each $i = 1$, ..., NCOEF, we define a B-spline basis function $B_i$
+having $\langle t_i$, $t_{i+K}\rangle $ as its support interval. For $i=K$,
+..., NCOEF, each interval $\langle t_i$, $t_{i+1}\rangle $ is in the support
+interval of exactly $K$ basis functions, namely $\{B_j$: $j = i-K+1$,
+..., $i\}$. If such an interval $\langle t_i$, $t_{i+1}\rangle $ has nonzero
+length, the $K$ basis functions that contain this interval in their support
+intervals form a basis for the space of all polynomials of degree $\leq K - 1$
+over this interval. The closed union of these intervals is the
+interval $[a,~b]$. This is the interval over which it is most reasonable to
+use linear combinations of the $B_i$'s to fit data.
+
+Any polynomial of degree $\leq K-1$ can be exactly represented over $[a,~b]$
+by a linear combination of the $B_i$'s, $i = 1$,\ ...,\ NCOEF. In
+particular the constant function whose value is one is representable over $%
+[a,~b]$ by a linear combination of the $B_i$'s.
+
+In this package the scaling of the $B_i$'s is determined by the
+requirement that all the coefficients in this linear combination be ones, $%
+i.e.$, $\sum_{i=1}^{\text{NCOEF}} B_i(t)=1$ for all $t \in [a,~b].$
+
+Given coefficients, $c_i$, $i = 1$, ..., NCOEF, a spline function, $f(t)$,
+is represented for $t \in [a,~b]$ as $f(t) = \sum_{i=1}^{\text{NCOEF}}
+c_i B_i(t).$
+
+Although this is a sum of NCOEF terms, at most $K$ of the terms are nonzero
+at any single point, $t$, due to the properties of the basis functions. For
+evaluation of $f(t)$ at a point $t \in (a,b)$ that coincides with a knot,
+this package uses the polynomial piece defined over the nonzero subinterval
+immediately to the right of $t$. This package allows extrapolation outside
+the interval $(a,b)$ using the convention that for $t \leq a$ the package
+will extend the polynomial that is defined over $\langle t_K,t_{K+1}\rangle $%
+, and for $t \geq b$ the package will extend the polynomial that is defined
+over $\langle t_{\text{NCOEF}},t_{\text{NCOEF}+1}\rangle .$
+
+Within this package a spline function is fully specified relative to the
+B-spline basis by two integers, KORDER and NCOEF, and two floating point
+arrays, TKNOTS() and BCOEF(), containing [$t_i$:\ $i = 1$,\ ...,\ NCOEF +
+KORDER] and [$c_i$: $i = 1$, ..., NCOEF].
+
+\subsubsection{\bf Representation of a spline function using the
+piecewise power basis.}
+
+Assume a spline function $f(t)$ has been defined relative to the B-spline
+basis as described above. Let NPC be the number of subintervals of nonzero
+length into which $[a,~b]$ is partitioned by the knot sequence T. Let $x_j$, $%
+j = 1$, ..., NPC be the left endpoints of these subintervals, and let $%
+x_{NPC+1} = b$. For the half-open subinterval $[x_j,x_{j+1})$ coefficients $%
+p_{i,j}$ can be determined so the polynomial
+\begin{equation*}
+p_{1,j} + p_{2,j}h + p_{3,j}h^2 + ... + p_{K,j}h^{K-1}
+\end{equation*}
+with $h = (t-x_j)$, is identical to the polynomial spline function $f(t)$
+over this interval. If evaluation for $t$ outside $[a,b)$ is requested the
+package will use the coefficients indexed by $j = 1$ if $t < a$, and will
+use $j =$ NPC if $t \geq b.$
+
+Within this package a piecewise polynomial represented relative to the power
+basis is specified by two integers, KORDER and NPC, and two floating point
+arrays, XI() and PCOEF(), containing $\{x_i$, $i = 1$, ..., NPC $+1\}$ and $%
+\{p_{i,j}$, $i = 1$, ..., KORDER; $j = 1$, ..., NPC$\}.$
+
+The power representation does not inherently assure any particular order of
+continuity at the knots, however if the coefficients are determined by
+conversion from a B-spline representation they will represent the same
+spline function and thus have the same continuity properties.
+
+\subsubsection{Computation using B-spline basis functions}
+
+Suppose a spline function $f$ is defined relative to a B-spline basis by the
+quantities KORDER, NCOEF, T() and BCOEF() as discussed above. The {\em %
+proper interpolation interval} for $f$ is $[a,~b]$ where $a = t_{\text{KORDER}%
+}$, and $b = t_{\text{NCOEF}+1}$. With any argument $x$ we associate a {\em %
+reference index,} $j$, and {\em reference interval} $\langle t_j$, $%
+t_{j+1}\rangle $ having $t_j < t_{j+1}$. If $x \in [a,b)$, $j$ is chosen so
+that $x \in [t_j,t_{j+1})$, otherwise, if $x < a$ set $j =$ KORDER, and if $%
+x \geq b$ set $j =$ NCOEF. Given $x$, subprogram DSFIND determines its
+reference index. From an initial trial value for $j$ the subprogram searches
+forward or backward, doubling the index increment for each trial, until
+either a bracketing pair of knots is found or the search reaches one end of
+the specified search range. If a bracketing interval is found bisection is
+used, if necessary, to reduce the interval to the prescribed form.
+
+To describe the computational algorithms we need to consider families of
+lower order basis functions over the same knot sequence T.  Let NT denote
+the number of knots in T, $i.e.$, NT = KORDER + NCOEF.  For $k = 1$, ...,
+KORDER, let $\{B_{i,k}$, $i = 1$, ..., $\text{NT}-k\}$, be the set of
+B-spline basis functions of order $k$ associated with T.  The support
+interval for the function $B_{i,k}$ is $\langle t_i$, $t_{i+k}\rangle $.
+Formally one may follow \cite{deBoor:1978:APG}, p.~118, and define
+$B_{i,k} \equiv 0$ if $t_i = t_{i+k}$, however it happens that these
+functions do not occur in the algorithms we consider.
+
+A B-spline basis function of order $k$ can be expressed in terms of two
+basis functions of order $k-1$ as
+\begin{multline}
+\label{O1}B_{i,k}(x)=\frac{x-t_i}{t_{i+k-1}-t_i}B_{i,k-1}(x)\\
++\frac{t_{i+1}-x}{t_{i+k}-t_{i+1}}B_{i+1,k-1}(x).
+\end{multline}
+This formula was discovered and published independently by M. G. Cox and C.
+de Boor in~1972. It is a very favorable formula with regard to propagation
+of round-off error since, except when used for extrapolation, the $B$'s and
+the factors multiplying the $B$'s are always nonnegative,
+so the central $``+"$ always involves addition of nonnegative quantities.
+
+Consider now the problem in which we are given an $x$ and its reference
+index $j$, and we need to compute values at $x$ of the KORDER basis
+functions of order KORDER that are nonzero on $\langle t_j$, $t_{j+1}\rangle $.
+These functions will be $B_{j-\text{KORDER}+1,\text{KORDER}}$ through $%
+B_{j,\text{KORDER}}.$
+
+Among the basis functions of order~1, only $B_{j,1}$ is nonzero on $\langle
+t_j$, $t_{j+1}\rangle $ and its value is 1 throughout this interval. At
+order~2 only the two basis functions $B_{j-1,2}$ and $B_{j,2}$ are nonzero
+on $\langle t_j$, $t_{j+1}\rangle $. These can be computed using Eq.\,(1) and
+the known values of $B_{j-1,1}$, $B_{j,1}$, and $B_{j+1,1}$, which are 0, 1,
+and~0, respectively. Clearly this process can be continued until the values
+of the KORDER nonzero basis functions of order KORDER are computed. This
+method is implemented in subprogram DSBASD. For the case of cubic splines
+(KORDER = 4), this involves nine applications of Eq.\,(1) and in six of these
+applications one of the entering $B$'s is known to be zero.
+
+To evaluate a spline function $f$ at a given argument $x$, one could use
+this method to evaluate the nonzero basis functions and then form the sum of
+these multiplied by the coefficients that define $f$. There is a more
+efficient method however. For a spline function $f$ of order $k$, its
+evaluation for a point $x$ with reference index $j$ can be expressed as $%
+f(x)=\sum_{i=j-k+1}^jc_{i,k}B_{i,k}(x)$. Replacing each $B_{i,k}$ in this
+expression by the right side of Eq.\,(1) and collecting terms on the $%
+B_{i,k-1}$'s, and noting that only $k-1$ of these $(k-1)$-order
+basis functions are nonzero on the reference interval, gives the expression $%
+f(x)=\sum_{i=j-k+2}^jc_{i,k-1}(x)B_{i,k-1}(x)$ where
+\begin{equation}
+\label{O2}c_{i,k-1}(x)=\frac{\left( x-t_i\right) c_{i,k}+\left(
+t_{i+k-1}-x\right) c_{i-1,k}}{t_{i+k-1}-t_i}.
+\end{equation}
+One can continue reducing the spline order and the number of terms in the
+sum in this way, finally reaching spline order~1 with only one term in the
+sum: $f(x)=c_{j,1}(x)B_{j,1}(x)\equiv c_{j,1}(x)$, since $B_{j,1}(x)=1.$
+
+Thus, as an algorithm for evaluating a spline function of order KORDER at an
+argument $x$ with reference index $j$, one initializes the process by
+setting $c_{i,\text{KORDER}} = c_i$, for $i = j-\text{KORDER}+1$, ..., $j$.
+Then for $k =$ KORDER, KORDER $-$ 1, ..., 2, one computes $c_{i,k-1}$ for $i
+=j-k+2$, ..., $j$, using Eq.\,(2). The final quantity $c_{j,1}$ is the value $%
+f(x)$. This method is implemented in subprogram DSVAL. For the case of cubic
+splines (KORDER = 4), this involves six applications of Eq.\,(2).
+
+The first derivative of a spline function $f$ of order $k$ is a spline
+function of order $k-1$ over the same knot sequence. For an $x$ with
+reference index $j$ we have $f(x)=\sum_{i=j-k+1}^jc_{i,k}B_{i,k}(x)$ and $%
+f^{\prime }(x)=\sum_{i=j-k+2}^jc_{i,k-1}^{(1)}B_{i,k-1}(x)$, where it
+can be shown that
+\begin{equation}
+\label{O3}c_{i,k-1}^{(1)}=\frac{\left( k-1\right) \left(
+c_{i,k}-c_{i-1,k}\right) }{t_{i+k-1}-t_i}.
+\end{equation}
+To compute the value of the $n^{th}$ derivative of a spline function, Eq.\,(3)
+can be applied as many times as necessary to compute coefficients of a
+B-spline representation of the $n^{th}$ derivative, and then Eq.\,(2) can be
+used to evaluate the derivative. This algorithm is implemented in DSVAL with
+all computation being done from scratch for a given $x.$
+
+Since Eq.\,(3) does not involve $x$, it is possible to use Eq.\,(3) to precompute
+an array of coefficients for later use in computing derivative values for
+many $x$ values. This approach is implemented in DSDIF and DSVALA. DSDIF
+computes the array of coefficients for all derivatives of orders up to a
+specified NDERIV and DSVALA uses these coefficients in computing the values
+of all derivatives of orders up to NDERIV for a given $x$. Subprogram DSTOP
+for the conversion from the B-spline basis to the power basis uses DSVALA,
+since the coefficients relative to the power basis are just derivatives of
+the spline function divided by factorials.
+
+For an $x$ with reference index $j$, DSBASD computes the NDERIV$^{th}$
+derivative of the KORDER basis functions of order KORDER that are nonzero on
+the reference interval. From Eq.\,(3) we can express the first derivative of a
+single basis function as
+\begin{equation}
+\label{O4}B_{i,k}^{\prime }=\left( k-1\right) \left[ \frac{B_{i,k-1}(x)}{%
+t_{i+k-1}-t_i}-\frac{B_{i+1,k-1}(x)}{t_{i+k}-t_{i+1}}\right] .
+\end{equation}
+DSBASD first uses Eq.\,(1) to compute the values $B_{i,\text{KORDER}-\text{%
+NDERIV}}(x)$, for $i=j- \text{KORDER} + \text{NDERIV}+1$, ..., $j$.
+\rule{0pt}{10pt} Then for $d=1$, ..., NDERIV, DSBASD uses Eq.\,(4) to
+compute $B_{i,\text{KORDER}-\text{NDERIV}+d}^{(d)}(x)$,
+for $i = j - \text{KORDER} + \text{NDERIV}-d+1$, ...,$j.$\rule{0pt}{10pt}
+
+It is possible to derive formulas for the exact integration of a spline
+function by appropriate inverse use of Eq.\,(3).  The resulting method is
+unwieldy, and suspect with regard to propagation of round-off error.
+Instead we follow the approach of Amos, \cite{Amos:1979:xxx}, that uses
+Gaussian quadrature.  An $n$-point Gaussian quadrature formula is exact
+for polynomials up to degree 2n-1.  The formula is applied separately to
+each polynomial piece needed to cover a specified integration interval.
+This method is used in DSQUAD and in DSBASI.  Each of these subprograms
+contains stored constants for 2, 6, and~10-point Gaussian formulas.  The
+2-point formula is used for KORDER from 1 to~4, the 6-point formula from~5
+to~12, and the 10-point formula from~13 to~20.
+
+The fitting subroutine DSFIT uses DSBASD to form rows of the matrix for the
+least-squares problem. Each row will have at most KORDER nonzeros in
+consecutive locations giving rise to a block-banded form for the matrix.
+DSFIT uses DBACC and DBSOL (Chapter~4.5) to process and solve this system.
+This approach takes advantage of both the band structure and sequential
+processing to reduce the amount of working space needed.
+
+The constrained fitting subroutine DSFITC uses DSBASD and DSBASI, as
+appropriate to form rows of matrices representing the constraint conditions
+and the least-squares problem. Due to the general form of constraints
+allowed the overall problem is not assumed to have a banded form so the
+matrices are formed in full. The resulting problem is linear least-squares
+with general linear equality and inequality constraints which is solved
+using the lower level subroutine DBLSE.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+DSFIT, DSFITC, and DSVAL each contain an internal dimensioning parameter $%
+kmax = 20.$ It is an error if KORDER $> kmax$ in any of these subprograms.
+
+DSFIT handles any detected error by setting IERR1, reporting the error to
+the library error message processing subroutines of Chapter~19.2 with
+LEVEL = 0 and then returning. DSFITC handles errors similarly, setting the
+indicator {\em ierr5} in INFO(1).
+
+The only error detected in DSVAL is KORDER $> kmax$, in which case DSVAL
+calls the library error processing subroutines with LEVEL = 2 which
+nominally causes message printing and termination of execution.
+
+Abscissae and weights for 2-point, 6-point, and 10-point Gaussian quadrature
+are stored to 40~decimal digits in DSQUAD. With infinite precision abscissae
+and weights, these formulae would be exact for splines of KORDER up to~20.
+DPQUAD does not use any inexact stored constants.
+
+The lower level subroutine DBLSE is used by DSFITC to solve the
+constrained least-squares problem.  If it detects error conditions it
+sets $ierr4 \neq 0$ and DSFITC returns with INFO(1) = 1000 + $ierr4.$
+Possible nonzero values of {\em ierr4} are:
+\begin{itemize}
+\item[$-$1]\ \ Failed to triangularize the {\em m1} general constraint
+equations.  The subroutine attempts to complete the computation,
+omitting the constraint rows not triangularized.  User should check
+the residuals of the constraint rows.
+\item[+1]\ \ $mtot \leq 0$ or $ntot \leq 0$.
+\item[+2]\ \ Inconsistent setting of bounds.
+\item[+3]\ \ Too many iterations needed.  Nominal: $itmax = 5 \times ntot.$
+\end{itemize}
+For definitions of {\em m1}, {\em mtot}, and {\em ntot} see the specification of
+ISET() in Section~B.2.b.
+
+\subsection{Supporting Information}
+
+The source language for these subroutines is ANSI Fortran 77.
+
+DSFIT and DSFITC evolved from codes originally designed by R.  J.  Hanson
+and C.  L.  Lawson at JPL in~1968.  The initial version of DSFITC,
+\cite{Lang:1969:FC}, was called ``French Curve" to call attention to the
+flexibility it provided for shaping a fitted curve.  Subprograms DSVAL,
+DPVAL, and DSTOP are modifications by Lawson of codes developed by C.  de
+Boor, \cite{deBoor:1978:APG}.  Subprograms DSQUAD and DPQUAD are
+modifications by Lawson of codes due to D.  E.  Amos,
+\cite{Amos:1979:xxx}.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DPQUAD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DPQUAD, DSFIND, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DPVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DPVAL, DSFIND, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DSFIT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DBACC, DBSOL, DERV1, DHTCC, DNRM2, DSBASD, DSFIT, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DSFITC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DAXPY, DBLSE, DBSOL, DCOPY, DDOT, DHTCC, DERV1, DNRM2, DRANU, DROTG, DSBASD,
+DSBASI, DSFIND, DSFITC, DSWAP, ERFIN, ERMOR, ERMSG, IERM1, IERV1, RANPK1,
+RANPK2\rule[-5pt]{0pt}{8pt}}\\
+DSQUAD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DSBASD, DSFIND, DSQUAD, DSVAL, DSVALA, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}}\\
+DSTOP & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DSBASD, DSDIF, DSFIND, DSTOP, DSVALA, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}}\\
+DSVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DSFIND, DSVAL, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SPQUAD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SERV1, SPQUAD, SSFIND\rule[-5pt]{0pt}{8pt}}\\
+SPVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SERV1, SPVAL, SSFIND\rule[-5pt]{0pt}{8pt}}\\
+SSFIT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SBACC, SBSOL, SERV1, SHTCC, SNRM2, SSBASD,
+SSFIT\rule[-5pt]{0pt}{8pt}}\\
+SSFITC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMOR, ERMSG, IERM1, IERV1, RANPK1, RANPK2, SAXPY, SBLSE, SBSOL,
+SCOPY, SDOT, SHTCC, SERV1, SNRM2, SRANU, SROTG, SSBASD, SSBASI, SSFIND,
+SSFITC, SSWAP\rule[-5pt]{0pt}{8pt}}\\
+SSQUAD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SERV1, SSBASD, SSFIND, SSQUAD, SSVA,
+SSVALA\rule[-5pt]{0pt}{8pt}}\\SSTOP & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SERV1, SSBASD, SSDIF, SSFIND, SSTOP,
+SSVAL\rule[-5pt]{0pt}{8pt}}\\SSVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SERV1, SSFIND, SSVAL\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDSFIT}\vspace{0pt}
+\lstinputlisting{\codeloc{dsfit}}
+
+\vspace{30pt}\centerline{\bf \large ODDSFIT}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dsfit}}
+\lstset{language=[77]Fortran,showstringspaces=false}
+\vspace{20pt}
+
+\centerline{\bf \large DRDSFITC}\vspace{10pt}
+\lstinputlisting{\codeloc{dsfitc}}
+\newpage
+
+\enlargethispage*{15pt}
+
+\vspace{30pt}\centerline{\bf \large ODDSFITC}\vspace{3pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dsfitc}}
+\closegraphsfile
+\end{document}

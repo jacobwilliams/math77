@@ -1,0 +1,167 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+
+\begmath 10.5 Primitive Fast Fourier Transform
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine is not intended to be used directly in applications. It is
+used by other library subroutines and is described here to supplement the
+functional descriptions of these other routines. This subroutine computes
+one-dimensional complex Fourier transforms using the Cooley-Tukey {\bf F}ast
+{\bf F}ourier {\bf T}ransform ({\bf FFT}). Complex values $z$ and complex
+Fourier coefficients $\zeta $ are related by
+\begin{equation}
+\label{def}z_j=\sum_{k=0}^{N-1}\zeta _kW^{jk},\quad j=0,1,...,N-1,
+\end{equation}
+where $N =2^M$, $W=e^{2\pi i/N}=\cos 2\pi /N+i\ \sin 2\pi /N$,
+and $i^2=-1$. This subroutine is used by the library subroutines:
+
+\begin{tabular}{ll}
+   {\bf SRFT1} & One-dimensional {\bf R}eal {\bf F}ourier {\bf T}ransform  \\
+  {\bf SCFT} & {\bf C}omplex {\bf F}ourier {\bf T}ransform \\
+  {\bf SSCT} & {\bf S}ine, {\bf C}osine, or {\bf T}rigonometric Transform \\
+  {\bf SRFT}  & {\bf R}eal {\bf F}ourier {\bf T}ransform \\
+\end{tabular}
+
+The last three of these do transformations in up to~6 dimensions. For any of
+the above tasks, one should refer to the corresponding chapter.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Evaluate a Fourier Series, Single Precision}
+
+\begin{description}
+\item[\bf REAL]  \ {\bf A}$(\geq \text{IR}-1+\text{KS}\times
+2^{\text{MM}})$, {\bf S}$(\geq \text{NT}-1)$
+
+\item[\bf INTEGER]  \ {\bf MT, NT, MM, KS, ILAST, KE(30)}
+
+\item[\bf LOGICAL]  {\bf NEEDST}
+
+\item[\bf COMMON]  / {\bf CSFFTC} / Contains {\bf NEEDST, MT, NT, MM, KS,
+ILAST, KE}
+\end{description}
+(Contents and structure of the common block are subject to change.)
+
+If the sine table S has not been computed, set NEEDST=.TRUE., and
+$$
+\fbox{{\bf CALL SFFT(A(IR), A(II), S)}}
+$$
+To evaluate a complex Fourier series, assign values to IR (the index of
+the real part of the first coefficient, $\zeta $, in the real array A()),
+II (the index of the imaginary part of the first coefficient, $\zeta $, in
+the real array A()), the Fourier coefficients, $\zeta $, in A(), and
+values in the common block.
+$$
+\fbox{{\bf CALL SFFT(A(IR), A(II), S)}}
+$$
+On return the array A() contains the values $z$, and S() contains the sine
+table.
+
+\subsubsection{Argument and Common Definitions}
+
+\begin{description}
+\item[A()]  [inout] Real array holding the complex coefficients.
+
+\item[S()]  [inout] Array used to hold the sine table. If NEEDST is false on
+entry, then S should have been computed on a previous entry to SFFT.
+
+\item[NEEDST]  [inout] If true the sine table S is computed and no
+transform is computed. NEEDST is always false on exit.
+
+\item[MT]  [in] base~2 log of NT.
+
+\item[NT]  [inout] Number of entries in the sine table + 1. If NEEDST is
+false, then NT should have been computed on a previous entry to SFFT.
+
+\item[MM]  [in] log$_2$(number of complex Fourier coefficients).
+
+\item[KS]  [in] distance in memory between successive entries in A. The
+complex coefficients used in the computation are A(IR + $I\times
+\text{KS})+i\ \text{A(II}+I\times \text{KS}),\ I=0$,
+1, ..., $2^{\text{MM}-1}$, where $i^2=-1.$
+
+\item[ILAST]  [in] = $\text{KS} \times 2^{\text{MM}}.$
+
+\item[KE()]  [in] array with KE($L$) = $\text{KS} \times 2^{\text{MM}-L}.$
+\end{description}
+
+\subsubsection{Modifications to Obtain Coefficients Given Values of the
+Series}
+
+The complex values $z\times 2^{-{\text{MM}}}$ are stored in A(), and then
+$$
+\fbox{{\bf CALL SFFT(A(II), A(IR), S)}}
+$$
+On return the array A() contains the complex Fourier Coefficients $\zeta .$
+
+\subsubsection{Modifications for Double Precision}
+
+Change SFFT to DFFT, the REAL type statement to DOUBLE PRECISION, and
+the name of the common block to CDFFTC.
+
+\subsection{Examples and Remarks}
+
+Examples of use can be found in source listings for the library subprograms
+{\bf SRFT1}, {\bf SCFT}, {\bf SSCT}, and {\bf SRFT}.
+
+\subsection{Functional Description}
+
+This subprogram uses the Cooley-Tukey algorithm \cite{Cooley:1965:AAF} to
+evaluate series of the form given in Eq.\,(\ref{def}) above.  The radix
+$(4+2)$ algorithm is used, which means that $N$ is factored as $4^q2^r$,
+$r=0$ or~1.  The algorithm involves $q$ radix~4 stages, and if $M$ is odd,
+one radix~2 stage.  The input array is scrambled based on the KE() before
+the first stage so that results come out in the correct order.  Details
+can be found in \cite{Krogh:1970:FFT}.
+
+The procedure for computing $\zeta _k$ given $z_j$ involves dividing by $N$,
+and interchanging the roles of the real and imaginary parts for both the
+input and output arrays. Since $i\overline{z}=\Im z+i \Re z\ (%
+\overline{z}=$ conjugate of $z)$, it follows that using this procedure is
+equivalent to writing%
+\begin{equation*}
+i\overline{\zeta }_k=\frac 1N\sum_{j=0}^{N-1}\overline{z}_jW^{jk},\quad
+k=0,1,...,N-1,
+\end{equation*}
+which in turn can be verified by dividing both sides by $i$, conjugating
+both sides $(\overline{W}=W^{-1})$, and substituting the expression for $z_j$
+given by Eq.\,(\ref{def}), yielding%
+\begin{equation*}
+\begin{split}
+   \zeta _K   &=\frac 1N\sum_{j=0}^{N-1}\sum_{k=0}^{N-1}\zeta _kW^{jk}W^{-jK}\\
+   &=\frac 1N\sum_{k=0}^{N-1}\zeta _k\sum_{j=0}^{N-1}W^{j(k-K)}=\zeta _K
+   \end{split}
+\end{equation*}
+since%
+\begin{equation*}
+\hspace{-10pt}\sum_{j=0}^{N-1}W^{jL}=\begin{cases}
+N & \text{if }L=0\\
+\dfrac{1-W^{LN}}{1-W^L}=0 &\text{if }L=\pm 1,...,\pm (N-1).
+\end{cases}
+\end{equation*}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+No tests are made for bad argument values, e.g., MM $<0.$
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\hspace{0pt}\bf}l@{\hspace{7pt}}p{2.7in}}
+Entry & \hspace{.3in} {\bf Required Files}\vspace{2pt} \\
+DFFT & \hspace{.35in}  DFFT\rule[-5pt]{0pt}{8pt}\\
+SFFT & \hspace{.35in}   SFFT \\
+\end{tabular}
+
+\end{multicols}
+\end{document}

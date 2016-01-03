@@ -1,0 +1,841 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-09}
+\begmath 2.9 Incomplete Elliptic Integrals
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+An integral of the form
+\begin{equation}
+\label{O1}\int R\left( t,P(t)^{1/2}\right) dt
+\end{equation}
+in which P($t)$ is a polynomial of the third or fourth degree that has no
+multiple roots, and R is a rational function of $t$ and P($t)^{1/2}$, is
+either elementary, or is an {\em elliptic integral}. It is always possible to
+express integrals of the form of Eq.~(1) linearly in terms of elementary
+functions and three {\em elliptic integrals of canonical form}. These functions
+are described more completely in \cite{ams55:Ellip-Int} and \cite{Byrd:1971:HEI}.
+Several canonical forms have been proposed, but the most widely used are
+due to Jacobi, Legendre and Carlson. In each of Eqs.~(2)--(4) we present
+first Jacobi's and then Legendre's form of the canonical elliptic integrals:
+\begin{gather}
+\label{O2}
+\begin{split}
+F(\varphi ,k)&=\int_0^y\left( 1-t^2\right) ^{-1/2}\left(
+1-k^2t^2\right) ^{-1/2}dt\\
+&=\int_0^\varphi \left( 1-k^2\sin ^2\theta \right) ^{-1/2}d\theta
+\end{split}\\
+\label{O3}
+\begin{split}
+E(\varphi ,k)&=\int_0^y\left( 1-t^2\right) ^{-1/2}\left(
+1-k^2t^2\right) ^{1/2}dt\\
+&=\int_0^\varphi \left( 1-k^2\sin ^2\theta \right) ^{1/2}d\theta
+\end{split}
+\end{gather}
+\begin{multline}
+\label{O4}
+\Pi (\varphi ,\alpha ,k)\\
+=\int_0^y\left( 1-\alpha ^2t^2\right) ^{-1}\left( 1-t^2\right)
+^{-1/2}\left( 1-k^2t^2\right) ^{-1/2}dt\\
+=\int_0^\varphi \left( 1-\alpha ^2\sin ^2\theta \right)
+^{-1}\left( 1-k^2\sin ^2\theta \right) ^{-1/2}d\theta
+\end{multline}
+in which $y=\sin \varphi $. If $\varphi $ is equal to $\pi /2$, the
+integrals are said to be {\em complete}, otherwise they are {\em
+incomplete}. Carlson's forms of the canonical elliptic integrals are
+\begin{equation}\label{O5}
+\hspace{-15pt}R_D(a,b,c)=\frac 32\int_0^\infty \left( t+a\right)
+^{-1/2}\left( t+b\right) ^{-1/2}\left( t+c\right) ^{-3/2}dt
+\end{equation}
+in which $a$ and $b$ are nonnegative such that $a+b>0$ and $c$ is positive;
+if either $a$ or $b$ is zero, the integral is {\em complete}, otherwise it is
+{\em incomplete},
+\begin{equation}\label{O6}
+\hspace{-15pt}R_F(a,b,c)=\frac 12\int_0^\infty \left( t+a\right)
+^{-1/2}\left( t+b\right) ^{-1/2}\left( t+c\right) ^{-1/2}dt
+\end{equation}
+in which $a$, $b$ and $c$ are nonnegative and at most one of them is zero;
+if one of $a$, $b$ or $c$ is zero, the integral is {\em complete},
+otherwise it is {\em incomplete}, and
+\begin{multline}\label{O7}
+\hspace{-10pt}R_J(a,b,c,r)\\
+\hspace{-12pt}=\frac 32 \int_0^\infty \!\!\left( t+r\right)
+^{-1}\left( t+a\right)^{-1/2}\left( t+b\right) ^{-1/2}\left( t+c\right)
+^{-1/2}dt\hspace{-10pt}
+\end{multline}
+in which $a$, $b$ and $c$ are nonnegative, and at most one of them is zero,
+and $r$ is nonzero; if one of $a$, $b$ or $c$ is zero, the integral is
+$complete$, otherwise it is $incomplete$. Notice that $R_D(a$, $b$, $c)=R_J(a$, $%
+b$, $c$, $c)$. But the necessity to compute $R_D(a$, $b$, $c)$ arises
+frequently in practice, and a procedure especially tailored to compute $R_D(a
+$, $b$, $c)$ is more efficient than computing $R_J(a$, $b$, $c$, $c)$. The
+function $R_C(a$, $b)=R_F(a$, $b$, $b)$ is elementary, but also appears
+frequently. A procedure is provided to compute $R_C(a$, $b).$
+
+Identify a, $b$ and $c$ such that $a\leq b\leq c$, and assume $a<c$. Then
+\begin{align}\label{O8}
+c^{3/2}R_D(a,b,c)&=\frac 3{k^2\sin ^3\varphi }\left[ F(\varphi
+,k)-E(\varphi ,k)\right]\hspace{-1in}\\
+\label{O9}c^{1/2}R_F(a,b,c)&=\frac{F(\varphi ,k)}{\sin \varphi }\\
+\label{O10}c^{3/2}R_J(a,b,c,r)&=\frac 3{\alpha ^2\sin ^3\varphi }\left[ \Pi
+(\varphi ,\alpha ,k)-F(\varphi ,k)\right]
+\end{align}
+where $\cos ^2\varphi =a/c$, $k^2=(c-b)/(c-a)$ and $\alpha ^2=(c-r)/(c-a).$
+
+The subprograms described in this chapter evaluate the canonical forms of
+incomplete elliptic integrals, using either the Legendre or the Carlson
+parameterization.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision, Legendre's Form, E and F}
+
+\begin{description}
+\item[REAL]  \ {\bf PHI, K, F, E}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to PHI and K.
+$$
+\fbox{{\bf CALL SELEFI (PHI, K, F, E, IERR)}}
+$$
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[PHI]  \ [in] Argument, $\varphi $, of the elliptic integral. Require $|%
+\text{PHI}|\leq \pi /2.$
+
+\item[K]  \ [in] Modulus, $k$. Require $|\text{K}|\leq 1.0.$
+
+\item[F]  \ [out] F($\varphi $, $k)$ with $\varphi $ given by PHI and $k$
+given by K.
+
+\item[E]  \ [out] E($\varphi $, $k)$ with $\varphi $ given by PHI and $k$
+given by K.
+
+\item[IERR]  \ [out] status indicator:
+
+\begin{itemize}
+\item[0 =]  no errors
+
+\item[1 =]  Magnitude of argument too large, $|$PHI$| >\pi /2.$
+
+\item[2 =]  Magnitude of Modulus too large, $|$K$|>1.0.$
+
+\item[3 =]  $|$PHI$| =\pi /2$ and $|$K$|=1$, F is infinite.
+\end{itemize}
+\end{description}
+
+\subsubsection{Program Prototype, Single Precision, Legendre's Form, $\Pi $}
+
+\begin{description}
+\item[REAL]  \ {\bf PHI, K2, ALPHA2, PI}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to PHI, K2 and ALPHA2.
+$$
+\fbox{{\bf CALL SELPII (PHI, K2, ALPHA2, PI, IERR)}}
+$$
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[PHI]  \ [in] Argument, $\varphi $, of the elliptic integral. Require $|%
+\text{PHI}|\leq \pi /2.$
+
+\item[K2]  \ [in] Square of the modulus, $k^2$. Require $k^2\sin
+^2\varphi \leq 1.0$. See Section E.
+
+\item[ALPHA2]  \ [in] Characteristic, $\alpha ^2$. Require $\alpha
+^2\sin ^2\varphi \leq 1.0$. See Section E.
+
+\item[PI]  \ [out] $\Pi (\varphi ,\alpha ,k)$, with $\varphi $ given by PHI,
+$\alpha ^2$ given by ALPHA2 and $k^2$ given by K2.
+
+\item[IERR]  \ [out] status indicator.  If IERR = 0, there were no
+errors.  Other values are produced by procedures SRFVAL and SRJVAL (see
+Sections B.5 and B.6) which are
+used in computing $\Pi (\phi, \alpha, k).$
+\end{description}
+
+\subsubsection{Program Prototype, Single Precision, Carlson's Form, $R_C$}
+
+\begin{description}
+\item[REAL]  \ {\bf X, Y, RC}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to X and Y.
+$$
+\fbox{\bf CALL SRCVAL (X, Y, RC, IERR)}
+$$
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X, Y]  \ [in] Arguments of the elliptic integral. Require X $\geq 0$,
+Y $\neq 0$. See Section E.
+
+\item[RC]  \ [out] The computed value of $R_C($X, Y).
+
+\item[IERR]  \ [out] Status indicator:
+
+\begin{itemize}
+\item[0 =]  no errors
+
+\item[1 =]  X $<0.0$ or Y = 0.0.
+
+\item[2 =]  X + $|\text{Y}|$ too small (See Section E).
+
+\item[3 =]  X or $|\text{Y}|\text{ or X} +|\text{Y}|$ too large (See Section E).
+
+\item[4 =]  Y $<0$ and $|\text{Y}|$ too large and X too small (See Section
+E).
+\end{itemize}
+\end{description}
+
+\subsubsection{Program Prototype, Single Precision, Carlson's Form, $R_D$}
+
+\begin{description}
+\item[REAL]  \ {\bf X, Y, Z, RD}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to X, Y and Z.
+$$
+\fbox{\bf CALL SRDVAL (X, Y, Z, RD, IERR)}
+$$
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X, Y, Z]  \ [in] Arguments of the elliptic integral. Require X $\geq 0$%
+, Y $\geq 0$, X + Y $>0$, Z $>0$. See Section E.
+
+\item[RD]  \ [out] The computed value of $R_D($X, Y, Z).
+
+\item[IERR]  \ [out] Status indicator:
+
+\begin{itemize}
+\item[0 =]  no errors
+
+\item[1 =]  X $<0.0$ or Y $<0.0$ or Z $<0.0.$
+
+\item[2 =]  X + Y too small or Z too small (See Section E).
+
+\item[3 =]  X or Y or Z too large (See Section E).
+\end{itemize}
+\end{description}
+
+\subsubsection{Program Prototype, Single Precision, Carlson's Form, $R_F$}
+
+\begin{description}
+\item[REAL]  \ {\bf X, Y, Z, RF}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to X, Y and Z.
+$$
+\fbox{\bf CALL SRFVAL (X, Y, Z, RF, IERR)}
+$$
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X, Y, Z]  \ [in] Arguments of the elliptic integral. Require X $\geq 0$%
+, Y $\geq 0$, Z $\geq 0$, at most one of X, Y or Z equal zero. See Section E.
+
+\item[RF]  \ [out] The computed value of $R_F($X, Y, Z).
+
+\item[IERR]  \ [out] Status indicator:
+
+\begin{itemize}
+\item[0 =]  no errors
+
+\item[1 =]  X $<0.0$ or Y $<0.0$ or Z $<0.0.$
+
+\item[2 =]  X + Y or X + Z or Y + Z too small (See Section E).
+
+\item[3 =]  X or Y or Z too large (See Section E).
+\end{itemize}
+\end{description}
+
+\subsubsection{Program Prototype, Single Precision, Carlson's Form, $R_J$}
+
+\begin{description}
+\item[REAL]  \ {\bf X, Y, Z, R, RJ}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to X, Y, Z and R.
+$$
+\fbox{\bf CALL SRJVAL (X, Y, Z, R, RJ, IERR)}
+$$
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X, Y, Z, R]  \ [in] Arguments of the elliptic integral. Require X $%
+\geq 0$, Y $\geq 0$, Z $\geq 0$, at most one of X, Y or Z equal zero, R $\neq
+0$. See Section E.
+
+\item[RJ]  \ [out] The computed value of $R_J($X, Y, Z, R).
+
+\item[IERR]  \ [out] Status indicator:
+
+\begin{itemize}
+\item[0 =]  no errors
+
+\item[1 =]  X $<0.0$ or Y $<0.0$ or Z $<0.0$ or R $=0.0.$
+
+\item[2 =]  X + Y or X + Z or Y + Z or $|$R$|$ too small (See Section E).
+
+\item[3 =]  X or Y or Z or $|$R$|$ too large (See Section E).
+\end{itemize}
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage, change the REAL type statements to DOUBLE
+PRECISION and change the subprogram names SELEFI, SELPII, SRCVAL, SRDVAL,
+SRFVAL and SRJVAL to DELEFI, DELPII, DRCVAL, DRDVAL, DRFVAL and DRJVAL,
+respectively.
+
+\subsection{Examples and Remarks}
+
+\subsubsection{Related Functions}
+
+Logarithms, inverse circular functions and inverse hyperbolic functions can
+be expressed in terms of $R_C$, see [9,~pp.~163,~186]:
+$$
+\begin{array}{ll}
+(\ln x)/(x-1) = R_C((\frac{1}{2}+\frac{1}{2}x)^2,x), & x>0;\\
+(\sin ^{-1} x)/x = R_C(1-x^2,1), & -1\leq x\leq 1;\\
+(\sinh^{-1} x)/x = R_C(1+x^2,1),& -\infty <x<\infty;\\
+(\cos ^{-1} x)/(1-x^2)^{\frac{1}{2}} = R_C(x^2,1), & 0\leq x\leq 1;\\
+(\cosh ^{-1} x)/(x^2-1)^{\frac{1}{2}} = R_C(x^2,1), & x\geq 1;\\
+(\tan ^{-1} x)/x = R_C(1,1+x^2), & -\infty <x<\infty ;\\
+(\tanh ^{-1} x)/x = R_C(1,1-x^2), & -1<x<1;\\
+\cot ^{-1} x = R_C(x^2,x^2+1), & 0\leq x<\infty;\\
+\coth ^{-1} x = R_C(x^2,x^2-1), & x>1.
+\end{array}
+$$
+The first seven of these allow computing nearly indeterminate forms
+with more accuracy than would be possible using the na\"\i ve
+formulation.
+
+Heuman's lambda function \cite{Heuman:1941:TCE} is a variant of Legendre's third integral:
+\begin{multline}\label{O11}
+\frac{\left( 1-\cos ^2\alpha \sin ^2\beta \right) ^{1/2}}{\cos
+^2\alpha \sin \beta \cos \beta }\Lambda (\alpha ,\beta ,\varphi )\\
+=\sin \varphi \,R_F(\cos ^2\varphi ,1-\sin ^2\alpha
+\sin ^2\varphi ,1)\vspace{2pt} \\ \displaystyle\qquad +\frac{\sin ^2\alpha
+\sin ^3\varphi }{3\left( 1-\cos ^2\alpha \sin ^2\beta \right) }\times
+R_J \Bigl(\cos ^2\varphi ,\\
+1-\sin ^2\alpha \sin^2\varphi ,1,1-\frac{\sin ^2\alpha \sin ^2\varphi }
+{1-\cos ^2\alpha \sin^2\beta }\Bigr)
+\end{multline}
+\begin{multline}\label{O12}
+\frac \pi 2\Lambda _0(\alpha ,\beta )=\Lambda (\alpha ,\beta
+,\pi /2)\vspace{2pt}\\
+=\sin \beta \left[ R_F(0,\cos^2\alpha ,1)-\frac 13\sin ^2\alpha
+R_D(0,\cos ^2\alpha ,1)\right]\\
+\times R_F\left( \cos ^2\beta ,1-\cos^2\alpha \sin ^2\beta ,1\right)
+-\frac 13\cos ^2\alpha \sin ^3\beta\\
+\times R_F(0,\cos ^2\alpha ,1)\times R_D(\cos ^2\beta ,1-\cos ^2\alpha
+\sin ^2\beta ,1)
+\end{multline}
+The variants of Legendre's integrals used by Bulirsch in
+\cite{Bulirsch:1965:NCE} and \cite{Bulirsch:1969:NCE} are
+\begin{equation}
+\label{O13}el1(x,k_c)=xR_F\left( 1,1+k_c^2x^2,1+x^2\right) ,
+\end{equation}
+\begin{multline}\label{O14}
+el2(x,k_c,a,b)=axR_F\left( 1,1+k_c^2x^2,1+x^2\right)\\
++\frac 13(b-a)x^3R_D\left( 1,1+k_c^2x^2,1+x^2\right)
+\end{multline}
+\begin{multline}\label{O15}
+ele3(x,k_c,p)=xR_F\left( 1,1+k_c^2x^2,1+x^2\right)\\
++\frac 13(1-p)x^3R_J\left( 1,1+k_c^2x^2,1+x^2,1+p x^2\right)
+\end{multline}
+\begin{equation}\label{O16}
+\hspace{-15pt}cel(k_c,p,a,b)=aR_F(0,k_c^2,1)=\frac 13(b-pa)R_J\left(
+0,k_c^2,1,p\right)
+\end{equation}
+\subsubsection{Which Procedure Should Be Used?}
+
+Several factors influence the choice of procedure. If one
+needs to write a simple program and use it once, one should probably choose
+the procedure that evaluates the functions in the form most similar to the
+way the problem is posed. If one needs to write a program that will have
+substantial use, one should usually prefer SELEFI to SRDVAL and SRFVAL, as
+the former is up to~30 times faster than the latter two. An exception to
+this rule occurs if one needs to compute $R_D(a,b,c)$ with $c < \max (a,b)$,
+in which case the parameters for SELEFI will be out of range. If accuracy is
+an issue but speed is not, one may prefer SRDVAL and SRFVAL to SELEFI, at
+least for computing F($\varphi ,k).$ (See testing in Section D below).
+
+SRCVAL is somewhat slower, on an IBM PC/AT with a numeric data processor,
+than using the equivalent Fortran intrinsic functions. This is no surprise,
+as most of the intrinsic functions are implemented by hardware. But the
+inverse hyperbolic functions are not. SRCVAL is roughly the same speed as
+the procedures in Chapter~2.1. As mentioned above, it may be
+advantageous to use SRCVAL to compute nearly indeterminate forms.
+
+SELPII is implemented by using SRJVAL and SRFVAL (see Eqs.~(9) and
+(10) above).
+Thus, there is no special advantage in speed or accuracy to one or the
+other. The sole criterion is how closely the forms of the functions
+evaluated directly by the procedures match the forms of the functions the
+user needs to evaluate.
+
+\subsection{Functional Description}
+
+\subsubsection{Properties of the Functions}
+
+The first form given in Eqs.~(2)--(4) is the Jacobi or algebraic form. When
+expressed in this form Eq.~(2) is finite for all real and complex $y$, including $%
+\infty $, has a simple pole of order~1 for $y = \infty $, and is
+logarithmically infinite for $y = 1/\alpha ^2.$
+
+\subsubsection{Method of Computation}
+
+The procedure SELEFI is based upon a procedure ELLPI developed by Allan V.
+Hershey and modified by Alfred H.  Morris, described in
+\cite{ahm:lib:ELLPI}.  The procedure uses series expansions due to
+DiDonato and Hershey, described in \cite{DiDonato:1959:NFC}.  The
+procedure SELPII is based upon a procedure EPI developed by Alfred H.
+Morris, described in [5].  It computes $\Pi (\varphi ,k^2,\alpha ^2)$
+using Eqs.~(9) and (10), as computed by SRFVAL and SRJVAL.  The procedures
+SRCVAL, SRDVAL, SRFVAL and SRJVAL are based on procedures developed by B.
+C.  Carlson and Elaine M.  Notis, described in \cite{Carlson:1979:CEI} and
+\cite{Carlson:1981:AAI}.  All of the referenced procedures were revised to
+be consistent with low level modules and naming conventions of MATH77.
+\vspace{10pt}
+
+%
+% \input prepic.tex
+% \input pictex.tex
+% \input postpic.tex
+% \beginpicture \ninepoint
+% \setcoordinatesystem units <  1.797in,  2.800in>
+% \setplotarea x from    .000 to   1.600, y from    .000 to   1.000
+% \axis bottom label {}
+%  ticks in withvalues 0 .2 .4 .6 .8 1.0 1.2 1.4 1.6 /
+%  at 0 .2 .4 .6 .8 1.0 1.2 1.4 1.6 / /
+% \axis left label {$k$}
+%  ticks in numbered from   .0     to  1.0     by   .2     /
+% \axis top ticks in quantity  9 /
+% \axis right ticks in quantity  6 /
+% \put {.2} at    .200   .400
+% \put {.4} at    .400   .600
+% \put {.6} at    .600   .400
+% \put {.8} at    .830   .600
+% \put {1} at   1.025   .400
+% \put {1.2} at   1.220   .300
+% \put {1.4} at   1.405   .200
+% \setquadratic \plot
+%   .2000   .00000   .2000   .00000   .2000   .00500   .2000   .01500
+%   .2000   .02500   .2000   .03500   .2000   .04500   .2000   .05500
+%   .2000   .0700   .2000   .0850   .2000   .1000   .2000   .1150
+%   .2000   .1350   .2000   .1500   .2000   .1700   .2000   .1900
+%   .2001   .2100   .2001   .2300   .2001   .2550   .2001   .2800
+%   .2001   .3100   .2002   .3400   .2002   .3750
+% /
+% \setquadratic \plot
+%   .2002   .4250   .2003   .4550   .2003   .4850   .2004   .5200
+%   .2004   .5600   .2005   .6000   .2005   .6400   .2006   .6800
+%   .2007   .7250   .2008   .7700   .2009   .8150   .2010   .8750
+%   .2012   .9350   .2013   .9650   .2014  1.0000
+% /
+% \setquadratic \plot
+%   .4115  1.0000   .4097   .9250   .4080   .8473   .4066   .7750
+%   .4052   .6950   .4047   .6600   .4042   .6250
+% /
+% \setquadratic \plot
+%   .4035   .5750   .4029   .5200   .4023   .4650   .4018   .4150
+%   .4014   .3600   .4011   .3200   .4008   .2800   .4006   .2450
+%   .4004   .2050   .4003   .1800   .4002   .1500   .4002   .1300
+%   .4001   .1050   .4001   .0900   .4001   .0700   .4000   .0550
+%   .4000   .04000   .4000   .03000   .4000   .02000   .4000   .01000
+%   .4000   .00000
+% /
+% \setquadratic \plot
+%   .6000   .00000   .6000   .00429   .6000   .01000   .6000   .02000
+%   .6000   .03000   .6001   .04000   .6001   .05000   .6001   .06000
+%   .6002   .0750   .6003   .0900   .6004   .1100   .6006   .1300
+%   .6008   .1550   .6012   .1850   .6016   .2150   .6022   .2550
+%   .6030   .2950   .6038   .3350   .6049   .3750
+% /
+% \setquadratic \plot
+%   .6063   .4250   .6073   .4550   .6083   .4850   .6106   .5450
+%   .6133   .6050   .6153   .6450   .6172   .6800   .6212   .7450
+%   .6253   .8050   .6305   .8700   .6365   .9350   .6400   .9687
+%   .6435  1.0000
+% /
+% \setquadratic \plot
+%   .9273  1.0000   .9120   .9662   .8983   .9300   .8856   .8900
+%   .8734   .8450   .8640   .8044   .8550   .7600   .8480   .7203
+%   .8416   .6800   .8381   .6550   .8341   .6250
+% /
+% \setquadratic \plot
+%   .8281   .5750   .8244   .5400   .8210   .5050   .8180   .4700
+%   .8156   .4400   .8114   .3800   .8080   .3207   .8058   .2750
+%   .8037   .2200   .8026   .1850   .8017   .1500   .8012   .1250
+%   .8007   .09500   .8005   .08000   .8003   .06000   .8002   .04500
+%   .8001   .03000   .8000   .02000   .8000   .01000   .8000   .00500
+%   .8000   .00000
+% /
+% \setquadratic \plot
+%   1.0000   .00000   1.0000   .00228   1.0000   .01000   1.0001   .02000
+%   1.0001   .03000   1.0002   .04000   1.0003   .05000   1.0006   .06500
+%   1.0009   .0800   1.0014   .1000   1.0020   .1200   1.0029   .1450
+%   1.0042   .1750   1.0061   .2100   1.0081   .2400   1.0115   .2850
+%   1.0157   .3300   1.0177   .3500   1.0206   .3750
+% /
+% \setquadratic \plot
+%   1.0270   .4250   1.0314   .4550   1.0362   .4850   1.0416   .5150
+%   1.0480   .5477   1.0551   .5800   1.0636   .6150   1.0720   .6456
+%   1.0842   .6850   1.0960   .7183   1.1110   .7550   1.1252   .7850
+%   1.1416   .8150   1.1574   .8400   1.1760   .8652   1.2000   .8924
+%   1.2246   .9150   1.2594   .9400   1.2972   .9600   1.3360   .9746
+%   1.3760   .9851   1.4320   .9940   1.4880   .9983   1.5280   .9996
+%   1.5679  1.0000
+% /
+% \setquadratic \plot
+%   1.5680   .8748   1.5360   .8598   1.5040   .8422   1.4771   .8250
+%   1.4480   .8032   1.4240   .7822   1.4000   .7579   1.3763   .7300
+%   1.3578   .7050   1.3415   .6800   1.3243   .6500   1.3115   .6250
+%   1.2960   .5907   1.2857   .5650   1.2748   .5350   1.2651   .5050
+%   1.2563   .4750   1.2497   .4500   1.2425   .4200   1.2371   .3950
+%   1.2320   .3694   1.2285   .3500   1.2243   .3250
+% /
+% \setquadratic \plot
+%   1.2171   .2750   1.2152   .2600   1.2123   .2350   1.2098   .2100
+%   1.2075   .1850   1.2053   .1550   1.2031   .1200   1.2020   .0950
+%   1.2011   .07000   1.2007   .05500   1.2003   .04000   1.2002   .03000
+%   1.2001   .02000   1.2000   .01000   1.2000   .00000
+% /
+% \setquadratic \plot
+%   1.4000   .00000   1.4000   .00154   1.4000   .01000   1.4001   .02000
+%   1.4003   .03000   1.4005   .04000   1.4008   .05000   1.4013   .06500
+%   1.4020   .0800   1.4031   .1000   1.4045   .1200   1.4070   .1500
+%   1.4096   .1750
+% /
+% \setquadratic \plot
+%   1.4161   .2250   1.4201   .2500   1.4245   .2750   1.4295   .3000
+%   1.4339   .3200   1.4398   .3450   1.4451   .3650   1.4507   .3850
+%   1.4584   .4100   1.4669   .4350   1.4761   .4600   1.4863   .4850
+%   1.4960   .5067   1.5073   .5300   1.5206   .5550   1.5353   .5800
+%   1.5516   .6050   1.5586   .6150   1.5680   .6278
+% /
+% \endpicture\vspace{-5pt}
+%\centerline{$\varphi $}\vspace{5pt}
+%\centerline{E($k,\varphi)$}\vspace{20pt}
+%
+% \beginpicture \ninepoint
+% \setcoordinatesystem units <  1.797in,  2.800in>
+% \setplotarea x from    .000 to   1.600, y from    .000 to   1.000
+% \axis bottom label {}
+%  ticks in withvalues 0 .2 .4 .6 .8 1.0 1.2 1.4 1.6 /
+%  at 0 .2 .4 .6 .8 1.0 1.2 1.4 1.6 / /
+% \axis left label {$k$}
+%  ticks in numbered from   .0     to  1.0     by   .2     /
+% \axis top ticks in quantity  9 /
+% \axis right ticks in quantity  6 /
+% \put {.2} at    .200   .300
+% \put {.4} at    .400   .500
+% \put {.6} at    .600   .300
+% \put {.8} at    .780   .500
+% \put {1} at    .990   .300
+% \put {1.2} at   1.150   .500
+% \put {1.4} at   1.290   .600
+% \put {1.6} at   1.400   .700
+% \put {1.8} at   1.450   .800
+% \put {2.0} at   1.450   .900
+% \setquadratic \plot
+%   .2000   .00000   .2000   .00500   .2000   .01500   .2000   .02500
+%   .2000   .03500   .2000   .04500   .2000   .06000   .2000   .07000
+%   .2000   .0850   .2000   .1000   .2000   .1150   .2000   .1350
+%   .2000   .1550   .2000   .1700   .2000   .1900   .1999   .2100
+%   .1999   .2350   .1999   .2550   .1999   .2750
+% /
+% \setquadratic \plot
+%   .1999   .3250   .1998   .3550   .1998   .3850   .1998   .4150
+%   .1997   .4500   .1997   .4850   .1996   .5200   .1996   .5600
+%   .1995   .6000   .1995   .6450   .1994   .6900   .1993   .7300
+%   .1992   .7700   .1991   .8100   .1990   .8550   .1989   .9050
+%   .1988   .9550   .1987   .9750   .1987  1.0000
+% /
+% \setquadratic \plot
+%   .3897  1.0000   .3910   .9350   .3922   .8700   .3935   .7950
+%   .3947   .7150   .3956   .6550   .3964   .5950   .3968   .5600
+%   .3972   .5250
+% /
+% \setquadratic \plot
+%   .3977   .4750   .3981   .4300   .3985   .3800   .3988   .3350
+%   .3992   .2850   .3994   .2450   .3996   .2050   .3997   .1750
+%   .3998   .1400   .3999   .1200   .3999   .0950   .3999   .0800
+%   .4000   .06000   .4000   .05000   .4000   .03500   .4000   .02500
+%   .4000   .01500   .4000   .01000   .4000   .00000
+% /
+% \setquadratic \plot
+%   .6000   .00000   .6000   .00500   .6000   .01500   .6000   .02500
+%   .6000   .03500   .5999   .04500   .5999   .06000   .5998   .07500
+%   .5997   .0950   .5996   .1150   .5993   .1400   .5991   .1650
+%   .5987   .1950   .5983   .2250   .5977   .2600   .5976   .2650
+%   .5975   .2750
+% /
+% \setquadratic \plot
+%   .5965   .3250   .5953   .3750   .5940   .4250   .5926   .4700
+%   .5911   .5150   .5884   .5900   .5850   .6700   .5832   .7100
+%   .5810   .7550   .5785   .8050   .5757   .8550   .5713   .9300
+%   .5669  1.0000
+% /
+% \setquadratic \plot
+%   .7262  1.0000   .7319   .9600   .7374   .9200   .7440   .8692
+%   .7513   .8100   .7559   .7700   .7609   .7250   .7651   .6850
+%   .7690   .6450   .7731   .6000   .7766   .5600   .7778   .5450
+%   .7794   .5250
+% /
+% \setquadratic \plot
+%   .7831   .4750   .7849   .4500   .7871   .4150   .7897   .3700
+%   .7921   .3250   .7943   .2750   .7962   .2250   .7974   .1850
+%   .7984   .1450   .7989   .1200   .7993   .0950   .7996   .0750
+%   .7998   .05500   .7998   .04500   .7999   .03000   .8000   .01500
+%   .8000   .00000
+% /
+% \setquadratic \plot
+%   1.0000   .00000   1.0000   .00500   1.0000   .01500    .9999   .02500
+%    .9998   .03500    .9997   .04500    .9996   .05500    .9993   .07000
+%   .9990   .0850   .9985   .1050   .9979   .1250   .9969   .1500
+%   .9956   .1800   .9937   .2150   .9918   .2450   .9908   .2600
+%   .9897   .2750
+% /
+% \setquadratic \plot
+%   .9856   .3250   .9838   .3450   .9814   .3700   .9782   .4000
+%   .9754   .4250   .9712   .4600   .9674   .4900   .9633   .5200
+%   .9589   .5500   .9543   .5800   .9495   .6100   .9440   .6427
+%   .9383   .6750   .9327   .7050   .9269   .7350   .9200   .7693
+%   .9125   .8050   .9048   .8400   .8960   .8784   .8880   .9121
+%   .8786   .9500   .8723   .9750   .8658  1.0000
+% /
+% \setquadratic \plot
+%    .9857  1.0000    .9982   .9700   1.0084   .9450   1.0202   .9150
+%   1.0318   .8850   1.0411   .8600   1.0537   .8250   1.0640   .7952
+%   1.0724   .7700   1.0821   .7400   1.0930   .7050   1.1019   .6750
+%   1.1104   .6450   1.1185   .6150   1.1263   .5850   1.1336   .5550
+%   1.1406   .5250
+% /
+% \setquadratic \plot
+%   1.1514   .4750   1.1564   .4500   1.1611   .4250   1.1664   .3950
+%   1.1705   .3700   1.1743   .3450   1.1772   .3250   1.1812   .2950
+%   1.1849   .2650   1.1886   .2300   1.1920   .1926   1.1945   .1600
+%   1.1966   .1250   1.1976   .1050   1.1986   .0800   1.1991   .0650
+%   1.1996   .04500   1.1997   .03500   1.1999   .02500   1.1999   .01500
+%   1.2000   .00000
+% /
+% \setquadratic \plot
+%   1.4000   .00000   1.4000   .00500   1.3999   .01500   1.3998   .02500
+%   1.3996   .03500   1.3994   .04500   1.3991   .05500   1.3985   .07000
+%   1.3978   .0850   1.3966   .1050   1.3948   .1300   1.3931   .1500
+%   1.3916   .1650   1.3877   .2000   1.3837   .2300   1.3791   .2600
+%   1.3749   .2850   1.3703   .3100   1.3663   .3300   1.3610   .3550
+%   1.3565   .3750   1.3517   .3950   1.3441   .4250   1.3387   .4450
+%   1.3316   .4700   1.3240   .4950   1.3161   .5200   1.3078   .5450
+%   1.2973   .5750
+% /
+% \setquadratic \plot
+%   1.2786   .6250   1.2686   .6500   1.2561   .6800   1.2474   .7000
+%   1.2340   .7300   1.2240   .7514   1.2102   .7800   1.2000   .8006
+%   1.1849   .8300   1.1717   .8550   1.1581   .8800   1.1440   .9050
+%   1.1296   .9300   1.1178   .9500   1.1040   .9729   1.0960   .9859
+%   1.0872  1.0000
+% /
+% \setquadratic \plot
+%   1.1723  1.0000   1.1897   .9800   1.2067   .9600   1.2234   .9400
+%   1.2400   .9196   1.2560   .8995   1.2750   .8750   1.2901   .8550
+%   1.3084   .8300   1.3227   .8100   1.3400   .7850   1.3534   .7650
+%   1.3697   .7400   1.3760   .7300   1.3791   .7250
+% /
+% \setquadratic \plot
+%   1.4092   .6750   1.4234   .6500   1.4343   .6300   1.4475   .6050
+%   1.4600   .5800   1.4697   .5600   1.4800   .5378   1.4901   .5150
+%   1.5007   .4900   1.5087   .4700   1.5183   .4450   1.5255   .4250
+%   1.5341   .4000   1.5406   .3800   1.5468   .3600   1.5525   .3400
+%   1.5593   .3150   1.5631   .3000   1.5680   .2795
+% /
+% \setquadratic \plot
+%   1.5680   .6607   1.5536   .6800   1.5382   .7000   1.5222   .7200
+%   1.5057   .7400   1.4887   .7600   1.4720   .7791   1.4712   .7800
+%   1.4640   .7880
+% /
+% \setquadratic \plot
+%   1.4298   .8250   1.4154   .8400   1.3957   .8600   1.3907   .8650
+%   1.3806   .8750
+% /
+% \setquadratic \plot
+%   1.3760   .8795   1.3600   .8950   1.3440   .9102   1.3280   .9251
+%   1.3062   .9450   1.2894   .9600   1.2720   .9752   1.2560   .9890
+%   1.2431  1.0000
+% /
+% \setquadratic \plot
+%   1.3017  1.0000   1.3200   .9881   1.3399   .9750   1.3600   .9614
+%   1.3768   .9500   1.3920   .9395   1.4126   .9250
+% /
+% \setquadratic \plot
+%   1.4640   .8875   1.4806   .8750   1.5001   .8600   1.5191   .8450
+%   1.5377   .8300   1.5520   .8182   1.5680   .8048
+% /
+% \endpicture\vspace{-5pt}
+%\centerline{$\varphi $}\vspace{5pt}
+%\centerline{F($k,\varphi)$}
+%
+\subsubsection{Testing}
+
+The single precision programs for E($\varphi ,k)$, F($\varphi ,k)$, $%
+R_D(a,b,c)$ and $R_F(a,b,c)$ were tested on an IBM PC/AT (using IEEE
+arithmetic) by comparison to double precision results, as described below.
+The relative precision of IEEE single precision arithmetic is $\rho =
+2^{-23} \approx 0.119\times 10^{-6}.$
+
+The accuracy of procedure SELEFI was assessed by comparing its results to
+double precision results obtained by applying  Eqs.~(8) and (9), with $%
+R_D(a,b,c)$ and $R_F(a,b,c)$ evaluated by DRDVAL and DRFVAL, respectively.
+The accuracy of procedures SRDVAL and SRFVAL was assessed by comparing their
+results to double precision results obtained by applying Eqs.~(8) and (9),
+with E($\varphi ,k)$ and F($\varphi ,k)$ evaluated by DELEFI.
+
+To test SELEFI, the rectangular region $0 \leq \varphi \leq \pi /2 \times 0
+\leq k \leq 1$ of the $\varphi \times k$ plane was divided into 2000
+regions, and a point was randomly selected in each region. To test SRDVAL
+and SRFVAL, the argument $c$ was set to~1.0, the rectangular region $0 \leq
+a < 1 \times 0 \leq b < 1$ of the $a\times b$ plane was divided into~2000
+regions, and a point was randomly selected in each region. The maximum
+relative and absolute errors are summarized in the following table.
+
+\begin{center}
+\begin{tabular}{lrr}
+& \multicolumn{1}{c}{\bf Max. Rel.} & \multicolumn{1}{c}{\bf Max. Abs.}\\
+{\bf Function} & \multicolumn{1}{c}{\bf Error} & \multicolumn{1}{c}{\bf Error}\\
+E($\varphi ,k)$ & $.82\rho $\rule{.2in}{0pt} & $.98\rho $\rule{.2in}{0pt}\\
+F($\varphi ,k)$ & $5.24\rho $\rule{.2in}{0pt} & $15.91\rho $\rule{.2in}{0pt}\\
+$R_D(a,b,1)$ & $1.20\rho $\rule{.2in}{0pt} & $3.01\rho $\rule{.2in}{0pt}\\
+$R_F(a,b,1)$ & $1.35\rho $\rule{.2in}{0pt} & $2.55\rho $\rule{.2in}{0pt}
+\end{tabular}
+\end{center}
+
+Errors in F($\varphi ,k)$ increase as the arguments approach the infinite
+singularity at $\varphi =\pi /2$ and $k=1.$
+
+\nocite{Carlson:1977:SFA}
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+The procedure SELEFI requires $|\varphi | \leq \pi /2$, and $|k| \leq 1$.
+
+Procedure SELPII computes $\Pi (\varphi ,k^2,\alpha ^2)$ from $R_J(a,b,c,r)$
+and $R_F(a,b,c)$ using Eqs.~(9) and (10). The initial values for the arguments
+are $a = \cos ^2\varphi $, $b = 1-k^2\sin ^2\varphi $, $r = 1-\alpha ^2\sin
+^2\varphi $, and $c = \max (a,b,r)$. Then a, $b$ and $r$ are replaced by $%
+a\times c$, $b\times c$ and $r\times c$, respectively. SELPII requires $%
+|\varphi | \leq \pi /2$. Restrictions on $k^2$ and $\alpha ^2$ are enforced
+indirectly by restrictions on a, $b$ and $c$ imposed by SRFVAL and SRJVAL,
+described below.
+
+The ranges for $\varphi $ and $k^2$ can be extended using formulae 113.01,
+113.02, 114.01, 115.01, 115.02, 160.02, 161.02 and~162.02 from [2],
+or formulae~17.4.1 through~17.4.18 from [1].
+
+Denote the largest representable magnitude by $\Omega $, and the smallest
+nonzero representable magnitude by $\omega $. General restrictions on the
+arguments to procedures SRCVAL, SRDVAL, SRFVAL and SRJVAL were described
+above in Section B.
+
+SRCVAL requires $\text{X}+|\text{Y}| \geq 5\omega ,\ \text{X} \leq
+\Omega /5$, $|\text{Y}| \leq \Omega /5$, and, if $\text{Y} < -2.236/\sqrt
+\omega $ it requires $\text{X} \geq (\omega \Omega )^2/25$.
+
+Denote the machine round-off level by $\rho $, that is, $\rho $ is the
+smallest positive number such that
+the representation of $1+\rho $\ is different from~1. Let $\varepsilon $ be
+the solution of the equation $\rho = 3\varepsilon ^6(1-\varepsilon )^{-3/2}$,
+$\Omega _D = 2\Omega ^{-2/3}$ and $\omega _D = \varepsilon \omega ^{-2/3}/10$%
+. SRDVAL requires $\text{X}+\text{Y} \geq \omega _D$ and $\text{Z}
+\geq \omega _D,\ \text{X} \leq  \Omega _D,\ \text{Y} \leq \Omega _D$
+and $\text{Z} \leq \Omega _D$.
+
+SRFVAL requires $\text{X} + \text{Y} \geq 5\omega ,\ \text{X} +
+\text{Z} \geq 5\omega $, $\text{Y} + \text{Z} \geq 5\omega ,\ \text{X} \leq
+\Omega /5,\ \text{Y} \leq \Omega /5$ and
+$\text{Z} \leq \Omega /5$.
+
+Let $\Omega _J = (\Omega /5)^{1/3}/5$ and $\omega _J = (5\omega )^{1/3}$.
+SRJVAL requires $\text{X}+\text{Y} \geq \omega _J,\ \text{Y} +\text{Z}\geq
+\omega _J,\ \text{X} +\text{Z} \geq \omega _J$, $|\text{R}| \geq
+\omega _J,\ \text{X} \leq \Omega _J,\ \text{Y} \leq \Omega _J,\ \text{Z} \leq
+\Omega _J$ and $|\text{R}| \leq \Omega _J$.
+
+The accessible ranges of the
+arguments may be extended beyond the ranges admissible in the procedures by
+using the homogeneity of the functions:
+\begin{align*}
+R_F(ka, kb, kc) &= k^{-1/2} R_F(a, b, c),\quad \text{and}\\
+R_J(ka,kb, kc, kr) &= k^{-3/2} R_J(a,\ b,\ c,\ r).
+\end{align*}
+If any of the restrictions above is violated, all procedures return an error
+indicator in the argument named IERR, and invoke the error message
+processor (see Chapter~19.2) with LEVEL = 0. The procedure ERMSET (see
+Chapter~19.2) may be used to affect the default error processing action.
+
+\subsection{Supporting Information}
+
+The source language for these subroutines is ANSI Fortran 77.
+
+The procedures SELEFI and SELPII were written by W. V. Snyder in December
+1990, based on earlier procedures described by Alfred H. Morris, Naval
+Surface Warfare Center, Dahlgren, VA in [5]. The procedures SRCVAL,
+SRDVAL, SRFVAL and SRJVAL were written by W. V. Snyder in December 1990,
+based on earlier procedures described by Carlson and Notis in \cite{Carlson:1981:AAI}.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DELEFI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DELEFI, DERM1, DERV1, DLNREL, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DELPII & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DELPII, DERM1, DERV1, DRCVAL, DRFVAL, DRJVAL, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DRCVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, DRCVAL, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DRDVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, DRDVAL, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DRFVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, DRFVAL, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DRJVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, DRCVAL, DRFVAL, DRJVAL, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\SELEFI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SELEFI, SERM1, SERV1, SLNREL\rule[-5pt]{0pt}{8pt}}\\SELPII & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SELPII, SERM1, SERV1, SRCVAL, SRFVAL, SRJVAL\rule[-5pt]{0pt}{8pt}}\\SRCVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SRCVAL\rule[-5pt]{0pt}{8pt}}\\SRDVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SRDVAL\rule[-5pt]{0pt}{8pt}}\\SRFVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SRFVAL\rule[-5pt]{0pt}{8pt}}\\SRJVAL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SRCVAL, SRFVAL, SRJVAL\rule[-5pt]{0pt}{8pt}}\\\end{tabular}
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSELI}\vspace{10pt}
+\lstinputlisting{\codeloc{seli}}
+
+\vspace{30pt}\centerline{\bf \large ODSELI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{seli}}
+
+\closegraphsfile
+\end{document}

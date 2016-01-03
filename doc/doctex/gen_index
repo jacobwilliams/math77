@@ -1,0 +1,1172 @@
+ 6.3  & CALL& \uline{CAXPY} & ({\em n}$_{\s i}$, {\em ca}$_{\s z}$,
+      {\em CX}$_{\s z}$, {\em incx}$_{\s i}$, {\bf CY}$_{\s z}$, {\em incy}$_{\s i}$)\\
+ 7.3  & CALL& \uline{CCOEF} & ({\em ndeg}$_{\s i}$, {\em ROOTS}$_{\s z}$,
+      {\bf COEFS}$_{\s z}$)\\
+ 6.3  & CALL& \uline{CCOPY} & ({\em n}$_{\s i}$, {\em CX}$_{\s z}$,
+      {\em incx}$_{\s i}$, {\bf CY}$_{\s z}$, {\em incy}$_{\s i}$)\\
+ 6.3  & Z = & \uline{CDOTC} & ({\em n}$_{\s i}$, {\em CX}$_{\s z}$,
+      {\em incx}$_{\s i}$, {\em CY}$_{\s z}$, {\em incy}$_{\s i}$)\\
+ 6.3  & Z = & \uline{CDOTU} & ({\em n}$_{\s i}$, {\em CX}$_{\s z}$,
+      {\em incx}$_{\s i}$, {\em CY}$_{\s z}$, {\em incy}$_{\s i}$)\\
+ 2.3  & CALL& \uline{CGAM} & ({\em CARG}$_{\s r}$, {\bf CVAL}$_{\s r}$,
+      {\bf errest}$_{\s r}$, {\em mode}$_{\s i}$)\\
+ 4.1  & CALL& \uline{CGECO} & ({\bf A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IPVT}$_{\s i}$, {\bf rcond}$_{\s r}$,
+      {\bf Z}$_{\s z}$)\\
+ 4.1  & CALL& \uline{CGED} & ({\em A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf DET}$_{\s z}$)\\
+ 4.1  & CALL& \uline{CGEFA} & ({\bf A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IPVT}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 4.1  & CALL& \uline{CGEFS} & ({\bf A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s z}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf IPVT}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 4.1  & CALL& \uline{CGEFSC} & ({\bf A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s z}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf IPVT}$_{\s i}$, {\bf rcond}$_{\s r}$, {\bf Z}$_{\s z}$)\\
+ 4.1  & CALL& \uline{CGEI} & ({\bf A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf WORK}$_{\s z}$)\\
+ 4.1  & CALL& \uline{CGESLD} & ({\em A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf C}$_{\s z}$)\\
+ 4.1  & CALL& \uline{CGESLT} & ({\em A}$_{\s z}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf C}$_{\s z}$)\\
+ 7.1  & CALL& \uline{CPOLZ} & ({\em A}$_{\s z}$, {\em ndeg}$_{\s i}$,
+      {\bf Z}$_{\s z}$, {\bf H}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 6.3  & CALL& \uline{CSCAL} & ({\em n}$_{\s i}$, {\em ca}$_{\s z}$,
+      {\bf CX}$_{\s z}$, {\em incx}$_{\s i}$)\\
+18.1  & CALL& \uline{CSORT} & ({\bf C}$_{\s c}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em k}$_{\s i}$, {\em l}$_{\s i}$, {\bf ctemp}$_{\s c}$)\\
+18.1  & CALL& \uline{CSORTP} & ({\em C}$_{\s c}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em k}$_{\s i}$, {\em l}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+18.1  & CALL& \uline{CSORTQ} & ({\em C}$_{\s c}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em k}$_{\s i}$, {\em l}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+ 6.3  & CALL& \uline{CSSCAL} & ({\em n}$_{\s i}$, {\em sa}$_{\s r}$,
+      {\bf CX}$_{\s z}$, {\em incx}$_{\s i}$)\\
+ 6.3  & CALL& \uline{CSWAP} & ({\em n}$_{\s i}$, {\bf CX}$_{\s z}$,
+      {\em incx}$_{\s i}$, {\bf CY}$_{\s z}$, {\em incy}$_{\s i}$)\\
+ 2.16 & CALL& \uline{CWOFZ} & ({\em Z}$_{\s r}$, {\bf W}$_{\s r}$,
+      {\bf iflag}$_{\s i}$)\\
+19.1  & D = & \uline{D1MACH} & ({\em j}$_{\s i}$)\\
+ 4.4  & CALL& \uline{DACCUM} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s d}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf ir1}$_{\s i}$, {\em nrows}$_{\s i}$, {\bf ncount}$_{\s i}$)\\
+ 2.1  & D = & \uline{DACOSH} & ({\em x}$_{\s d}$)\\
+ 2.1  & D = & \uline{DACSCH} & ({\em x}$_{\s d}$)\\
+ 2.1  & D = & \uline{DACTNH} & ({\em x}$_{\s d}$)\\
+ 2.1  & D = & \uline{DASECH} & ({\em x}$_{\s d}$)\\
+ 2.1  & D = & \uline{DASINH} & ({\em x}$_{\s d}$)\\
+ 6.3  & D = & \uline{DASUM} & ({\em n}$_{\s i}$, {\em DX}$_{\s d}$,
+      {\em incx}$_{\s i}$)\\
+ 2.1  & D = & \uline{DATANH} & ({\em x}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DAXPY} & ({\em n}$_{\s i}$, {\em da}$_{\s d}$,
+      {\em DX}$_{\s d}$, {\em incx}$_{\s i}$, {\bf DY}$_{\s d}$, {\em incy}$_{\s i}$)\\
+ 4.5  & CALL& \uline{DBACC} & ({\bf G}$_{\s d}$, {\em ldg}$_{\s i}$,
+      {\em nb}$_{\s i}$, {\bf ir}$_{\s i}$, {\em mt}$_{\s i}$, {\em jt}$_{\s i}$,
+      {\bf jtprev}$_{\s i}$, {\bf ierr2}$_{\s i}$)\\
+ 2.4  & D = & \uline{DBESJ0} & ({\em x}$_{\s d}$)\\
+ 2.4  & D = & \uline{DBESJ1} & ({\em x}$_{\s d}$)\\
+ 2.5  & CALL& \uline{DBESJN} & ({\em x}$_{\s d}$, {\em alpha}$_{\s d}$,
+      {\em num}$_{\s i}$, {\bf BJ}$_{\s d}$)\\
+ 2.4  & D = & \uline{DBESY0} & ({\em x}$_{\s d}$)\\
+ 2.4  & D = & \uline{DBESY1} & ({\em x}$_{\s d}$)\\
+ 2.5  & CALL& \uline{DBESYN} & ({\em x}$_{\s d}$, {\em alpha}$_{\s d}$,
+      {\em num}$_{\s i}$, {\bf BY}$_{\s d}$)\\
+ 2.6  & CALL& \uline{DBI0K0} & ({\em x}$_{\s d}$, {\bf bi0}$_{\s d}$,
+      {\bf bk0}$_{\s d}$, {\em iwant}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 2.6  & CALL& \uline{DBI1K1} & ({\em x}$_{\s d}$, {\bf bi1}$_{\s d}$,
+      {\bf bk1}$_{\s d}$, {\em iwant}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 2.20 & D = & \uline{DBINOM} & ({\em n}$_{\s i}$, {\em k}$_{\s i}$)\\
+ 4.5  & CALL& \uline{DBSOL} & ({\em mode}$_{\s i}$, {\em G}$_{\s d}$,
+      {\em ldg}$_{\s i}$, {\em nb}$_{\s i}$, {\em ir}$_{\s i}$, {\em jtprev}$_{\s i}$,
+      {\bf X}$_{\s d}$, {\em n}$_{\s i}$, {\bf rnorm}$_{\s d}$, {\bf ierr3}$_{\s i}$)\\
+11.4  & CALL& \uline{DC2FIT} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em SD}$_{\s d}$, {\em nxy}$_{\s i}$, {\em B}$_{\s d}$, {\em nb}$_{\s i}$,
+      {\bf W}$_{\s d}$, {\em ldw}$_{\s i}$, {\bf YKNOT}$_{\s d}$, {\bf YPKNOT}$_{\s d}$,
+      {\bf sigfac}$_{\s d}$, {\bf ierr1}$_{\s i}$)\\
+15.3  & CALL& \uline{DCDCHI} & ({\em chisq}$_{\s d}$, {\em nu}$_{\s d}$,
+      {\bf p}$_{\s d}$, {\bf q}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+15.2  & D = & \uline{DCDNML} & ({\em x}$_{\s d}$, {\em mu}$_{\s d}$,
+      {\em sigma}$_{\s d}$)\\
+15.4  & CALL& \uline{DCDPOI} & ({\em n}$_{\s i}$, {\em lamda}$_{\s d}$,
+      {\bf p}$_{\s d}$, {\bf q}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+10.3  & CALL& \uline{DCFT} & ({\bf A}$_{\s d}$, {\em mode}$_{\s c}$,
+      {\em M}$_{\s i}$, {\em nd}$_{\s i}$, {\bf ms}$_{\s i}$, {\bf S}$_{\s d}$)\\
+ 4.6  & CALL& \uline{DCHOL} & ({\bf P}$_{\s d}$, {\em ldp}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf D}$_{\s d}$, {\bf u}$_{\s d}$, {\em tol}$_{\s d}$,
+      {\bf ierr}$_{\s i}$)\\
+ 2.14 & D = & \uline{DCI} & ({\em x}$_{\s d}$)\\
+ 2.14 & D = & \uline{DCIN} & ({\em x}$_{\s d}$)\\
+ 8.3  & CALL& \uline{DCKDER} & ({\bf mode}$_{\s i}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf X}$_{\s d}$, {\em FVEC}$_{\s d}$, {\em FJAC}$_{\s d}$,
+      {\em ldfjac}$_{\s i}$, {\bf TEST}$_{\s d}$, {\bf imax}$_{\s i}$,
+      {\bf jmax}$_{\s i}$, {\bf tstmax}$_{\s d}$)\\
+11.3  & CALL& \uline{DCONCM} & ({\em n}$_{\s i}$, {\bf COEFF}$_{\s d}$)\\
+11.3  & CALL& \uline{DCONMC} & ({\em n}$_{\s i}$, {\bf COEFF}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DCOPY} & ({\em n}$_{\s i}$, {\em DX}$_{\s d}$,
+      {\em incx}$_{\s i}$, {\bf DY}$_{\s d}$, {\em incy}$_{\s i}$)\\
+ 2.15 & D = & \uline{DCOS1} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DCOSHM} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DCOSPX} & ({\em x}$_{\s d}$)\\
+ 4.2  & CALL& \uline{DCOV2} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IP}$_{\s i}$, {\em var}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 4.3  & CALL& \uline{DCOV3} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em SING}$_{\s d}$, {\em var}$_{\s d}$, {\bf WORK}$_{\s d}$,
+      {\bf ierr}$_{\s i}$)\\
+11.2  & CALL& \uline{DCPDRV} & ({\em C}$_{\s d}$, {\em ndegc}$_{\s i}$,
+      {\bf D}$_{\s d}$, {\bf ndegd}$_{\s i}$)\\
+11.2  & CALL& \uline{DCPINT} & ({\em A}$_{\s d}$, {\em ndega}$_{\s i}$,
+      {\bf B}$_{\s d}$, {\bf ndegb}$_{\s i}$)\\
+ 2.8  & D = & \uline{DCPLTE} & ({\em em}$_{\s d}$)\\
+ 2.8  & D = & \uline{DCPLTK} & ({\em em}$_{\s d}$)\\
+11.2  & D = & \uline{DCPVAL} & ({\em P}$_{\s d}$, {\em ndeg}$_{\s i}$,
+      {\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DCSHMM} & ({\em x}$_{\s d}$)\\
+14.3  & CALL& \uline{DDASDB} & ({\em kase}$_{\s i}$, {\em neq}$_{\s i}$,
+      {\em t}$_{\s d}$, {\bf Y}$_{\s d}$, {\bf YPRIME}$_{\s d}$, {\bf INFO}$_{\s i}$,
+      {\bf RWORK}$_{\s d}$, {\bf IWORK}$_{\s i}$, {\em ires}$_{\s i}$,
+      {\bf ATOL}$_{\s d}$, {\bf RTOL}$_{\s d}$)\\
+14.3  & CALL& \uline{DDASLS} & (\uline{ddasf}$_{\s x}$, {\em neq}$_{\s i}$,
+      {\scriptsize t}$_{\s d}$, {\scriptsize Y}$_{\s d}$, {\bf ~YPRIME}$_{\s d}$,
+      {\bf INFO}$_{\s i}$, {\em ftol}$_{\s d}$, {\em rnktol}$_{\s d}$,
+      {\bf ~C}$_{\s d}$, {\em ldc}$_{\s i}$, {\em ltd}$_{\s i}$, {\bf idid}$_{\s i}$,
+      {\bf ~RWORK}$_{\s d}$, {\em lrw}$_{\s i}$, {\bf IWORK}$_{\s i}$,
+      {\em liw}$_{\s i}$)\\
+14.3  & CALL& \uline{DDASLX} & (\uline{ddasf}$_{\s x}$, {\em neq}$_{\s i}$,
+      {t}$_{\s d}$, {\bf Y}$_{\s d}$, {\bf YPRIME}$_{\s d}$, {\em tout}$_{\s d}$,
+      {\bf INFO}$_{\s i}$, {\bf RTOL}$_{\s d}$, {\bf ATOL}$_{\s d}$,
+      {\bf idid}$_{\s i}$, {\bf RWORK}$_{\s d}$, {\em lrw}$_{\s i}$,
+      {\bf IWORK}$_{\s i}$, {\em liw}$_{\s i}$)\\
+ 6.3  & D = & \uline{DDOT} & ({\em n}$_{\s i}$, {\em DX}$_{\s d}$,
+      {\em incx}$_{\s i}$, {\em DY}$_{\s d}$, {\em incy}$_{\s i}$)\\
+ 2.10 & D = & \uline{DE1} & ({\em x}$_{\s d}$)\\
+ 2.10 & D = & \uline{DEI} & ({\em x}$_{\s d}$)\\
+ 2.9  & CALL& \uline{DELEFI} & ({\em phi}$_{\s d}$, {\em k}$_{\s d}$,
+      {\bf f}$_{\s d}$, {\bf e}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 2.9  & CALL& \uline{DELPII} & ({\em phi}$_{\s d}$, {\em k2}$_{\s d}$,
+      {\em alpha2}$_{\s d}$, {\bf pi}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 2.2  & D = & \uline{DERF} & ({\em x}$_{\s d}$)\\
+ 2.2  & D = & \uline{DERFC} & ({\em x}$_{\s d}$)\\
+ 2.2  & D = & \uline{DERFCE} & ({\em x}$_{\s d}$)\\
+ 2.13 & D = & \uline{DERFCI} & ({\em x}$_{\s d}$)\\
+ 2.13 & D = & \uline{DERFI} & ({\em x}$_{\s d}$)\\
+19.2  & CALL& \uline{DERM1} & ({\em subnam}$_{\s c}$, {\em ierr}$_{\s i}$,
+      {\em level}$_{\s i}$, {\em mess}$_{\s c}$, {\em label}$_{\s c}$,
+      {\em ddata}$_{\s d}$, {\em flag}$_{\s c}$)\\
+19.2  & CALL& \uline{DERV1} & ({\em label}$_{\s c}$, {\em ddata}$_{\s d}$,
+      {\em flag}$_{\s c}$)\\
+ 5.3  & CALL& \uline{DEVUN} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf VR}$_{\s d}$, {\bf VI}$_{\s d}$, {\bf IFLAG}$_{\s i}$)\\
+ 5.4  & CALL& \uline{DEVVUN} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf VR}$_{\s d}$, {\bf VI}$_{\s d}$, {\bf VEC}$_{\s d}$,
+      {\bf IFLAG}$_{\s i}$, {\bf WORK}$_{\s d}$)\\
+10.5  & CALL& \uline{DFFT} & ({\bf A(IR)}$_{\s d}$, {\bf A(II)}$_{\s d}$,
+      {\bf S}$_{\s d}$)\\
+ 9.1  & CALL& \uline{DFMIN} & ({\bf x}$_{\s d}$, {\bf xorf}$_{\s d}$,
+      {\bf mode}$_{\s i}$, {\em tol}$_{\s d}$)\\
+ 2.17 & D = & \uline{DFRENC} & ({\em x}$_{\s d}$)\\
+ 2.17 & D = & \uline{DFRENF} & ({\em x}$_{\s d}$)\\
+ 2.17 & D = & \uline{DFRENG} & ({\em x}$_{\s d}$)\\
+ 2.17 & D = & \uline{DFRENS} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DGAM1} & ({\em x}$_{\s d}$)\\
+ 2.19 & CALL& \uline{DGAMI} & ({\em a}$_{\s d}$, {\em x}$_{\s d}$,
+      {\bf p}$_{\s d}$, {\bf q}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 2.19 & CALL& \uline{DGAMIE} & ({\bf pqerr}$_{\s d}$)\\
+ 2.19 & CALL& \uline{DGAMIK} & ({\em ptol}$_{\s d}$, {\em qtol}$_{\s d}$,
+      {\em xerr}$_{\s d}$, {\em msgoff}$_{\s i}$)\\
+ 2.3  & D = & \uline{DGAMMA} & ({\em x}$_{\s d}$)\\
+ 4.1  & CALL& \uline{DGECO} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IPVT}$_{\s i}$, {\bf rcond}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+ 4.1  & CALL& \uline{DGED} & ({\em A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf DET}$_{\s d}$)\\
+ 4.1  & CALL& \uline{DGEFA} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IPVT}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 4.1  & CALL& \uline{DGEFS} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s d}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf IPVT}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 4.1  & CALL& \uline{DGEFSC} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s d}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf IPVT}$_{\s i}$, {\bf rcond}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+ 4.1  & CALL& \uline{DGEI} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf WORK}$_{\s d}$)\\
+ 4.1  & CALL& \uline{DGESLD} & ({\em A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf C}$_{\s d}$)\\
+ 4.1  & CALL& \uline{DGESLT} & ({\em A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf C}$_{\s d}$)\\
+ 5.2  & CALL& \uline{DHERQL} & ({\bf AR}$_{\s d}$, {\bf AI}$_{\s d}$,
+      {\em lda}$_{\s i}$, {\em n}$_{\s i}$, {\bf EVAL}$_{\s d}$, {\bf VR}$_{\s d}$,
+      {\bf VI}$_{\s d}$, {\bf WORK}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 4.2  & CALL& \uline{DHFTI} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\bf B}$_{\s d}$, {\em ldb}$_{\s i}$,
+      {\em nb}$_{\s i}$, {\em tau}$_{\s d}$, {\bf krank}$_{\s i}$,
+      {\bf RNORM}$_{\s d}$, {\bf WORK}$_{\s d}$, {\bf IP}$_{\s i}$)\\
+12.3  & D = & \uline{DHINT} & ({\em x}$_{\s d}$, {\em nderiv}$_{\s i}$,
+      {\em ntab}$_{\s i}$, {\em XTAB}$_{\s d}$, {\em YTAB}$_{\s d}$,
+      {\em YPTAB}$_{\s d}$)\\
+ 6.4  & CALL& \uline{DHTCC} & ({\em mode}$_{\s i}$, {\em lpivot}$_{\s i}$,
+      {\em l1}$_{\s i}$, {\em m}$_{\s i}$, {\bf U}$_{\s d}$, {\bf uparam}$_{\s d}$,
+      {\bf C}$_{\s d}$, {\em ldc}$_{\s i}$, {\em ncv}$_{\s i}$)\\
+ 6.4  & CALL& \uline{DHTGEN} & ({\em mode}$_{\s i}$, {\em lpivot}$_{\s i}$,
+      {\em l1}$_{\s i}$, {\em m}$_{\s i}$, {\bf U}$_{\s d}$, {\em ldu}$_{\s i}$,
+      {\em colu}$_{\s L}$, {\bf uparam}$_{\s d}$, {\bf C}$_{\s d}$,
+      {\em ldc}$_{\s i}$, {\em ncv}$_{\s i}$, {\em colc}$_{\s L}$)\\
+12.1  & CALL& \uline{DILUP} & ({\em x}$_{\s d}$, {\bf y}$_{\s d}$,
+      {\em ntab}$_{\s i}$, {\em XT}$_{\s d}$, {\em YT}$_{\s d}$, {\em ndeg}$_{\s i}$,
+      {\bf lup}$_{\s i}$, {\bf IOPT}$_{\s i}$, {\bf EOPT}$_{\s d}$)\\
+12.2  & CALL& \uline{DILUPM} & ({\em ndim}$_{\s i}$, {\bf X}$_{\s d}$,
+      {\bf y}$_{\s d}$, {\bf NTAB}$_{\s i}$, {\em XT}$_{\s d}$, {\em YT}$_{\s d}$,
+      {\em NDEG}$_{\s i}$, {\bf LUP}$_{\s i}$, {\bf IOPT}$_{\s i}$,
+      {\bf EOPT}$_{\s d}$)\\
+12.2  & CALL& \uline{DILUPMD} & ({\em ndim}$_{\s i}$, {\bf X}$_{\s d}$,
+      {\scriptsize y}$_{\s d}$, {\bf NTAB}$_{\s i}$, {\bf XT}$_{\s d}$,
+      {\bf YT}$_{\s d}$, {\em NDEG}$_{\s i}$, {\em LUP}$_{\s i}$, {\em IOPT}$_{\s i}$,
+      {\em EOPT}$_{\s d}$)\\
+13.1  & CALL& \uline{DINT1} & ({\em a}$_{\s d}$, {\em b}$_{\s d}$,
+      {\bf answer}$_{\s d}$, {\bf WORK}$_{\s d}$, {\bf IOPT}$_{\s i}$)\\
+13.1  & CALL& \uline{DINTA} & ({\bf answer}$_{\s d}$, {\bf WORK}$_{\s d}$,
+      {\bf IOPT}$_{\s i}$)\\
+13.2  & CALL& \uline{DINTM} & ({\em ndimi}$_{\s i}$, {\bf answer}$_{\s d}$,
+      {\bf WORK}$_{\s d}$, {\em nwork}$_{\s i}$, {\bf IOPT}$_{\s i}$)\\
+13.2  & CALL& \uline{DINTMA} & ({\bf answer}$_{\s d}$, {\bf WORK}$_{\s d}$,
+      {\bf IOPT}$_{\s i}$)\\
+13.1  & CALL& \uline{DINTOP} & ({\bf IOPT}$_{\s i}$, {\em WORK}$_{\s d}$)\\
+14.1  & CALL& \uline{DIVA} & ({\bf TSPECS}$_{\s d}$, {\bf Y}$_{\s d}$,
+      {\bf F}$_{\s d}$, {\bf KORD}$_{\s i}$, {\em neq}$_{\s i}$, \uline{divaf}$_{\s x}$,
+      \uline{divao}$_{\s x}$, {\em itdim}$_{\s i}$, {\em iydim}$_{\s i}$,
+      {\em ifdim}$_{\s i}$, {\em ikdim}$_{\s i}$, {\bf IOPT}$_{\s i}$)\\
+14.1  & CALL& \uline{DIVAA} & ({\bf TSPECS}$_{\s d}$, {\bf Y}$_{\s d}$,
+      {\bf F}$_{\s d}$, {\bf KORD}$_{\s i}$, \uline{divaf}$_{\s x}$,
+      \uline{divao}$_{\s x}$)\\
+14.1  & CALL& \uline{DIVACO} & ({\bf ID}$_{\s i}$, {\bf RD}$_{\s d}$)\\
+14.1  & CALL& \uline{DIVADB} & ({\em lprint}$_{\s i}$, {\bf TSPECS}$_{\s d}$,
+      {\bf Y}$_{\s d}$, {\bf F}$_{\s d}$, {\em KORD}$_{\s i}$, {\em text}$_{\s c}$)\\
+14.1  & CALL& \uline{DIVAG} & ({\bf TSPECS}$_{\s d}$, {\bf Y}$_{\s d}$,
+      {\bf F}$_{\s d}$, {\bf KORD}$_{\s i}$, {\bf iflag}$_{\s i}$,
+      {\bf nstop}$_{\s i}$, {\bf G6}$_{\s d}$, {\bf GT6}$_{\s d}$)\\
+14.1  & CALL& \uline{DIVAIN} & ({\em TSPECS}$_{\s d}$, {\bf Y}$_{\s d}$,
+      {\bf F}$_{\s d}$, {\em KORD}$_{\s i}$)\\
+14.1  & CALL& \uline{DIVAOP} & ({\bf IOPTOP}$_{\s i}$, {\bf FOPT}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DIVSET} & ({\em mode}$_{\s i}$, {\bf IV}$_{\s i}$,
+      {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s d}$)\\
+ 8.4  & CALL& \uline{DJACG} & ({\bf mode}$_{\s i}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf Y}$_{\s d}$, {\em F}$_{\s d}$, \\
+ 2.12 & CALL& \uline{DLASUM} & ({\em x}$_{\s d}$, {\em n}$_{\s i}$,
+      {\em A}$_{\s d}$, {\bf y}$_{\s d}$)\\
+ 2.11 & CALL& \uline{DLESUM} & ({\em s}$_{\s d}$, {\em n}$_{\s i}$,
+      {\em A}$_{\s d}$, {\bf y}$_{\s d}$)\\
+ 2.3  & D = & \uline{DLGAMA} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DLNREL} & ({\em x}$_{\s d}$)\\
+ 6.1  & CALL& \uline{DMATP} & ({\em A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em text}$_{\s c}$)\\
+ 6.2  & CALL& \uline{DMATPR} & ({\bf A}$_{\s d}$, {\em idima}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em $^{\prime}$text$^{\prime}$}$_{\s c}$,
+      {\em lwidth}$_{\s i}$, {\em lunit}$_{\s i}$, {\em numdig}$_{\s i}$)\\
+19.3  & CALL& \uline{DMESS} & ({\bf MACT}$_{\s i}$, {\em TEXT}$_{\s c}$,
+      {\em IDAT}$_{\s i}$, {\bf FDAT}$_{\s d}$)\\
+ 9.2  & CALL& \uline{DMLC01} & (\uline{dmlcfg}$_{\s x}$, {n}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em meq}$_{\s i}$, {\em A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em B}$_{\s d}$, {\em XL}$_{\s d}$, {\em XU}$_{\s d}$, {\bf X}$_{\s d}$,
+      {\em acc}$_{\s d}$, {\em iprint}$_{\s i}$, {\em mxeval}$_{\s i}$,
+      {\bf IW}$_{\s i}$, {\em liw}$_{\s i}$, {\bf W}$_{\s d}$, {\em lw}$_{\s i}$)\\
+11.2  & CALL& \uline{DMPDRV} & ({\em C}$_{\s d}$, {\em ndegc}$_{\s i}$,
+      {\bf D}$_{\s d}$, {\bf ndegd}$_{\s i}$)\\
+11.2  & CALL& \uline{DMPINT} & ({\em A}$_{\s d}$, {\em ndega}$_{\s i}$,
+      {\bf B}$_{\s d}$, {\bf ndegb}$_{\s i}$)\\
+11.2  & D = & \uline{DMPVAL} & ({\em P}$_{\s d}$, {\em ndeg}$_{\s i}$,
+      {\em x}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLAFB} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s d}$,
+      {\em BND}$_{\s d}$, \uline{dcalcr}$_{\s x}$, {\bf IV}$_{\s i}$,
+      {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLAFU} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s d}$,
+      \uline{dcalcr}$_{\s x}$, {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$,
+      {\em lv}$_{\s i}$, {\bf V}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLAGB} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s d}$,
+      {\em BND}$_{\s d}$, \uline{dcalcr}$_{\s x}$, \uline{dcalcj}$_{\s x}$,
+      {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLAGU} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s d}$,
+      \uline{dcalcr}$_{\s x}$, \uline{dcalcj}$_{\s x}$, {\bf IV}$_{\s i}$,
+      {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLSFB} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s d}$, {\em BND}$_{\s d}$, {\bf BET}$_{\s d}$, {\em YDATA}$_{\s d}$,
+      \uline{dcalca}$_{\s x}$, {\em IND}$_{\s i}$, {\em lind}$_{\s i}$,
+      {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLSFU} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s d}$, {\bf BET}$_{\s d}$, {\em YDATA}$_{\s d}$,
+      \uline{dcalca}$_{\s x}$, {\em IND}$_{\s i}$, {\em lind}$_{\s i}$,
+      {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLSGB} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s d}$, {\em BND}$_{\s d}$, {\bf BET}$_{\s d}$, {\em YDATA}$_{\s d}$,
+      \uline{dcalca}$_{\s x}$, \uline{dcalcb}$_{\s x}$, {\em IND}$_{\s i}$,
+      {\em lind}$_{\s i}$, {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$,
+      {\bf V}$_{\s d}$)\\
+ 9.3  & CALL& \uline{DNLSGU} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s d}$, {\bf BET}$_{\s d}$, {\em YDATA}$_{\s d}$,
+      \uline{dcalca}$_{\s x}$, \uline{dcalcb}$_{\s x}$, {\em IND}$_{\s i}$,
+      {\em lind}$_{\s i}$, {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$,
+      {\bf V}$_{\s d}$)\\
+ 8.2  & CALL& \uline{DNQSOL} & (\uline{dnqfj}$_{\s x}$, {\em n}$_{\s i}$,
+      {\bf X}$_{\s d}$, {\bf FVEC}$_{\s d}$, {\em xtol}$_{\s d}$, {\bf IOPT}$_{\s i}$,
+      {\bf W}$_{\s d}$, {\em idimw}$_{\s i}$)\\
+ 6.3  & D = & \uline{DNRM2} & ({\em n}$_{\s i}$, {\em DX}$_{\s d}$,
+      {\em incx}$_{\s i}$)\\
+17.1  & CALL& \uline{DPASCL} & ({\em n}$_{\s i}$, {\bf C}$_{\s d}$)\\
+11.1  & CALL& \uline{DPFIT} & ({\em m}$_{\s i}$, {\em X}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\em SD}$_{\s d}$, {\em nmax}$_{\s i}$, {\em seekn}$_{\s L}$,
+      {\em comtrn}$_{\s L}$, {\em chbbas}$_{\s L}$, {\bf P}$_{\s d}$,
+      {\bf ndeg}$_{\s i}$, {\bf sigfac}$_{\s d}$, {\bf W}$_{\s d}$)\\
+16.3  & CALL& \uline{DPLOT} & ({\em xsize}$_{\s d}$, {\em ysize}$_{\s d}$,
+      {\em X}$_{\s d}$, {\em nx}$_{\s i}$, {\em Y}$_{\s d}$, {\bf OPT}$_{\s d}$,
+      {\em copt}$_{\s c}$)\\
+ 7.1  & CALL& \uline{DPOLZ} & ({\em A}$_{\s d}$, {\em ndeg}$_{\s i}$,
+      {\bf Z}$_{\s d}$, {\bf H}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 7.2  & CALL& \uline{DPOLZ2} & ({\em A}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+15.2  & D = & \uline{DPPNML} & ({\em u}$_{\s d}$, {\em mu}$_{\s d}$,
+      {\em sigma}$_{\s d}$)\\
+11.5  & D = & \uline{DPQUAD} & ({\em korder}$_{\s i}$, {\em npc}$_{\s i}$,
+      {\em XI}$_{\s d}$, {\em PCOEF}$_{\s d}$, {\em x1}$_{\s d}$, {\em x2}$_{\s d}$)\\
+16.2  & CALL& \uline{DPRPL} & ({\em y}$_{\s d}$, {\em symbol}$_{\s c}$,
+      {\bf image}$_{\s c}$, {\em nchar}$_{\s i}$, {\em y1}$_{\s d}$,
+      {\em y2}$_{\s d}$, {\em reset}$_{\s L}$)\\
+16.1  & CALL& \uline{DPRPL1} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em np}$_{\s i}$, {\em title}$_{\s c}$, {\em xname}$_{\s c}$,
+      {\em yname}$_{\s c}$, {\em nlines}$_{\s i}$, {\em nchars}$_{\s i}$,
+      {\bf IMAGE}$_{\s c}$, {\bf ierr}$_{\s i}$)\\
+16.1  & CALL& \uline{DPRPL2} & ({\em XY}$_{\s d}$, {\em idim}$_{\s i}$,
+      {\em kc}$_{\s i}$, {\em JX}$_{\s i}$, {\em JY}$_{\s i}$, {\em NP}$_{\s i}$,
+      {\em SYMBOL}$_{\s c}$, {\em title}$_{\s c}$, {\em xname}$_{\s c}$,
+      {\em yname}$_{\s c}$, {\em nlines}$_{\s i}$, {\em nchars}$_{\s i}$,
+      {\bf IMAGE}$_{\s c}$, {\bf ierr}$_{\s i}$)\\
+ 2.18 & D = & \uline{DPSI} & ({\em x}$_{\s d}$)\\
+ 2.18 & CALL& \uline{DPSIE} & ({\bf err}$_{\s d}$, {\bf ierflg}$_{\s i}$)\\
+ 2.18 & CALL& \uline{DPSIK} & ({\em tol}$_{\s d}$, {\em xerr}$_{\s d}$,
+      {\em msgoff}$_{\s i}$)\\
+11.5  & D = & \uline{DPVAL} & ({\em korder}$_{\s i}$, {\em npc}$_{\s i}$,
+      {\em XI}$_{\s d}$, {\em PCOEF}$_{\s d}$, {\em x}$_{\s d}$, {\em ideriv}$_{\s i}$)\\
+ 3.3  & D = & \uline{DRANE} & ({\em xmean}$_{\s d}$)\\
+ 3.2  & D = & \uline{DRANG} & ( )\\
+ 3.2  & CALL& \uline{DRANGV} & ({\bf A}$_{\s d}$, {\em ndim}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em U}$_{\s d}$, {\bf X}$_{\s d}$, {\bf havec}$_{\s L}$,
+      {\bf ierr}$_{\s i}$)\\
+ 3.3  & D = & \uline{DRANR} & ({\em alpha}$_{\s d}$)\\
+ 3.1  & D = & \uline{DRANU} & ( )\\
+ 3.1  & CALL& \uline{DRANUA} & ({\bf XTAB}$_{\s d}$, {\em n}$_{\s i}$)\\
+ 3.1  & CALL& \uline{DRANUS} & ({\bf XTAB}$_{\s d}$, {\em n}$_{\s i}$,
+      {\em a}$_{\s d}$, {\em b}$_{\s d}$)\\
+ 2.9  & CALL& \uline{DRCVAL} & ({\em x}$_{\s d}$, {\em y}$_{\s d}$,
+      {\bf rc}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 2.9  & CALL& \uline{DRDVAL} & ({\em x}$_{\s d}$, {\em y}$_{\s d}$,
+      {\em z}$_{\s d}$, {\bf rd}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 2.15 & D = & \uline{DREXP} & ({\em x}$_{\s d}$)\\
+10.4  & CALL& \uline{DRFT} & ({\bf A}$_{\s d}$, {\em mode}$_{\s c}$,
+      {\em M}$_{\s i}$, {\em nd}$_{\s i}$, {\bf ms}$_{\s i}$, {\bf S}$_{\s d}$)\\
+10.1  & CALL& \uline{DRFT1} & ({\bf A}$_{\s d}$, {\em mode}$_{\s c}$,
+      {\em m}$_{\s i}$, {\bf ms}$_{\s i}$, {\bf S}$_{\s d}$)\\
+ 2.9  & CALL& \uline{DRFVAL} & ({\em x}$_{\s d}$, {\em y}$_{\s d}$,
+      {\em z}$_{\s d}$, {\bf rf}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 2.9  & CALL& \uline{DRJVAL} & ({\em x}$_{\s d}$, {\em y}$_{\s d}$,
+      {\em z}$_{\s d}$, {\em r}$_{\s d}$, {\bf rj}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+ 2.15 & D = & \uline{DRLOG} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DRLOG1} & ({\em x}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DROT} & ({\em n}$_{\s i}$, {\bf DX}$_{\s d}$,
+      {\em incx}$_{\s i}$, {\bf DY}$_{\s d}$, {\em incy}$_{\s i}$,
+      {\em dc}$_{\s d}$, {\em ds}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DROTG} & ({\bf da}$_{\s d}$, {\bf db}$_{\s d}$,
+      {\bf dc}$_{\s d}$, {\bf ds}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DROTM} & ({\em n}$_{\s i}$, {\bf DX}$_{\s d}$,
+      {\em incx}$_{\s i}$, {\bf DY}$_{\s d}$, {\em incy}$_{\s i}$,
+      {\em DPARAM}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DROTMG} & ({\bf dd1}$_{\s d}$, {\bf dd2}$_{\s d}$,
+      {\bf dx1}$_{\s d}$, {\em dx2}$_{\s d}$, {\bf DPARAM}$_{\s d}$)\\
+11.6  & CALL& \uline{DSBASD} & ({\em korder}$_{\s i}$, {\em left}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\em x}$_{\s d}$, {\em ideriv}$_{\s i}$,
+      {\bf BDERIV}$_{\s d}$)\\
+11.6  & CALL& \uline{DSBASI} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\em x1}$_{\s d}$, {\em x2}$_{\s d}$,
+      {\bf j1}$_{\s i}$, {\bf j2}$_{\s i}$, {\bf BASI}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DSCAL} & ({\em n}$_{\s i}$, {\em da}$_{\s d}$,
+      {\bf DX}$_{\s d}$, {\em incx}$_{\s i}$)\\
+11.6  & CALL& \uline{DSDIF} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\em BCOEF}$_{\s d}$, {\em nderiv}$_{\s i}$,
+      {\bf BDIF}$_{\s d}$)\\
+ 6.3  & D = & \uline{DSDOT} & ({\em n}$_{\s i}$, {\em SX}$_{\s r}$,
+      {\em incx}$_{\s i}$, {\em SY}$_{\s r}$, {\em incy}$_{\s i}$)\\
+11.6  & CALL& \uline{DSFIND} & ({\em XT}$_{\s d}$, {\em ix1}$_{\s i}$,
+      {\em ix2}$_{\s i}$, {\em x}$_{\s d}$, {\bf left}$_{\s i}$, {\bf mode}$_{\s i}$)\\
+11.5  & CALL& \uline{DSFIT} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em SD}$_{\s d}$, {\em nxy}$_{\s i}$, {\em korder}$_{\s i}$,
+      {\em ncoef}$_{\s i}$, {\em TKNOTS}$_{\s d}$, {\bf BCOEF}$_{\s d}$,
+      {\bf sigfac}$_{\s d}$, {\bf ierr1}$_{\s i}$, {\em ldw}$_{\s i}$,
+      {\bf W}$_{\s d}$)\\
+11.5  & CALL& \uline{DSFITC} & ({\em CCODE}$_{\s c}$, {\em X}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\em SD}$_{\s d}$, {\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\bf BCOEF}$_{\s d}$, {\bf rnorm}$_{\s d}$,
+      {\em ISET}$_{\s i}$, {\bf INFO}$_{\s i}$, {\bf W}$_{\s d}$)\\
+ 2.14 & D = & \uline{DSI} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DSIN1} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DSINHM} & ({\em x}$_{\s d}$)\\
+ 2.15 & D = & \uline{DSINPX} & ({\em x}$_{\s d}$)\\
+18.1  & CALL& \uline{DSORT} & ({\bf I}$_{\s d}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$)\\
+18.1  & CALL& \uline{DSORTP} & ({\em I}$_{\s d}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+18.1  & CALL& \uline{DSORTQ} & ({\em I}$_{\s d}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+ 4.7  & CALL& \uline{DSPGE} & ({\em n}$_{\s i}$, {\bf ISPEC}$_{\s i}$,
+      {\bf IA}$_{\s i}$, {\bf A}$_{\s d}$, {\bf B}$_{\s d}$, {\bf OPT}$_{\s d}$)\\
+11.5  & D = & \uline{DSQUAD} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\em BCOEF}$_{\s d}$, {\em x1}$_{\s d}$,
+      {\em x2}$_{\s d}$)\\
+15.1  & CALL& \uline{DSTAT1} & ({\em XTAB}$_{\s d}$, {\em nx}$_{\s i}$,
+      {\bf STATS}$_{\s d}$, {\bf IHIST}$_{\s i}$, {\em ncells}$_{\s i}$,
+      {\em x1}$_{\s d}$, {\em x2}$_{\s d}$)\\
+15.1  & CALL& \uline{DSTAT2} & ({\em STATS}$_{\s d}$, {\em IHIST}$_{\s i}$,
+      {\em ncells}$_{\s i}$, {\em x1}$_{\s d}$, {\em x2}$_{\s d}$)\\
+11.5  & CALL& \uline{DSTOP} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\em BCOEF}$_{\s d}$, {\bf BDIF}$_{\s d}$,
+      {\bf npc}$_{\s i}$, {\bf XI}$_{\s d}$, {\bf PCOEF}$_{\s d}$)\\
+ 4.3  & CALL& \uline{DSVA} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em mdata}$_{\s i}$, {\bf B}$_{\s d}$,
+      {\bf SING}$_{\s d}$, {\em KPVEC}$_{\s i}$, {\em NAMES}$_{\s c}$,
+      {\em iscale}$_{\s i}$, {\bf D}$_{\s d}$, {\bf WORK}$_{\s d}$)\\
+11.5  & D = & \uline{DSVAL} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\em BCOEF}$_{\s d}$, {\em x}$_{\s d}$,
+      {\em ideriv}$_{\s i}$)\\
+11.6  & CALL& \uline{DSVALA} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s d}$, {\em nderiv}$_{\s i}$, {\em BDIF}$_{\s d}$,
+      {\em x}$_{\s d}$, {\bf SVALUE}$_{\s d}$)\\
+ 4.3  & CALL& \uline{DSVDRS} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\bf B}$_{\s d}$, {\em ldb}$_{\s i}$,
+      {\em nb}$_{\s i}$, {\bf SING}$_{\s d}$, {\bf WORK}$_{\s d}$)\\
+ 6.3  & CALL& \uline{DSWAP} & ({\em n}$_{\s i}$, {\bf DX}$_{\s d}$,
+      {\em incx}$_{\s i}$, {\bf DY}$_{\s d}$, {\em incy}$_{\s i}$)\\
+ 5.1  & CALL& \uline{DSYMQL} & ({\bf A}$_{\s d}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf EVAL}$_{\s d}$, {\bf WORK}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+10.2  & CALL& \uline{DTCST} & ({\bf A}$_{\s d}$, {\em tcs}$_{\s c}$,
+      {\em mode}$_{\s c}$, {\em M}$_{\s i}$, {\em nd}$_{\s i}$, {\bf ms}$_{\s i}$,
+      {\bf S}$_{\s d}$)\\
+12.4  & CALL& \uline{DTGFI} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em Z}$_{\s d}$, {\em DZ}$_{\s d}$, {\em TRIANG}$_{\s i}$, {\em nt}$_{\s i}$,
+      {\em B}$_{\s i}$, {\em mb}$_{\s i}$, {\em ncont}$_{\s i}$, {\em Q}$_{\s d}$,
+      {\bf zout}$_{\s d}$, {\em wantdz}$_{\s L}$, {\bf DZOUT}$_{\s d}$,
+      {\bf mode}$_{\s i}$, {\bf SAVWRK}$_{\s d}$)\\
+12.4  & CALL& \uline{DTGGRD} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em np}$_{\s i}$, {\bf IP}$_{\s i}$, {\bf W}$_{\s d}$, {\bf TRIANG}$_{\s i}$,
+      {\em mt}$_{\s i}$, {\bf B}$_{\s i}$, {\em mb}$_{\s i}$, {\bf nt}$_{\s i}$,
+      {\bf INFO}$_{\s i}$)\\
+12.4  & CALL& \uline{DTGPD} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em Z}$_{\s d}$, {\bf DZ}$_{\s d}$, {\em np}$_{\s i}$, {\em TRIANG}$_{\s i}$,
+      {\em nt}$_{\s i}$, {\bf IWORK}$_{\s i}$)\\
+12.4  & CALL& \uline{DTGPRG} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em np}$_{\s i}$, {\em TRIANG}$_{\s i}$, {\em B}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\em nt}$_{\s i}$)\\
+12.4  & CALL& \uline{DTGREC} & ({\em X}$_{\s d}$, {\em Y}$_{\s d}$,
+      {\em Z}$_{\s d}$, {\em DZ}$_{\s d}$, {\em np}$_{\s i}$, {\em TRIANG}$_{\s i}$,
+      {\em nt}$_{\s i}$, {\em B}$_{\s i}$, {\em nb}$_{\s i}$, {\em XYLIM}$_{\s d}$,
+      {\em nx}$_{\s i}$, {\em ny}$_{\s i}$, {\em zfill}$_{\s d}$, {\bf ZVALS}$_{\s d}$,
+      {\em mx}$_{\s i}$, {\em my}$_{\s i}$, {\em ncont}$_{\s i}$, {\em wantpd}$_{\s L}$,
+      {\bf DZVALS}$_{\s d}$)\\
+17.2  & CALL& \uline{DUACOS} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUASIN} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUATAN} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUATN2} & ({\em U}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUCOS} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUCOSH} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUDIF} & ({\em U}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUDIF1} & ({\em a}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUEXP} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUGETN} & ({\bf n}$_{\s i}$, {\bf m1}$_{\s i}$,
+      {\bf m2}$_{\s i}$, {\bf l1}$_{\s i}$, {\bf l2}$_{\s i}$)\\
+17.2  & CALL& \uline{DULOG} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUPRO} & ({\em U}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUPRO1} & ({\em a}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUPWRI} & ({\em i}$_{\s i}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUQUO} & ({\em U}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUQUO1} & ({\em a}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUREV} & ({\em UT}$_{\s d}$, {\bf TU}$_{\s d}$,
+      {\em ldim}$_{\s i}$, {\bf rcond}$_{\s d}$, {\bf IWORK}$_{\s i}$,
+      {\bf WORK}$_{\s d}$)\\
+17.2  & CALL& \uline{DUSET} & ({\em val}$_{\s d}$, {\em key}$_{\s i}$,
+      {\bf U}$_{\s d}$)\\
+17.2  & CALL& \uline{DUSETN} & ({\em n}$_{\s i}$, {\em m1}$_{\s i}$,
+      {\em m2}$_{\s i}$)\\
+17.2  & CALL& \uline{DUSIN} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUSINH} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUSQRT} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUSUM} & ({\em U}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUSUM1} & ({\em a}$_{\s d}$, {\em V}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUTAN} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.2  & CALL& \uline{DUTANH} & ({\em U}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+ 6.1  & CALL& \uline{DVECP} & ({\em V}$_{\s d}$, {\em n}$_{\s i}$,
+      {\em text}$_{\s c}$)\\
+ 6.2  & CALL& \uline{DVECPR} & ({\bf V}$_{\s d}$, {\em n}$_{\s i}$,
+      {\em $^{\prime}$text$^{\prime}$}$_{\s c}$, {\em lwidth}$_{\s i}$,
+      {\em lunit}$_{\s i}$, {\em numdig}$_{\s i}$)\\
+17.1  & CALL& \uline{DWACOS} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWASIN} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWATAN} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWATN2} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWCHN} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf F}$_{\s d}$)\\
+17.1  & CALL& \uline{DWCOS} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWCOSH} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWDIF} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWDIF1} & ({\em n}$_{\s i}$, {\em a}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWEXP} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWLOG} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWPRO} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWPRO1} & ({\em n}$_{\s i}$, {\em a}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWPWRI} & ({\em n}$_{\s i}$, {\em i}$_{\s i}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWQUO} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWQUO1} & ({\em n}$_{\s i}$, {\em a}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWRCHN} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf F}$_{\s d}$)\\
+17.1  & CALL& \uline{DWSET} & ({\em n}$_{\s i}$, {\em val}$_{\s d}$,
+      {\em deriv}$_{\s d}$, {\bf W}$_{\s d}$)\\
+17.1  & CALL& \uline{DWSIN} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWSINH} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWSQRT} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWSUM} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWSUM1} & ({\em n}$_{\s i}$, {\em a}$_{\s d}$,
+      {\em Y}$_{\s d}$, {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWTAN} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+17.1  & CALL& \uline{DWTANH} & ({\em n}$_{\s i}$, {\em X}$_{\s d}$,
+      {\bf Z}$_{\s d}$)\\
+14.2  & CALL& \uline{DXRK8} & ({\bf TS}$_{\s d}$, {\bf Y}$_{\s d}$,
+      {\bf OPT}$_{\s d}$, {\bf IDAT}$_{\s i}$, {\bf DAT}$_{\s d}$,
+      {\bf WORK}$_{\s d}$)\\
+14.2  & CALL& \uline{DXRK8A} & ({\bf TS}$_{\s d}$, {\bf Y}$_{\s d}$,
+      {\em F}$_{\s d}$, {\bf IDAT}$_{\s i}$, {\bf DAT}$_{\s d}$, {\bf WORK}$_{\s d}$)\\
+14.2  & CALL& \uline{DXRK8G} & ({\bf TS}$_{\s d}$, {\bf Y}$_{\s d}$,
+      {\bf F}$_{\s d}$, {\bf IDAT}$_{\s i}$)\\
+17.3  & D = & \uline{DZABS} & ({\em A}$_{\s d}$)\\
+ 8.1  & CALL& \uline{DZERO} & ({\bf x1}$_{\s d}$, {\bf f1}$_{\s d}$,
+      {\bf x2}$_{\s d}$, {\bf f2}$_{\s d}$, {\bf mode}$_{\s i}$, {\em tol}$_{\s d}$)\\
+19.2  & CALL& \uline{ERFIN} & \\
+19.2  & CALL& \uline{ERMOR} & ({\em mess}$_{\s c}$, {\em flag}$_{\s c}$)\\
+19.2  & CALL& \uline{ERMSET} & ({\em idelta}$_{\s i}$)\\
+19.2  & CALL& \uline{ERMSG} & ({\em subnam}$_{\s c}$, {\em ierr}$_{\s i}$,
+      {\em level}$_{\s i}$, {\em mess}$_{\s c}$, {\em flag}$_{\s c}$)\\
+18.4  & CALL& \uline{EXSORT} & (\uline{dataop}$_{\s x}$, {\em n}$_{\s i}$,
+      {\bf L}$_{\s i}$, {\em option}$_{\s i}$, {\bf outfil}$_{\s i}$)\\
+18.2  & CALL& \uline{GSORTP} & (\uline{compar}$_{\s i}$, {\em n}$_{\s i}$,
+      {\bf IP}$_{\s i}$)\\
+19.1  & I = & \uline{I1MACH} & ({\em j}$_{\s i}$)\\
+ 6.3  & I = & \uline{ICAMAX} & ({\em n}$_{\s i}$, {\em CX}$_{\s z}$,
+      {\em incx}$_{\s i}$)\\
+ 6.3  & I = & \uline{IDAMAX} & ({\em n}$_{\s i}$, {\em DX}$_{\s d}$,
+      {\em incx}$_{\s i}$)\\
+ 3.3  & I = & \uline{IDRANP} & ({\em xmean}$_{\s d}$)\\
+15.1  & CALL& \uline{IDSTA1} & ({\em ITAB}$_{\s i}$, {\em ni}$_{\s i}$,
+      {\bf ISTATS}$_{\s i}$, {\bf XSTATS}$_{\s d}$, {\bf IHIST}$_{\s i}$,
+      {\em ilow}$_{\s i}$, {\em ncells}$_{\s i}$)\\
+15.1  & CALL& \uline{IDSTA2} & ({\em ISTATS}$_{\s i}$, {\em XSTATS}$_{\s d}$,
+      {\em IHIST}$_{\s i}$, {\em ilow}$_{\s i}$, {\em ncells}$_{\s i}$)\\
+19.2  & CALL& \uline{IERM1} & ({\em subnam}$_{\s c}$, {\em ierr}$_{\s i}$,
+      {\em level}$_{\s i}$, {\em mess}$_{\s c}$, {\em label}$_{\s c}$,
+      {\em idata}$_{\s i}$, {\em flag}$_{\s c}$)\\
+19.2  & CALL& \uline{IERV1} & ({\em label}$_{\s c}$, {\em idata}$_{\s i}$,
+      {\em flag}$_{\s c}$)\\
+ 6.1  & CALL& \uline{IMATP} & ({\em A}$_{\s i}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em text}$_{\s c}$)\\
+ 6.2  & CALL& \uline{IMATPR} & ({\em A}$_{\s i}$, {\em idima}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em $^{\prime}$text$^{\prime}$}$_{\s c}$,
+      {\em lwidth}$_{\s i}$, {\em lunit}$_{\s i}$)\\
+18.3  & CALL& \uline{INSORT} & (\uline{compar}$_{\s i}$, {\em n}$_{\s i}$,
+      {\bf L}$_{\s i}$, {\bf l1}$_{\s i}$)\\
+ 6.3  & I = & \uline{ISAMAX} & ({\em n}$_{\s i}$, {\em SX}$_{\s r}$,
+      {\em incx}$_{\s i}$)\\
+18.1  & CALL& \uline{ISORT} & ({\bf I}$_{\s i}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$)\\
+18.1  & CALL& \uline{ISORTP} & ({\em I}$_{\s i}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+18.1  & CALL& \uline{ISORTQ} & ({\em I}$_{\s i}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+ 3.3  & I = & \uline{ISRANP} & ({\em xmean}$_{\s r}$)\\
+15.1  & CALL& \uline{ISSTA1} & ({\em ITAB}$_{\s i}$, {\em ni}$_{\s i}$,
+      {\bf ISTATS}$_{\s i}$, {\bf XSTATS}$_{\s r}$, {\bf IHIST}$_{\s i}$,
+      {\em ilow}$_{\s i}$, {\em ncells}$_{\s i}$)\\
+15.1  & CALL& \uline{ISSTA2} & ({\em ISTATS}$_{\s i}$, {\em XSTATS}$_{\s r}$,
+      {\em IHIST}$_{\s i}$, {\em ilow}$_{\s i}$, {\em ncells}$_{\s i}$)\\
+ 6.1  & CALL& \uline{IVECP} & ({\em V}$_{\s i}$, {\em n}$_{\s i}$,
+      {\em text}$_{\s c}$)\\
+ 6.2  & CALL& \uline{IVECPR} & ({\em V}$_{\s i}$, {\em n}$_{\s i}$,
+      {\em $^{\prime}$text$^{\prime}$}$_{\s c}$, {\em lwidth}$_{\s i}$,
+      {\em lunit}$_{\s i}$)\\
+19.3  & CALL& \uline{MESS} & ({\bf MACT}$_{\s i}$, {\em TEXT}$_{\s c}$,
+      {\em IDAT}$_{\s i}$)\\
+18.3  & CALL& \uline{PVEC} & ({\bf L}$_{\s i}$, {\em l1}$_{\s i}$)\\
+19.1  & R = & \uline{R1MACH} & ({\em j}$_{\s i}$)\\
+ 3.1  & CALL& \uline{RAN1} & \\
+ 3.1  & CALL& \uline{RANGET} & ({\bf KSEED}$_{\s i}$)\\
+ 3.1  & CALL& \uline{RANPUT} & ({\em KSEED}$_{\s i}$)\\
+ 3.1  & CALL& \uline{RANSIZ} & ({\bf ksize}$_{\s i}$)\\
+ 3.1  & CALL& \uline{RN2} & ({\bf mode}$_{\s i}$)\\
+ 4.4  & CALL& \uline{SACCUM} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s r}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf ir1}$_{\s i}$, {\em nrows}$_{\s i}$, {\bf ncount}$_{\s i}$)\\
+ 2.1  & R = & \uline{SACOSH} & ({\em x}$_{\s r}$)\\
+ 2.1  & R = & \uline{SACSCH} & ({\em x}$_{\s r}$)\\
+ 2.1  & R = & \uline{SACTNH} & ({\em x}$_{\s r}$)\\
+ 2.1  & R = & \uline{SASECH} & ({\em x}$_{\s r}$)\\
+ 2.1  & R = & \uline{SASINH} & ({\em x}$_{\s r}$)\\
+ 6.3  & R = & \uline{SASUM} & ({\em n}$_{\s i}$, {\em SX}$_{\s r}$,
+      {\em incx}$_{\s i}$)\\
+ 2.1  & R = & \uline{SATANH} & ({\em x}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SAXPY} & ({\em n}$_{\s i}$, {\em sa}$_{\s r}$,
+      {\em SX}$_{\s r}$, {\em incx}$_{\s i}$, {\bf SY}$_{\s r}$, {\em incy}$_{\s i}$)\\
+ 4.5  & CALL& \uline{SBACC} & ({\bf G}$_{\s r}$, {\em ldg}$_{\s i}$,
+      {\em nb}$_{\s i}$, {\bf ir}$_{\s i}$, {\em mt}$_{\s i}$, {\em jt}$_{\s i}$,
+      {\bf jtprev}$_{\s i}$, {\bf ierr2}$_{\s i}$)\\
+ 2.4  & R = & \uline{SBESJ0} & ({\em x}$_{\s r}$)\\
+ 2.4  & R = & \uline{SBESJ1} & ({\em x}$_{\s r}$)\\
+ 2.5  & CALL& \uline{SBESJN} & ({\em x}$_{\s r}$, {\em alpha}$_{\s r}$,
+      {\em num}$_{\s i}$, {\bf BJ}$_{\s r}$)\\
+ 2.4  & R = & \uline{SBESY0} & ({\em x}$_{\s r}$)\\
+ 2.4  & R = & \uline{SBESY1} & ({\em x}$_{\s r}$)\\
+ 2.5  & CALL& \uline{SBESYN} & ({\em x}$_{\s r}$, {\em alpha}$_{\s r}$,
+      {\em num}$_{\s i}$, {\bf BY}$_{\s r}$)\\
+ 2.6  & CALL& \uline{SBI0K0} & ({\em x}$_{\s r}$, {\bf bi0}$_{\s r}$,
+      {\bf bk0}$_{\s r}$, {\em iwant}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 2.6  & CALL& \uline{SBI1K1} & ({\em x}$_{\s r}$, {\bf bi1}$_{\s r}$,
+      {\bf bk1}$_{\s r}$, {\em iwant}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 2.20 & R = & \uline{SBINOM} & ({\em n}$_{\s i}$, {\em k}$_{\s i}$)\\
+ 4.5  & CALL& \uline{SBSOL} & ({\em mode}$_{\s i}$, {\em G}$_{\s r}$,
+      {\em ldg}$_{\s i}$, {\em nb}$_{\s i}$, {\em ir}$_{\s i}$, {\em jtprev}$_{\s i}$,
+      {\bf X}$_{\s r}$, {\em n}$_{\s i}$, {\bf rnorm}$_{\s r}$, {\bf ierr3}$_{\s i}$)\\
+11.4  & CALL& \uline{SC2FIT} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em SD}$_{\s r}$, {\em nxy}$_{\s i}$, {\em B}$_{\s r}$, {\em nb}$_{\s i}$,
+      {\bf W}$_{\s r}$, {\em ldw}$_{\s i}$, {\bf YKNOT}$_{\s r}$, {\bf YPKNOT}$_{\s r}$,
+      {\bf sigfac}$_{\s r}$, {\bf ierr1}$_{\s i}$)\\
+ 6.3  & R = & \uline{SCASUM} & ({\em n}$_{\s i}$, {\em CX}$_{\s z}$,
+      {\em incx}$_{\s i}$)\\
+15.3  & CALL& \uline{SCDCHI} & ({\em chisq}$_{\s r}$, {\em nu}$_{\s r}$,
+      {\bf p}$_{\s r}$, {\bf q}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+15.2  & R = & \uline{SCDNML} & ({\em x}$_{\s r}$, {\em mu}$_{\s r}$,
+      {\em sigma}$_{\s r}$)\\
+15.4  & CALL& \uline{SCDPOI} & ({\em n}$_{\s i}$, {\em lamda}$_{\s r}$,
+      {\bf p}$_{\s r}$, {\bf q}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+10.3  & CALL& \uline{SCFT} & ({\bf A}$_{\s r}$, {\em mode}$_{\s c}$,
+      {\em M}$_{\s i}$, {\em nd}$_{\s i}$, {\bf ms}$_{\s i}$, {\bf S}$_{\s r}$)\\
+ 4.6  & CALL& \uline{SCHOL} & ({\bf P}$_{\s r}$, {\em ldp}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf D}$_{\s r}$, {\bf u}$_{\s r}$, {\em tol}$_{\s r}$,
+      {\bf ierr}$_{\s i}$)\\
+ 2.14 & R = & \uline{SCI} & ({\em x}$_{\s r}$)\\
+ 2.14 & R = & \uline{SCIN} & ({\em x}$_{\s r}$)\\
+ 8.3  & CALL& \uline{SCKDER} & ({\bf mode}$_{\s i}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf X}$_{\s r}$, {\em FVEC}$_{\s r}$, {\em FJAC}$_{\s r}$,
+      {\em ldfjac}$_{\s i}$, {\bf TEST}$_{\s r}$, {\bf imax}$_{\s i}$,
+      {\bf jmax}$_{\s i}$, {\bf tstmax}$_{\s r}$)\\
+ 6.3  & R = & \uline{SCNRM2} & ({\em n}$_{\s i}$, {\em CX}$_{\s z}$,
+      {\em incx}$_{\s i}$)\\
+11.3  & CALL& \uline{SCONCM} & ({\em n}$_{\s i}$, {\bf COEFF}$_{\s r}$)\\
+11.3  & CALL& \uline{SCONMC} & ({\em n}$_{\s i}$, {\bf COEFF}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SCOPY} & ({\em n}$_{\s i}$, {\em SX}$_{\s r}$,
+      {\em incx}$_{\s i}$, {\bf SY}$_{\s r}$, {\em incy}$_{\s i}$)\\
+ 2.15 & R = & \uline{SCOS1} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SCOSHM} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SCOSPX} & ({\em x}$_{\s r}$)\\
+ 4.2  & CALL& \uline{SCOV2} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IP}$_{\s i}$, {\em var}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 4.3  & CALL& \uline{SCOV3} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em SING}$_{\s r}$, {\em var}$_{\s r}$, {\bf WORK}$_{\s r}$,
+      {\bf ierr}$_{\s i}$)\\
+11.2  & CALL& \uline{SCPDRV} & ({\em C}$_{\s r}$, {\em ndegc}$_{\s i}$,
+      {\bf D}$_{\s r}$, {\bf ndegd}$_{\s i}$)\\
+11.2  & CALL& \uline{SCPINT} & ({\em A}$_{\s r}$, {\em ndega}$_{\s i}$,
+      {\bf B}$_{\s r}$, {\bf ndegb}$_{\s i}$)\\
+ 2.8  & R = & \uline{SCPLTE} & ({\em em}$_{\s r}$)\\
+ 2.8  & R = & \uline{SCPLTK} & ({\em em}$_{\s r}$)\\
+11.2  & R = & \uline{SCPVAL} & ({\em P}$_{\s r}$, {\em ndeg}$_{\s i}$,
+      {\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SCSHMM} & ({\em x}$_{\s r}$)\\
+14.3  & CALL& \uline{SDASDB} & ({\em kase}$_{\s i}$, {\em neq}$_{\s i}$,
+      {\em t}$_{\s r}$, {\bf Y}$_{\s r}$, {\bf YPRIME}$_{\s r}$, {\bf INFO}$_{\s i}$,
+      {\bf RWORK}$_{\s r}$, {\bf IWORK}$_{\s i}$, {\em ires}$_{\s i}$,
+      {\bf ATOL}$_{\s r}$, {\bf RTOL}$_{\s r}$)\\
+14.3  & CALL& \uline{SDASLS} & (\uline{sdasf}$_{\s x}$, {\em neq}$_{\s i}$,
+      {\scriptsize t}$_{\s r}$, {\scriptsize Y}$_{\s r}$, {\bf ~YPRIME}$_{\s r}$,
+      {\bf INFO}$_{\s i}$, {\em ftol}$_{\s r}$, {\em rnktol}$_{\s r}$,
+      {\bf ~C}$_{\s r}$, {\em ldc}$_{\s i}$, {\em ltd}$_{\s i}$, {\bf idid}$_{\s i}$,
+      {\bf ~RWORK}$_{\s r}$, {\em lrw}$_{\s i}$, {\bf IWORK}$_{\s i}$,
+      {\em liw}$_{\s i}$)\\
+14.3  & CALL& \uline{SDASLX} & (\uline{sdasf}$_{\s x}$, {\em neq}$_{\s i}$,
+      {t}$_{\s r}$, {\bf Y}$_{\s r}$, {\bf YPRIME}$_{\s r}$, {\em tout}$_{\s r}$,
+      {\bf INFO}$_{\s i}$, {\bf RTOL}$_{\s r}$, {\bf ATOL}$_{\s r}$,
+      {\bf idid}$_{\s i}$, {\bf RWORK}$_{\s r}$, {\em lrw}$_{\s i}$,
+      {\bf IWORK}$_{\s i}$, {\em liw}$_{\s i}$)\\
+ 6.3  & R = & \uline{SDOT} & ({\em n}$_{\s i}$, {\em SX}$_{\s r}$,
+      {\em incx}$_{\s i}$, {\em SY}$_{\s r}$, {\em incy}$_{\s i}$)\\
+ 6.3  & R = & \uline{SDSDOT} & ({\em n}$_{\s i}$, {\em sb}$_{\s r}$,
+      {\em SX}$_{\s r}$, {\em incx}$_{\s i}$, {\em SY}$_{\s r}$, {\em incy}$_{\s i}$)\\
+ 2.10 & R = & \uline{SE1} & ({\em x}$_{\s r}$)\\
+ 2.10 & R = & \uline{SEI} & ({\em x}$_{\s r}$)\\
+ 2.9  & CALL& \uline{SELEFI} & ({\em phi}$_{\s r}$, {\em k}$_{\s r}$,
+      {\bf f}$_{\s r}$, {\bf e}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 2.9  & CALL& \uline{SELPII} & ({\em phi}$_{\s r}$, {\em k2}$_{\s r}$,
+      {\em alpha2}$_{\s r}$, {\bf pi}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 2.2  & R = & \uline{SERF} & ({\em x}$_{\s r}$)\\
+ 2.2  & R = & \uline{SERFC} & ({\em x}$_{\s r}$)\\
+ 2.2  & R = & \uline{SERFCE} & ({\em x}$_{\s r}$)\\
+ 2.13 & R = & \uline{SERFCI} & ({\em x}$_{\s r}$)\\
+ 2.13 & R = & \uline{SERFI} & ({\em x}$_{\s r}$)\\
+19.2  & CALL& \uline{SERM1} & ({\em subnam}$_{\s c}$, {\em ierr}$_{\s i}$,
+      {\em level}$_{\s i}$, {\em mess}$_{\s c}$, {\em label}$_{\s c}$,
+      {\em sdata}$_{\s r}$, {\em flag}$_{\s c}$)\\
+19.2  & CALL& \uline{SERV1} & ({\em label}$_{\s c}$, {\em sdata}$_{\s r}$,
+      {\em flag}$_{\s c}$)\\
+ 5.3  & CALL& \uline{SEVUN} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf VR}$_{\s r}$, {\bf VI}$_{\s r}$, {\bf IFLAG}$_{\s i}$)\\
+ 5.4  & CALL& \uline{SEVVUN} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf VR}$_{\s r}$, {\bf VI}$_{\s r}$, {\bf VEC}$_{\s r}$,
+      {\bf IFLAG}$_{\s i}$, {\bf WORK}$_{\s r}$)\\
+10.5  & CALL& \uline{SFFT} & ({\bf A(IR)}$_{\s r}$, {\bf A(II)}$_{\s r}$,
+      {\bf S}$_{\s r}$)\\
+ 9.1  & CALL& \uline{SFMIN} & ({\bf x}$_{\s r}$, {\bf xorf}$_{\s r}$,
+      {\bf mode}$_{\s i}$, {\em tol}$_{\s r}$)\\
+ 2.17 & R = & \uline{SFRENC} & ({\em x}$_{\s r}$)\\
+ 2.17 & R = & \uline{SFRENF} & ({\em x}$_{\s r}$)\\
+ 2.17 & R = & \uline{SFRENG} & ({\em x}$_{\s r}$)\\
+ 2.17 & R = & \uline{SFRENS} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SGAM1} & ({\em x}$_{\s r}$)\\
+ 2.19 & CALL& \uline{SGAMI} & ({\em a}$_{\s r}$, {\em x}$_{\s r}$,
+      {\bf p}$_{\s r}$, {\bf q}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 2.19 & CALL& \uline{SGAMIE} & ({\bf pqerr}$_{\s r}$)\\
+ 2.19 & CALL& \uline{SGAMIK} & ({\em ptol}$_{\s r}$, {\em qtol}$_{\s r}$,
+      {\em xerr}$_{\s r}$, {\em msgoff}$_{\s i}$)\\
+ 2.3  & R = & \uline{SGAMMA} & ({\em x}$_{\s r}$)\\
+ 4.1  & CALL& \uline{SGECO} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IPVT}$_{\s i}$, {\bf rcond}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+ 4.1  & CALL& \uline{SGED} & ({\em A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf DET}$_{\s r}$)\\
+ 4.1  & CALL& \uline{SGEFA} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IPVT}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 4.1  & CALL& \uline{SGEFS} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s r}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf IPVT}$_{\s i}$, {\bf info}$_{\s i}$)\\
+ 4.1  & CALL& \uline{SGEFSC} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf B}$_{\s r}$, {\em ldb}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\bf IPVT}$_{\s i}$, {\bf rcond}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+ 4.1  & CALL& \uline{SGEI} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf WORK}$_{\s r}$)\\
+ 4.1  & CALL& \uline{SGESLD} & ({\em A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf C}$_{\s r}$)\\
+ 4.1  & CALL& \uline{SGESLT} & ({\em A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em IPVT}$_{\s i}$, {\bf C}$_{\s r}$)\\
+ 5.2  & CALL& \uline{SHERQL} & ({\bf AR}$_{\s r}$, {\bf AI}$_{\s r}$,
+      {\em lda}$_{\s i}$, {\em n}$_{\s i}$, {\bf EVAL}$_{\s r}$, {\bf VR}$_{\s r}$,
+      {\bf VI}$_{\s r}$, {\bf WORK}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 4.2  & CALL& \uline{SHFTI} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\bf B}$_{\s r}$, {\em ldb}$_{\s i}$,
+      {\em nb}$_{\s i}$, {\em tau}$_{\s r}$, {\bf krank}$_{\s i}$,
+      {\bf RNORM}$_{\s r}$, {\bf WORK}$_{\s r}$, {\bf IP}$_{\s i}$)\\
+12.3  & R = & \uline{SHINT} & ({\em x}$_{\s r}$, {\em nderiv}$_{\s i}$,
+      {\em ntab}$_{\s i}$, {\em XTAB}$_{\s r}$, {\em YTAB}$_{\s r}$,
+      {\em YPTAB}$_{\s r}$)\\
+ 6.4  & CALL& \uline{SHTCC} & ({\em mode}$_{\s i}$, {\em lpivot}$_{\s i}$,
+      {\em l1}$_{\s i}$, {\em m}$_{\s i}$, {\bf U}$_{\s r}$, {\bf uparam}$_{\s r}$,
+      {\bf C}$_{\s r}$, {\em ldc}$_{\s i}$, {\em ncv}$_{\s i}$)\\
+ 6.4  & CALL& \uline{SHTGEN} & ({\em mode}$_{\s i}$, {\em lpivot}$_{\s i}$,
+      {\em l1}$_{\s i}$, {\em m}$_{\s i}$, {\bf U}$_{\s r}$, {\em ldu}$_{\s i}$,
+      {\em colu}$_{\s L}$, {\bf uparam}$_{\s r}$, {\bf C}$_{\s r}$,
+      {\em ldc}$_{\s i}$, {\em ncv}$_{\s i}$, {\em colc}$_{\s L}$)\\
+12.1  & CALL& \uline{SILUP} & ({\em x}$_{\s r}$, {\bf y}$_{\s r}$,
+      {\em ntab}$_{\s i}$, {\em XT}$_{\s r}$, {\em YT}$_{\s r}$, {\em ndeg}$_{\s i}$,
+      {\bf lup}$_{\s i}$, {\bf IOPT}$_{\s i}$, {\bf EOPT}$_{\s r}$)\\
+12.2  & CALL& \uline{SILUPM} & ({\em ndim}$_{\s i}$, {\bf X}$_{\s r}$,
+      {\bf y}$_{\s r}$, {\bf NTAB}$_{\s i}$, {\em XT}$_{\s r}$, {\em YT}$_{\s r}$,
+      {\em NDEG}$_{\s i}$, {\bf LUP}$_{\s i}$, {\bf IOPT}$_{\s i}$,
+      {\bf EOPT}$_{\s r}$)\\
+12.2  & CALL& \uline{SILUPMD} & ({\em ndim}$_{\s i}$, {\bf X}$_{\s r}$,
+      {\scriptsize y}$_{\s r}$, {\bf NTAB}$_{\s i}$, {\bf XT}$_{\s r}$,
+      {\bf YT}$_{\s r}$, {\em NDEG}$_{\s i}$, {\em LUP}$_{\s i}$, {\em IOPT}$_{\s i}$,
+      {\em EOPT}$_{\s r}$)\\
+13.1  & CALL& \uline{SINT1} & ({\em a}$_{\s r}$, {\em b}$_{\s r}$,
+      {\bf answer}$_{\s r}$, {\bf WORK}$_{\s r}$, {\bf IOPT}$_{\s i}$)\\
+13.1  & CALL& \uline{SINTA} & ({\bf answer}$_{\s r}$, {\bf WORK}$_{\s r}$,
+      {\bf IOPT}$_{\s i}$)\\
+13.2  & CALL& \uline{SINTM} & ({\em ndimi}$_{\s i}$, {\bf answer}$_{\s r}$,
+      {\bf WORK}$_{\s r}$, {\em nwork}$_{\s i}$, {\bf IOPT}$_{\s i}$)\\
+13.2  & CALL& \uline{SINTMA} & ({\bf answer}$_{\s r}$, {\bf WORK}$_{\s r}$,
+      {\bf IOPT}$_{\s i}$)\\
+13.1  & CALL& \uline{SINTOP} & ({\bf IOPT}$_{\s i}$, {\em WORK}$_{\s r}$)\\
+14.1  & CALL& \uline{SIVA} & ({\bf TSPECS}$_{\s r}$, {\bf Y}$_{\s r}$,
+      {\bf F}$_{\s r}$, {\bf KORD}$_{\s i}$, {\em neq}$_{\s i}$, \uline{sivaf}$_{\s x}$,
+      \uline{sivao}$_{\s x}$, {\em itdim}$_{\s i}$, {\em iydim}$_{\s i}$,
+      {\em ifdim}$_{\s i}$, {\em ikdim}$_{\s i}$, {\bf IOPT}$_{\s i}$)\\
+14.1  & CALL& \uline{SIVAA} & ({\bf TSPECS}$_{\s r}$, {\bf Y}$_{\s r}$,
+      {\bf F}$_{\s r}$, {\bf KORD}$_{\s i}$, \uline{sivaf}$_{\s x}$,
+      \uline{sivao}$_{\s x}$)\\
+14.1  & CALL& \uline{SIVACO} & ({\bf ID}$_{\s i}$, {\bf RD}$_{\s r}$)\\
+14.1  & CALL& \uline{SIVADB} & ({\em lprint}$_{\s i}$, {\bf TSPECS}$_{\s r}$,
+      {\bf Y}$_{\s r}$, {\bf F}$_{\s r}$, {\em KORD}$_{\s i}$, {\em text}$_{\s c}$)\\
+14.1  & CALL& \uline{SIVAG} & ({\bf TSPECS}$_{\s r}$, {\bf Y}$_{\s r}$,
+      {\bf F}$_{\s r}$, {\bf KORD}$_{\s i}$, {\bf iflag}$_{\s i}$,
+      {\bf nstop}$_{\s i}$, {\bf G6}$_{\s r}$, {\bf GT6}$_{\s r}$)\\
+14.1  & CALL& \uline{SIVAIN} & ({\em TSPECS}$_{\s r}$, {\bf Y}$_{\s r}$,
+      {\bf F}$_{\s r}$, {\em KORD}$_{\s i}$)\\
+14.1  & CALL& \uline{SIVAOP} & ({\bf IOPTOP}$_{\s i}$, {\bf FOPT}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SIVSET} & ({\em mode}$_{\s i}$, {\bf IV}$_{\s i}$,
+      {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s r}$)\\
+ 8.4  & CALL& \uline{SJACG} & ({\bf mode}$_{\s i}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf Y}$_{\s r}$, {\em F}$_{\s r}$, \\
+ 2.12 & CALL& \uline{SLASUM} & ({\em x}$_{\s r}$, {\em n}$_{\s i}$,
+      {\em A}$_{\s r}$, {\bf y}$_{\s r}$)\\
+ 2.11 & CALL& \uline{SLESUM} & ({\em s}$_{\s r}$, {\em n}$_{\s i}$,
+      {\em A}$_{\s r}$, {\bf y}$_{\s r}$)\\
+ 2.3  & R = & \uline{SLGAMA} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SLNREL} & ({\em x}$_{\s r}$)\\
+ 6.1  & CALL& \uline{SMATP} & ({\em A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em text}$_{\s c}$)\\
+ 6.2  & CALL& \uline{SMATPR} & ({\bf A}$_{\s r}$, {\em idima}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em $^{\prime}$text$^{\prime}$}$_{\s c}$,
+      {\em lwidth}$_{\s i}$, {\em lunit}$_{\s i}$, {\em numdig}$_{\s i}$)\\
+19.3  & CALL& \uline{SMESS} & ({\bf MACT}$_{\s i}$, {\em TEXT}$_{\s c}$,
+      {\em IDAT}$_{\s i}$, {\bf FDAT}$_{\s r}$)\\
+ 9.2  & CALL& \uline{SMLC01} & (\uline{smlcfg}$_{\s x}$, {n}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em meq}$_{\s i}$, {\em A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em B}$_{\s r}$, {\em XL}$_{\s r}$, {\em XU}$_{\s r}$, {\bf X}$_{\s r}$,
+      {\em acc}$_{\s r}$, {\em iprint}$_{\s i}$, {\em mxeval}$_{\s i}$,
+      {\bf IW}$_{\s i}$, {\em liw}$_{\s i}$, {\bf W}$_{\s r}$, {\em lw}$_{\s i}$)\\
+11.2  & CALL& \uline{SMPDRV} & ({\em C}$_{\s r}$, {\em ndegc}$_{\s i}$,
+      {\bf D}$_{\s r}$, {\bf ndegd}$_{\s i}$)\\
+11.2  & CALL& \uline{SMPINT} & ({\em A}$_{\s r}$, {\em ndega}$_{\s i}$,
+      {\bf B}$_{\s r}$, {\bf ndegb}$_{\s i}$)\\
+11.2  & R = & \uline{SMPVAL} & ({\em P}$_{\s r}$, {\em ndeg}$_{\s i}$,
+      {\em x}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLAFB} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s r}$,
+      {\em BND}$_{\s r}$, \uline{dcalcr}$_{\s x}$, {\bf IV}$_{\s i}$,
+      {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLAFU} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s r}$,
+      \uline{dcalcr}$_{\s x}$, {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$,
+      {\em lv}$_{\s i}$, {\bf V}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLAGB} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s r}$,
+      {\em BND}$_{\s r}$, \uline{dcalcr}$_{\s x}$, \uline{dcalcj}$_{\s x}$,
+      {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLAGU} & ({ndata}$_{\s i}$, {nc}$_{\s i}$, {\bf COEF}$_{\s r}$,
+      \uline{dcalcr}$_{\s x}$, \uline{dcalcj}$_{\s x}$, {\bf IV}$_{\s i}$,
+      {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLSFB} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s r}$, {\em BND}$_{\s r}$, {\bf BET}$_{\s r}$, {\em YDATA}$_{\s r}$,
+      \uline{dcalca}$_{\s x}$, {\em IND}$_{\s i}$, {\em lind}$_{\s i}$,
+      {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLSFU} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s r}$, {\bf BET}$_{\s r}$, {\em YDATA}$_{\s r}$,
+      \uline{dcalca}$_{\s x}$, {\em IND}$_{\s i}$, {\em lind}$_{\s i}$,
+      {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$, {\bf V}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLSGB} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s r}$, {\em BND}$_{\s r}$, {\bf BET}$_{\s r}$, {\em YDATA}$_{\s r}$,
+      \uline{dcalca}$_{\s x}$, \uline{dcalcb}$_{\s x}$, {\em IND}$_{\s i}$,
+      {\em lind}$_{\s i}$, {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$,
+      {\bf V}$_{\s r}$)\\
+ 9.3  & CALL& \uline{SNLSGU} & ({ndata}$_{\s i}$, {na}$_{\s i}$, {nb}$_{\s i}$,
+      {\bf ALF}$_{\s r}$, {\bf BET}$_{\s r}$, {\em YDATA}$_{\s r}$,
+      \uline{dcalca}$_{\s x}$, \uline{dcalcb}$_{\s x}$, {\em IND}$_{\s i}$,
+      {\em lind}$_{\s i}$, {\bf IV}$_{\s i}$, {\em liv}$_{\s i}$, {\em lv}$_{\s i}$,
+      {\bf V}$_{\s r}$)\\
+ 8.2  & CALL& \uline{SNQSOL} & (\uline{dnqfj}$_{\s x}$, {\em n}$_{\s i}$,
+      {\bf X}$_{\s r}$, {\bf FVEC}$_{\s r}$, {\em xtol}$_{\s r}$, {\bf IOPT}$_{\s i}$,
+      {\bf W}$_{\s r}$, {\em idimw}$_{\s i}$)\\
+ 6.3  & R = & \uline{SNRM2} & ({\em n}$_{\s i}$, {\em SX}$_{\s r}$,
+      {\em incx}$_{\s i}$)\\
+17.1  & CALL& \uline{SPASCL} & ({\em n}$_{\s i}$, {\bf C}$_{\s r}$)\\
+11.1  & CALL& \uline{SPFIT} & ({\em m}$_{\s i}$, {\em X}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\em SD}$_{\s r}$, {\em nmax}$_{\s i}$, {\em seekn}$_{\s L}$,
+      {\em comtrn}$_{\s L}$, {\em chbbas}$_{\s L}$, {\bf P}$_{\s r}$,
+      {\bf ndeg}$_{\s i}$, {\bf sigfac}$_{\s r}$, {\bf W}$_{\s r}$)\\
+16.3  & CALL& \uline{SPLOT} & ({\em xsize}$_{\s r}$, {\em ysize}$_{\s r}$,
+      {\em X}$_{\s r}$, {\em nx}$_{\s i}$, {\em Y}$_{\s r}$, {\bf OPT}$_{\s r}$,
+      {\em copt}$_{\s c}$)\\
+ 7.1  & CALL& \uline{SPOLZ} & ({\em A}$_{\s r}$, {\em ndeg}$_{\s i}$,
+      {\bf Z}$_{\s z}$, {\bf H}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 7.2  & CALL& \uline{SPOLZ2} & ({\em A}$_{\s r}$, {\bf Z}$_{\s z}$)\\
+15.2  & R = & \uline{SPPNML} & ({\em u}$_{\s r}$, {\em mu}$_{\s r}$,
+      {\em sigma}$_{\s r}$)\\
+11.5  & R = & \uline{SPQUAD} & ({\em korder}$_{\s i}$, {\em npc}$_{\s i}$,
+      {\em XI}$_{\s r}$, {\em PCOEF}$_{\s r}$, {\em x1}$_{\s r}$, {\em x2}$_{\s r}$)\\
+16.2  & CALL& \uline{SPRPL} & ({\em y}$_{\s r}$, {\em symbol}$_{\s c}$,
+      {\bf image}$_{\s c}$, {\em nchar}$_{\s i}$, {\em y1}$_{\s r}$,
+      {\em y2}$_{\s r}$, {\em reset}$_{\s L}$)\\
+16.1  & CALL& \uline{SPRPL1} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em np}$_{\s i}$, {\em title}$_{\s c}$, {\em xname}$_{\s c}$,
+      {\em yname}$_{\s c}$, {\em nlines}$_{\s i}$, {\em nchars}$_{\s i}$,
+      {\bf IMAGE}$_{\s c}$, {\bf ierr}$_{\s i}$)\\
+16.1  & CALL& \uline{SPRPL2} & ({\em XY}$_{\s r}$, {\em idim}$_{\s i}$,
+      {\em kc}$_{\s i}$, {\em JX}$_{\s i}$, {\em JY}$_{\s i}$, {\em NP}$_{\s i}$,
+      {\em SYMBOL}$_{\s c}$, {\em title}$_{\s c}$, {\em xname}$_{\s c}$,
+      {\em yname}$_{\s c}$, {\em nlines}$_{\s i}$, {\em nchars}$_{\s i}$,
+      {\bf IMAGE}$_{\s c}$, {\bf ierr}$_{\s i}$)\\
+ 2.18 & R = & \uline{SPSI} & ({\em x}$_{\s r}$)\\
+ 2.18 & CALL& \uline{SPSIE} & ({\bf err}$_{\s r}$, {\bf ierflg}$_{\s i}$)\\
+ 2.18 & CALL& \uline{SPSIK} & ({\em tol}$_{\s r}$, {\em xerr}$_{\s r}$,
+      {\em msgoff}$_{\s i}$)\\
+11.5  & R = & \uline{SPVAL} & ({\em korder}$_{\s i}$, {\em npc}$_{\s i}$,
+      {\em XI}$_{\s r}$, {\em PCOEF}$_{\s r}$, {\em x}$_{\s r}$, {\em ideriv}$_{\s i}$)\\
+ 3.3  & R = & \uline{SRANE} & ({\em xmean}$_{\s r}$)\\
+ 3.2  & R = & \uline{SRANG} & ( )\\
+ 3.2  & CALL& \uline{SRANGV} & ({\bf A}$_{\s r}$, {\em ndim}$_{\s i}$,
+      {\em n}$_{\s i}$, {\em U}$_{\s r}$, {\bf X}$_{\s r}$, {\bf havec}$_{\s L}$,
+      {\bf ierr}$_{\s i}$)\\
+ 3.3  & R = & \uline{SRANR} & ({\em alpha}$_{\s r}$)\\
+ 3.1  & R = & \uline{SRANU} & ( )\\
+ 3.1  & CALL& \uline{SRANUA} & ({\bf XTAB}$_{\s r}$, {\em n}$_{\s i}$)\\
+ 3.1  & CALL& \uline{SRANUS} & ({\bf XTAB}$_{\s r}$, {\em n}$_{\s i}$,
+      {\em a}$_{\s r}$, {\em b}$_{\s r}$)\\
+ 2.9  & CALL& \uline{SRCVAL} & ({\em x}$_{\s r}$, {\em y}$_{\s r}$,
+      {\bf rc}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 2.9  & CALL& \uline{SRDVAL} & ({\em x}$_{\s r}$, {\em y}$_{\s r}$,
+      {\em z}$_{\s r}$, {\bf rd}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 2.15 & R = & \uline{SREXP} & ({\em x}$_{\s r}$)\\
+10.4  & CALL& \uline{SRFT} & ({\bf A}$_{\s r}$, {\em mode}$_{\s c}$,
+      {\em M}$_{\s i}$, {\em nd}$_{\s i}$, {\bf ms}$_{\s i}$, {\bf S}$_{\s r}$)\\
+10.1  & CALL& \uline{SRFT1} & ({\bf A}$_{\s r}$, {\em mode}$_{\s c}$,
+      {\em m}$_{\s i}$, {\bf ms}$_{\s i}$, {\bf S}$_{\s r}$)\\
+ 2.9  & CALL& \uline{SRFVAL} & ({\em x}$_{\s r}$, {\em y}$_{\s r}$,
+      {\em z}$_{\s r}$, {\bf rf}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 2.9  & CALL& \uline{SRJVAL} & ({\em x}$_{\s r}$, {\em y}$_{\s r}$,
+      {\em z}$_{\s r}$, {\em r}$_{\s r}$, {\bf rj}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+ 2.15 & R = & \uline{SRLOG} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SRLOG1} & ({\em x}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SROT} & ({\em n}$_{\s i}$, {\bf SX}$_{\s r}$,
+      {\em incx}$_{\s i}$, {\bf SY}$_{\s r}$, {\em incy}$_{\s i}$,
+      {\em sc}$_{\s r}$, {\em ss}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SROTG} & ({\bf sa}$_{\s r}$, {\bf sb}$_{\s r}$,
+      {\bf sc}$_{\s r}$, {\bf ss}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SROTM} & ({\em n}$_{\s i}$, {\bf SX}$_{\s r}$,
+      {\em incx}$_{\s i}$, {\bf SY}$_{\s r}$, {\em incy}$_{\s i}$,
+      {\em SPARAM}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SROTMG} & ({\bf sd1}$_{\s r}$, {\bf sd2}$_{\s r}$,
+      {\bf sx1}$_{\s r}$, {\em sx2}$_{\s r}$, {\bf SPARAM}$_{\s r}$)\\
+11.6  & CALL& \uline{SSBASD} & ({\em korder}$_{\s i}$, {\em left}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\em x}$_{\s r}$, {\em ideriv}$_{\s i}$,
+      {\bf BDERIV}$_{\s r}$)\\
+11.6  & CALL& \uline{SSBASI} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\em x1}$_{\s r}$, {\em x2}$_{\s r}$,
+      {\bf j1}$_{\s i}$, {\bf j2}$_{\s i}$, {\bf BASI}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SSCAL} & ({\em n}$_{\s i}$, {\em sa}$_{\s r}$,
+      {\bf SX}$_{\s r}$, {\em incx}$_{\s i}$)\\
+11.6  & CALL& \uline{SSDIF} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\em BCOEF}$_{\s r}$, {\em nderiv}$_{\s i}$,
+      {\bf BDIF}$_{\s r}$)\\
+11.6  & CALL& \uline{SSFIND} & ({\em XT}$_{\s r}$, {\em ix1}$_{\s i}$,
+      {\em ix2}$_{\s i}$, {\em x}$_{\s r}$, {\bf left}$_{\s i}$, {\bf mode}$_{\s i}$)\\
+11.5  & CALL& \uline{SSFIT} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em SD}$_{\s r}$, {\em nxy}$_{\s i}$, {\em korder}$_{\s i}$,
+      {\em ncoef}$_{\s i}$, {\em TKNOTS}$_{\s r}$, {\bf BCOEF}$_{\s r}$,
+      {\bf sigfac}$_{\s r}$, {\bf ierr1}$_{\s i}$, {\em ldw}$_{\s i}$,
+      {\bf W}$_{\s r}$)\\
+11.5  & CALL& \uline{SSFITC} & ({\em CCODE}$_{\s c}$, {\em X}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\em SD}$_{\s r}$, {\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\bf BCOEF}$_{\s r}$, {\bf rnorm}$_{\s r}$,
+      {\em ISET}$_{\s i}$, {\bf INFO}$_{\s i}$, {\bf W}$_{\s r}$)\\
+ 2.14 & R = & \uline{SSI} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SSIN1} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SSINHM} & ({\em x}$_{\s r}$)\\
+ 2.15 & R = & \uline{SSINPX} & ({\em x}$_{\s r}$)\\
+18.1  & CALL& \uline{SSORT} & ({\bf I}$_{\s r}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$)\\
+18.1  & CALL& \uline{SSORTP} & ({\em I}$_{\s r}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+18.1  & CALL& \uline{SSORTQ} & ({\em I}$_{\s r}$, {\em m}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf IP}$_{\s i}$)\\
+ 4.7  & CALL& \uline{SSPGE} & ({\em n}$_{\s i}$, {\bf ISPEC}$_{\s i}$,
+      {\bf IA}$_{\s i}$, {\bf A}$_{\s r}$, {\bf B}$_{\s r}$, {\bf OPT}$_{\s r}$)\\
+11.5  & R = & \uline{SSQUAD} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\em BCOEF}$_{\s r}$, {\em x1}$_{\s r}$,
+      {\em x2}$_{\s r}$)\\
+15.1  & CALL& \uline{SSTAT1} & ({\em XTAB}$_{\s r}$, {\em nx}$_{\s i}$,
+      {\bf STATS}$_{\s r}$, {\bf IHIST}$_{\s i}$, {\em ncells}$_{\s i}$,
+      {\em x1}$_{\s r}$, {\em x2}$_{\s r}$)\\
+15.1  & CALL& \uline{SSTAT2} & ({\em STATS}$_{\s r}$, {\em IHIST}$_{\s i}$,
+      {\em ncells}$_{\s i}$, {\em x1}$_{\s r}$, {\em x2}$_{\s r}$)\\
+11.5  & CALL& \uline{SSTOP} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\em BCOEF}$_{\s r}$, {\bf BDIF}$_{\s r}$,
+      {\bf npc}$_{\s i}$, {\bf XI}$_{\s r}$, {\bf PCOEF}$_{\s r}$)\\
+ 4.3  & CALL& \uline{SSVA} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\em mdata}$_{\s i}$, {\bf B}$_{\s r}$,
+      {\bf SING}$_{\s r}$, {\em KPVEC}$_{\s i}$, {\em NAMES}$_{\s c}$,
+      {\em iscale}$_{\s i}$, {\bf D}$_{\s r}$, {\bf WORK}$_{\s r}$)\\
+11.5  & R = & \uline{SSVAL} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\em BCOEF}$_{\s r}$, {\em x}$_{\s r}$,
+      {\em ideriv}$_{\s i}$)\\
+11.6  & CALL& \uline{SSVALA} & ({\em korder}$_{\s i}$, {\em ncoef}$_{\s i}$,
+      {\em TKNOTS}$_{\s r}$, {\em nderiv}$_{\s i}$, {\em BDIF}$_{\s r}$,
+      {\em x}$_{\s r}$, {\bf SVALUE}$_{\s r}$)\\
+ 4.3  & CALL& \uline{SSVDRS} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em m}$_{\s i}$, {\em n}$_{\s i}$, {\bf B}$_{\s r}$, {\em ldb}$_{\s i}$,
+      {\em nb}$_{\s i}$, {\bf SING}$_{\s r}$, {\bf WORK}$_{\s r}$)\\
+ 6.3  & CALL& \uline{SSWAP} & ({\em n}$_{\s i}$, {\bf SX}$_{\s r}$,
+      {\em incx}$_{\s i}$, {\bf SY}$_{\s r}$, {\em incy}$_{\s i}$)\\
+ 5.1  & CALL& \uline{SSYMQL} & ({\bf A}$_{\s r}$, {\em lda}$_{\s i}$,
+      {\em n}$_{\s i}$, {\bf EVAL}$_{\s r}$, {\bf WORK}$_{\s r}$, {\bf ierr}$_{\s i}$)\\
+10.2  & CALL& \uline{STCST} & ({\bf A}$_{\s r}$, {\em tcs}$_{\s c}$,
+      {\em mode}$_{\s c}$, {\em M}$_{\s i}$, {\em nd}$_{\s i}$, {\bf ms}$_{\s i}$,
+      {\bf S}$_{\s r}$)\\
+12.4  & CALL& \uline{STGFI} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em Z}$_{\s r}$, {\em DZ}$_{\s r}$, {\em TRIANG}$_{\s i}$, {\em nt}$_{\s i}$,
+      {\em B}$_{\s i}$, {\em mb}$_{\s i}$, {\em ncont}$_{\s i}$, {\em Q}$_{\s r}$,
+      {\bf zout}$_{\s r}$, {\em wantdz}$_{\s L}$, {\bf DZOUT}$_{\s r}$,
+      {\bf mode}$_{\s i}$, {\bf SAVWRK}$_{\s r}$)\\
+12.4  & CALL& \uline{STGGRD} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em np}$_{\s i}$, {\bf IP}$_{\s i}$, {\bf W}$_{\s r}$, {\bf TRIANG}$_{\s i}$,
+      {\em mt}$_{\s i}$, {\bf B}$_{\s i}$, {\em mb}$_{\s i}$, {\bf nt}$_{\s i}$,
+      {\bf INFO}$_{\s i}$)\\
+12.4  & CALL& \uline{STGPD} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em Z}$_{\s r}$, {\bf DZ}$_{\s r}$, {\em np}$_{\s i}$, {\em TRIANG}$_{\s i}$,
+      {\em nt}$_{\s i}$, {\bf IWORK}$_{\s i}$)\\
+12.4  & CALL& \uline{STGPRG} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em np}$_{\s i}$, {\em TRIANG}$_{\s i}$, {\em B}$_{\s i}$, {\em nb}$_{\s i}$,
+      {\em nt}$_{\s i}$)\\
+12.4  & CALL& \uline{STGREC} & ({\em X}$_{\s r}$, {\em Y}$_{\s r}$,
+      {\em Z}$_{\s r}$, {\em DZ}$_{\s r}$, {\em np}$_{\s i}$, {\em TRIANG}$_{\s i}$,
+      {\em nt}$_{\s i}$, {\em B}$_{\s i}$, {\em nb}$_{\s i}$, {\em XYLIM}$_{\s r}$,
+      {\em nx}$_{\s i}$, {\em ny}$_{\s i}$, {\em zfill}$_{\s r}$, {\bf ZVALS}$_{\s r}$,
+      {\em mx}$_{\s i}$, {\em my}$_{\s i}$, {\em ncont}$_{\s i}$, {\em wantpd}$_{\s L}$,
+      {\bf DZVALS}$_{\s r}$)\\
+17.2  & CALL& \uline{SUACOS} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUASIN} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUATAN} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUATN2} & ({\em U}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUCOS} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUCOSH} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUDIF} & ({\em U}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUDIF1} & ({\em a}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUEXP} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUGETN} & ({\bf n}$_{\s i}$, {\bf m1}$_{\s i}$,
+      {\bf m2}$_{\s i}$, {\bf l1}$_{\s i}$, {\bf l2}$_{\s i}$)\\
+17.2  & CALL& \uline{SULOG} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUPRO} & ({\em U}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUPRO1} & ({\em a}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUPWRI} & ({\em i}$_{\s i}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUQUO} & ({\em U}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUQUO1} & ({\em a}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUREV} & ({\em UT}$_{\s r}$, {\bf TU}$_{\s r}$,
+      {\em ldim}$_{\s i}$, {\bf rcond}$_{\s r}$, {\bf IWORK}$_{\s i}$,
+      {\bf WORK}$_{\s r}$)\\
+17.2  & CALL& \uline{SUSET} & ({\em val}$_{\s r}$, {\em key}$_{\s i}$,
+      {\bf U}$_{\s r}$)\\
+17.2  & CALL& \uline{SUSETN} & ({\em n}$_{\s i}$, {\em m1}$_{\s i}$,
+      {\em m2}$_{\s i}$)\\
+17.2  & CALL& \uline{SUSIN} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUSINH} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUSQRT} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUSUM} & ({\em U}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUSUM1} & ({\em a}$_{\s r}$, {\em V}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUTAN} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.2  & CALL& \uline{SUTANH} & ({\em U}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+ 6.1  & CALL& \uline{SVECP} & ({\em V}$_{\s r}$, {\em n}$_{\s i}$,
+      {\em text}$_{\s c}$)\\
+ 6.2  & CALL& \uline{SVECPR} & ({\bf V}$_{\s r}$, {\em n}$_{\s i}$,
+      {\em $^{\prime}$text$^{\prime}$}$_{\s c}$, {\em lwidth}$_{\s i}$,
+      {\em lunit}$_{\s i}$, {\em numdig}$_{\s i}$)\\
+17.1  & CALL& \uline{SWACOS} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWASIN} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWATAN} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWATN2} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWCHN} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf F}$_{\s r}$)\\
+17.1  & CALL& \uline{SWCOS} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWCOSH} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWDIF} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWDIF1} & ({\em n}$_{\s i}$, {\em a}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWEXP} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWLOG} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWPRO} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWPRO1} & ({\em n}$_{\s i}$, {\em a}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWPWRI} & ({\em n}$_{\s i}$, {\em i}$_{\s i}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWQUO} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWQUO1} & ({\em n}$_{\s i}$, {\em a}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWRCHN} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf F}$_{\s r}$)\\
+17.1  & CALL& \uline{SWSET} & ({\em n}$_{\s i}$, {\em val}$_{\s r}$,
+      {\em deriv}$_{\s r}$, {\bf W}$_{\s r}$)\\
+17.1  & CALL& \uline{SWSIN} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWSINH} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWSQRT} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWSUM} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWSUM1} & ({\em n}$_{\s i}$, {\em a}$_{\s r}$,
+      {\em Y}$_{\s r}$, {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWTAN} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+17.1  & CALL& \uline{SWTANH} & ({\em n}$_{\s i}$, {\em X}$_{\s r}$,
+      {\bf Z}$_{\s r}$)\\
+14.2  & CALL& \uline{SXRK8} & ({\bf TS}$_{\s r}$, {\bf Y}$_{\s r}$,
+      {\bf OPT}$_{\s r}$, {\bf IDAT}$_{\s i}$, {\bf DAT}$_{\s r}$,
+      {\bf WORK}$_{\s r}$)\\
+14.2  & CALL& \uline{SXRK8A} & ({\bf TS}$_{\s r}$, {\bf Y}$_{\s r}$,
+      {\em F}$_{\s r}$, {\bf IDAT}$_{\s i}$, {\bf DAT}$_{\s r}$, {\bf WORK}$_{\s r}$)\\
+14.2  & CALL& \uline{SXRK8G} & ({\bf TS}$_{\s r}$, {\bf Y}$_{\s r}$,
+      {\bf F}$_{\s r}$, {\bf IDAT}$_{\s i}$)\\
+ 8.1  & CALL& \uline{SZERO} & ({\bf x1}$_{\s r}$, {\bf f1}$_{\s r}$,
+      {\bf x2}$_{\s r}$, {\bf f2}$_{\s r}$, {\bf mode}$_{\s i}$, {\em tol}$_{\s r}$)\\
+ 7.3  & CALL& \uline{ZCOEF} & ({\em ndeg}$_{\s i}$, {\em ROOTS}$_{\s d}$,
+      {\bf COEFS}$_{\s d}$)\\
+17.3  & CALL& \uline{ZDIF} & ({\em A}$_{\s d}$, {\em B}$_{\s d}$, {\bf RESULT}$_{\s d}$)\\
+ 2.3  & CALL& \uline{ZGAM} & ({\em CARG}$_{\s d}$, {\bf CVAL}$_{\s d}$,
+      {\bf errest}$_{\s d}$, {\em mode}$_{\s i}$)\\
+ 7.1  & CALL& \uline{ZPOLZ} & ({\em A}$_{\s d}$, {\em ndeg}$_{\s i}$,
+      {\bf Z}$_{\s d}$, {\bf H}$_{\s d}$, {\bf ierr}$_{\s i}$)\\
+17.3  & CALL& \uline{ZPRO} & ({\em A}$_{\s d}$, {\em B}$_{\s d}$, {\bf RESULT}$_{\s d}$)\\
+17.3  & CALL& \uline{ZQUO} & ({\em A}$_{\s d}$, {\em B}$_{\s d}$, {\bf RESULT}$_{\s d}$)\\
+17.3  & CALL& \uline{ZSQRTX} & ({\em A}$_{\s d}$, {\bf RESULT}$_{\s d}$)\\
+17.3  & CALL& \uline{ZSUM} & ({\em A}$_{\s d}$, {\em B}$_{\s d}$, {\bf RESULT}$_{\s d}$)\\
+ 2.16 & CALL& \uline{ZWOFZ} & ({\em Z}$_{\s d}$, {\bf W}$_{\s d}$,
+      {\bf iflag}$_{\s i}$)\\

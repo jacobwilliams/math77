@@ -1,0 +1,489 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 9.2 Local Minimum of a Multivariate Function \hbox{with Linear Constraints}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The subroutine DMLC01 finds a local minimum of a continuously differentiable
+function $f$ of $n$ variables. Variables may be subject to bounds, and
+linear equality and inequality constraints. The problem statement is%
+\begin{gather}
+\text{Minimize }f({\bf x}),\text{ subject to}\notag\\
+\label{O1}A{\bf x} \leq {\bf b},\text{ and}\\
+\label{O2}XL_j\leq x_j\leq XU_j,\quad j=1,...,n
+\end{gather}
+where $A$ is an $m\times n$ matrix, ${\bf b}$ is an $m$-vector, and ${\bf x}$ is
+the $n $-vector to be determined. It can be specified that the first MEQ
+rows of the system $A{\bf x} \leq  {\bf b}$ are to be equality constraints.
+This subroutine is also applicable to an unconstrained problem as one can
+set $m=0 $ and set the contents of XL() and XU() to have large magnitudes.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf N, M, MEQ, LDA, IPRINT,\\ MXEVAL, LIW, LW, IW}(LIW)
+\item[DOUBLE PRECISION]  {\bf A}(LDA,$\geq $N){\bf , B}($\geq $M){\bf ,\\
+XL}($\geq $N){\bf, XU}($\geq $N){\bf , X}($\geq $N){\bf, ACC, W}(LW)
+\item[EXTERNAL]  {\bf \ DMLCFG }
+\end{description}
+Assign values to N, M, MEQ, A(,), B(), XL(), XU(), X(), ACC, IPRINT, MXEVAL,
+LIW, and LW.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DMLC01 (DMLCFG, N, M, MEQ, A,\\
+LDA, B, XL, XU, X, ACC, IPRINT,\\
+MXEVAL, IW, LIW, W, LW)\\
+\end{tabular}}
+\end{center}
+Results are returned in X(), IW(), and W().
+\subsubsection{Argument Definitions}
+\begin{description}
+\item[DMLCFG]  \ [in] The name of a subroutine provided by the user to
+compute the function value, $f({\bf x})$, and optionally the gradient
+vector, ${\bf g}$, $g_j=\partial f/\partial x_j$, $j=1$, ..., N,
+using the current ${\bf x}$-vector given in X(). It must have an interface
+of the form:
+{\tt \begin{tabbing}
+SUBROUTINE DMLCFG(N, X, F, G, HAVEG)\\
+INTEGER N\\
+DOUBLE PRECISION X(N), F, G(N)\\
+LOGICAL HAVEG
+\end{tabbing}}
+DMLCFG must store the function value in F.
+
+DMLCFG may either compute the gradient vector or let the package compute an
+estimate of the gradient vector by computing finite differences of function
+values. Performance will generally be more reliable if DMLCFG computes the
+gradient vector.
+
+If DMLCFG computes the gradient vector it must store it in G(1:N) and set
+HAVEG = .true. If DMLCFG does not compute the gradient it must set HAVEG =
+.false. and must not store anything into G().
+
+DMLCFG must not change the values of N or X().
+
+In some applications DMLCFG may need additional data that may have been
+input by the user's main program. One way to handle this in Fortran~77 is by
+use of named COMMON blocks.
+
+\item[N]  \ [in] Number of components in the vector ${\bf x}$. Require N $\geq
+1.$
+
+\item[M]  \ [in] Number of general linear constraints, $i.e.$, number of
+rows in the matrix $A$ and components in the vector ${\bf b}$. Require
+M $\geq 0.$
+
+\item[MEQ]  \ [in] Specifies that rows~1 through MEQ of the system $A{\bf x} %
+\leq {\bf b}$ are to be interpreted as equality constraints. Require $0\leq
+\text{MEQ}\leq \text{M}.$
+
+\item[A(,)]  \ [in] Array containing the M$\times $N matrix $A$. Even if M $=0$
+the array A(,) must be declared and given positive dimensions. This is a
+Fortran~77 language requirement.
+
+\item[LDA]  \ [in] The leading dimension of the array A(,). Require LDA $\geq
+\max (1,\text{M}).$
+
+\item[B()]  \ [in] Array containing the M-vector {\bf b}. Even if M = 0 the
+array B() must be declared and given a positive dimension. This is a Fortran
+77 language requirement.
+
+\item[XL(), XU()]  \ [in] Lower and upper bounds on the variables. See
+Eq.\,(2) above. Require XL($j)\leq $ XU($j)$ for $j=1$,\ ...,\ N. To
+leave a solution component effectively unconstrained, set its lower bound to
+a negative number of large magnitude and its upper bound to a large positive
+number. Do not set these bounds to such large magnitudes that computation of
+the difference, XU($j)-$ XL($j)$, would overflow for some $j$. Setting XL($%
+j)=$ XU($j)$ is permitted and has the effect of fixing $x_j$ at the value XL(%
+$j).$
+
+\item[X()]  \ [inout] The vector of variables of the optimization
+calculation. On entry X() must contain an initial estimate of ${\bf x}$. The
+subroutines can usually cope with a poor estimate, and the initial ${\bf x}$
+is not required to satisfy Eqs.~(1) and (2). On return X() will contain the
+subroutine's best estimate of the solution vector ${\bf x}$.
+
+\item[ACC]  \ [in] A tolerance on the first order Kuhn-Tucker
+conditions that the solution must satisfy. See Eq.\,(4),
+page~\pageref{O4} and Remark~4 in Section~C.  Setting ACC $=0.0$ is
+permitted and essentially means the user wants as much accuracy as
+possible on the host computer. The termination will then usually be
+with INFO $=2$, meaning Eq.\,(4) could not be satisfied.
+
+\item[IPRINT]  \ [in] Contains five print control parameters, packed as
+follows:
+\begin{tabbing}
+\hspace{.2in}\=IPRINT = IPFREQ $\times $ 100 + IPTOL $\times $ 8 +\\
+\>\quad IPFRST $\times $ 4 + IPMORE $\times $ 2 + IPLAST
+\end{tabbing}
+
+Iteration counting only begins after a first feasible ${\bf x}$ is found. The
+items to be printed are selected by IPMORE. The other parameters specify
+when to print. If any of IPFREQ, IPTOL, IPFRST, or IPLAST are nonzero, there
+will be an initial printing of N, M, MEQ, ACC, RELACC, and TOL.
+\begin{description}
+\item[\rm IPFREQ] is zero or positive. If positive, printing is done on
+iterations 0, IPFREQ, 2*IPFREQ, etc.
+
+\item[\rm IPTOL] = 0 or 1. 1 means to print the new TOL value and the standard items
+each time TOL is changed. TOL is described in Section D.
+
+\item[\rm IPFRST] = 0 or 1. 1 means to print on the first iteration, $i.e$. on
+iteration number~0.
+
+\item[\rm IPMORE] = 0 or 1. Items always printed are
+\begin{description}
+\item[\rm ITERC ---]  The iteration count.
+
+\item[\rm NFVALS ---]  The count of function evaluations, which is tested
+against MXEVAL.
+
+\item[\rm F ---]  The current value of $f({\bf x}).$
+
+\item[\rm TOL ---]  See Section D.
+
+\item[\rm $\|\rho \|$ ---]  The Euclidean norm of RESKT(1:N).  This is the
+quantity that will be compared with ACC for the main convergence test. See
+Section D.
+
+\item[\rm X(1:N) ---]  The current value of ${\bf x}$.
+\end{description}
+
+When IPMORE = 1 the package also prints G(1:N), RESKT(1:N), IACT(1:NACT),
+and PAR(1:NACT). These quantities are described in Section D.
+
+\item[\rm IPLAST] = 0 or 1. 1 means to print the final results, and the
+reason for termination.
+\end{description}
+
+\item[MXEVAL]  \ [in] If positive, this sets an upper limit on the number of
+function evaluations. Gradient evaluations and function evaluations for
+estimating the gradient are not counted. If MXEVAL = 0, there is no upper
+limit.
+
+\item[IW()]  \ [work, out] Integer work space of length LIW. Also used to
+return status information. On return IW() contains information as follows:
+
+\begin{description}
+\item[IW(1)]  contains INFO. Indicates reason for termination as follows:
+
+\begin{itemize}
+\item[1]  means successful termination. X() is feasible and the
+convergence test involving ACC is satisfied.
+
+\item[2]  means X() is feasible and satisfaction of the ACC test
+seems to be prevented by the precision of arithmetic being used. This mode
+of termination will commonly occur if the user sets ACC = 0.
+
+\item[3]  means X() is feasible but the objective function fails to
+decrease, although a decrease is predicted by the current gradient vector.
+This may be due to limitation of computational precision as with INFO = 2,
+however, if the final RESKT() has components of large magnitude and the user
+has provided code to compute the gradient vector, this could be due to an
+error in the gradient code. One should also question the coding of the
+gradient when the final rate of convergence is slow.
+
+\item[4]  means bad input values. See requirements on N, M, MEQ,
+XL(), XU(), LIW, and LW. No solution is computed in this case.
+
+\item[5]  means the equality constraints are inconsistent. These
+constraints include any components of ${\bf x}$ that are frozen by setting XL($%
+j)=$ XU($j).$
+
+\item[6]  means the equality constraints and the bounds on the
+variables are inconsistent.
+
+\item[7]  means there is no ${\bf x}$ satisfying all of the
+constraints. Specifically, when this return or an INFO = 6 return occurs,
+the current active constraints indexed in IACT(1:NACT) prevent any change in
+X() that reduces the sum of constraint violations.
+
+\item[8]  means the limit set by MXEVAL has been reached, and there
+would have been further calculation otherwise.
+
+\item[9]  means the solution is uniquely determined by the
+constraints, so there is no further freedom for minimization of $f({\bf x})$. In
+this case the results returned in W() will include $f$ evaluated at the
+solution, but will not include PAR() and RESKT(), and will include G() only
+if DMLCFG computes G().
+\end{itemize}
+
+\item[IW(2)]  contains ITERC. Number of iterations used.
+
+\item[IW(3)]  contains NFVALS. Number of function evaluations, not counting
+extra function evaluations done to estimate the gradient when the gradient
+is not computed explicitly. In this latter case the actual number of
+function evaluations will be ($\text{K}+1)\times \text{NFVALS}$, where K is the number
+of solution components whose lower and upper bounds are not equal.
+
+\item[IW(4)]  contains NACT. The number of active constraints at the final
+${\bf x}$. Will be in the interval [MEQ, N].
+
+\item[IW(5:4+NACT)]  contains IACT(1:NACT).\newline
+IACT() is used as work space of length $\text{M} +2\times $ N. On return
+the first NACT locations contain the
+indices of the constraints that are active at the final point. Indices [1:M]
+refer to rows of the system $A{\bf x} \leq  {\bf b}$. Indices [M+1:M+N]
+refer to component lower bounds. Indices [M+N+1:M+2$\times $N] refer to
+component upper bounds.
+\end{description}
+
+\item[LIW]  \ [in] Dimension of IW(). Require\newline
+\rule{.4in}{0pt} LIW $\geq  4 + \text{M} + 2 \times \text{N}$.
+
+\item[W()]  \ [work, out] Working space of floating point variables of
+length LW. Also used to return auxiliary results. On return W() contains
+information as follows:
+\begin{description}
+\item[W(1)] contains FVAL, the final value of the objective function, $f.$
+
+\item[W(2)] contains the Euclidean norm of the Kuhn-Tucker residual vector, $i.e$. $%
+\Vert \rho \Vert $ as described in Section D.
+
+\item[W(3:2+N)] contains the final gradient vector, G(1:N).
+
+\item[W(3+N:2+2$\times $N)] contains the Kuhn-Tucker residual vector, RESKT(1:N).
+
+\item[W(3+2$\times $N:2+2$\times $N+NACT)] contains the Lagrange multipliers,
+PAR(1:NACT) where NACT has a value in [MEQ, N].
+\end{description}
+G(), RESKT(), and PAR() are described in Section D.
+
+\item[LW]  \ [in] Dimension of W(). Require\newline
+\rule{.4in}{0pt} LW $\geq $ 3 + M + N $\times $ (16 + N).
+\end{description}
+
+\subsubsection{Modifications for Single Precision}
+
+For single precision usage change all subroutine names beginning with D,
+except D1MACH, to begin with S. Change the name D1MACH to R1MACH. Change all
+DOUBLE PRECISION type statements to REAL.
+
+We suggest that the double precision version of this package be used,
+except on machines such as the Cray J90, where single precision arithmetic
+has precision of about~14.4 decimal places.
+
+\subsection{Examples and Remarks}
+
+{\bf Example}: Minimize ${\displaystyle f({\bf x})=\sum_{k=1}^4x_j\ln x_j.}$
+
+Let us bound each variable in [0,1] and require the sum of variables to be
+1. With just these constraints a unique minimum would occur when $x_j=0.25$,
+for all $j$. We shall add two more constraints to break up the symmetry:%
+\vspace{-4pt}%
+\begin{align*}
+x_1-x_2&=0.25\vspace{-4pt}\\
+x_2-x_3&\geq 0.10
+\end{align*}
+Since inequality constraints must be expressed in less than or equal form,
+we rewrite this last constraint as%
+\begin{equation*}
+-x_2+x_3\leq -0.10
+\end{equation*}
+In matrix form the three general linear constraints are%
+\begin{equation*}
+\left[
+\begin{array}{rrrr}
+1 & 1 & 1 & 1 \\
+1 & -1 & 0 & 0 \\
+0 & -1 & 1 & 0
+\end{array}
+\right] \ {\bf x}\leq \left[
+\begin{array}{r}
+1.00 \\
+0.25 \\
+-0.10
+\end{array}
+\right]
+\end{equation*}
+and we will specify that the first two rows are to be treated as equality
+constraints by setting MEQ $=2.$
+
+The program DRDMLC01 illustrates the use of DMLC01 to solve this problem,
+and also uses DCKDER to check the consistency of the function and gradient
+calculations. The output is shown in ODDMLC01. We have set ACC $= 0.0$,
+meaning we want as much accuracy as the host computer can provide. Note that
+the termination code is~2 indicating that the requested accuracy of~0.0
+could not be attained. This is the usual termination code when the user has
+set ACC $= 0.$
+
+We have set the lower bounds in XL() to~1.0D-6 rather than zero to avoid the
+possibility of the package requesting a function evaluation with some $x_j =
+0$, since attempting to compute LOG(0.0D0) would cause an error stop.
+Alternatively this issue could be handled with appropriate logic in the
+function evaluation subroutine and XL() could be set to zero.
+
+As print options we have selected printing only at the end (IPLAST = 1), and
+the more extensive number of printed items (IPMORE = 1). This is indicated
+by setting IPRINT $= 2 \times \text{IPMORE} + \text{IPLAST} = 3.$ Setting
+MXEVAL = 0 means we are not setting any limit on the number of function
+evaluations.
+
+To illustrate the contents of IW() and W() on return we have printed the
+results from these arrays.
+
+\subparagraph{Remarks}
+
+1. It is important to the success of DMLC01 that the initial guess be as
+good as possible.
+
+2. DMLC01 only finds a local minimum. Problems may have more than one local
+minimum, so caution in accepting results is suggested. It may be useful to
+solve the problem several times using significantly different starting
+points.
+
+3. Minimization of a nonlinear function is inherently difficult in many
+cases, and sometimes may require some interaction with the user. The
+intermediate output available from the subroutine may be useful if one has
+questions about the performance of the subroutine. It is not uncommon to
+make mistakes in writing the code for computing partial derivatives. This
+mistake is likely to cause a return with IW($1) = 3$. The user can use the
+subroutine DCKDER of Chapter~8.3 to check the consistency of code for
+function and gradient evaluation.
+
+4. It is reasonable to set ACC $=0.0$ the first time this subroutine is
+applied to a new mathematical model. If one intends to solve more problems
+of similar form and wishes to reduce the number of iterations, one could
+turn on the intermediate output and try to determine a nonzero value of ACC
+that gives a result of adequate accuracy in fewer iterations. From Eq.\,(3)
+one sees that an appropriate nonzero value of ACC depends on the norms
+of ${\bf g}$ and of the row vectors of $A$, and the constraints active at
+the solution. If ${\bf g}$ is computed by finite-differences the magnitude
+of $f$ must be considered also.
+
+\subsection{Functional Description}
+
+The algorithm provides for the bounds on the variables to be specified and
+treated separately from the general linear constraints because this is
+convenient for the user and allows for efficiencies in storage and execution
+time. However, for analysis of the problem it is more convenient to treat
+the bounds as additional general linear constraints. Thus the full set of
+constraints can be expressed as%
+\begin{equation*}
+\left[
+\begin{array}{r}
+A \\
+-I \\
+I
+\end{array}
+\right] {\bf x\leq }\left[
+\begin{array}{r}
+{\bf b} \\ -XL \\
+XU
+\end{array}
+\right]
+\end{equation*}
+with the first MEQ rows to be treated as equality constraints. Here I
+denotes the N $\times $ N identity matrix, $XL$ denotes the N-vector of lower
+bounds, and $XU$ denotes the N-vector of upper bounds.
+
+Let $C$ denote the left-side matrix and {\bf d} the right-side vector in the
+above expression. Thus the constraints can be written simply as $C{\bf x} %
+\leq  {\bf d}$, where $C$ and ${\bf d}$ each have M + 2N rows. Let ${\bf c}_i$
+denote the column vector which is the transpose of row $i$ of $C$.
+
+If $XL_j = XU_j$ for some $j$, then row $\text{M}+j$ of $C{\bf x}
+\leq {\bf d}$ will be treated as an equality constraint and row $\text{M}+
+\text{N}+j$ will be ignored (not changing the indexing of
+other rows).  A set {${\cal C}$} of linearly independent equality
+constraints is identified. This will generally consist of the
+constraints due to equality of lower and upper bounds, plus the first
+MEQ rows. However, it may consist of a proper subset of these if this
+set is not linearly independent. An internal variable, MEQL, is set
+to the number of these constraints and their indices are stored in
+IACT(1:MEQL). After setting MEQL and the contents of IACT(1:MEQL)
+these will remain unchanged throughout the rest of the algorithm.
+
+A vector ${\bf x}$ is feasible if it satisfies $C{\bf x} \leq  {\bf d}$, and
+in addition achieves equality for the rows in the set {${\cal C}$}. With any
+feasible ${\bf x}$ the algorithm considers, it associates a list of indices of
+at most N of the rows of $C{\bf x} \leq  {\bf d}$ that are satisfied with
+equality. These rows are called the active constraints (for ${\bf x}$) and the
+indices are denoted by IACT$(k)$, $k = 1$, ..., NACT, where NACT depends on
+${\bf x}$, but will satisfy MEQL $\leq $ NACT $\leq $ N.
+
+The first-order Kuhn-Tucker necessary conditions for a solution ${\bf x}$ are
+that ${\bf x}$ must be feasible and that the gradient, ${\bf g}$, of $f$ at ${\bf x}$
+must be a linear combination of vectors ${\bf c}_i$ in the active set for ${\bf x}$,
+with combining coefficients (called Lagrange coefficients) that are of
+unrestricted sign for constraints in set {${\cal C}$}, and are nonpositive
+for constraints not in set {${\cal C}$}. Thus define the {\em Kuhn-Tucker
+residual vector}
+\begin{equation}
+\hspace{-15pt}\label{O3}{\bf \rho} ={\bf g}-\sum_{k=1}^{NACT}\lambda _k
+{\bf c}_{IACT(k)},\ \ \text{with }\lambda _k\leq 0\text{ for } k>\text{MEQL}
+\end{equation}
+Then the Kuhn-Tucker condition on a vector ${\bf x}$ can be stated as the
+requirement that there exist $\lambda _k$'s such that ${\bf \rho }$ is a
+zero vector. The convergence test used in the package is
+\begin{equation}
+\label{O4}\Vert {\bf \rho} \Vert \leq \text{ACC}
+\end{equation}
+where $\Vert \cdot \Vert $ denotes the Euclidean vector norm.
+
+Internally the package stores ${\bf g}$ in G(), ${\bf \rho }$ in RESKT(), and
+the $\lambda_k$'s in PAR(). These can be printed using the IPRINT argument
+and are returned in the W() array.
+
+The package also uses internal tolerance parameters, RELACC and TOL. RELACC
+is set to about 100~times the machine precision. TOL is initially set to
+0.01, and is reduced as the algorithm progresses until it reaches the value
+RELACC. TOL is used as a relative tolerance in checking the satisfaction of
+constraints. The technique of starting with TOL fairly large and later
+reducing it is a unique design feature of this algorithm. It has the effect
+of avoiding many small changes to ${\bf x}$ in the early stages of the
+algorithm.
+
+The algorithm is described in detail by the author in
+\cite{Powell:1989:TOL} and \cite{Powell:ATA:1988}.  He characterizes the
+algorithm as an active set method as described in \cite{Gill:1987:PO},
+using BFGS updating of second derivative approximations as described in
+\cite{Powell:UCD:1987} and the matrix factorizations of
+\cite{Goldfarb:1983:ANS}.  Examples from \cite{Hock:1981:TEN} were used by
+the author in testing the package.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+On all returns, successful or not, the reason for the return is indicated by
+INFO, stored in IW(1). See the specification of IW(1) in Section B for the
+interpretation of these values. On returns with IW(1) from~3 to~8 an error
+message will be printed using the error message printing subroutines of
+Chapter~19.2 with an error level of 0.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DMLC01 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, DERV1, DMLC, ERFIN, ERMOR, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SMLC01 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, ERFIN, ERMOR, ERMSG, IERM1, IERV1, SERV1, SMLC}\\
+\end{tabular}
+
+Cvonerted from Powell's code cited above by C. L. Lawson, April, 1990 (with
+minor contribution from F. T. Krogh).
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDMLC01}\vspace{10pt}
+\lstinputlisting{\codeloc{dmlc01}}
+\newpage
+\vspace{30pt}\centerline{\bf \large ODDMLC01}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dmlc01}}
+\end{document}

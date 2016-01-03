@@ -1,0 +1,294 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\hyphenation{UPARAM}
+\begin{document}
+\begmath 6.4  One Householder Transformation
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subroutines compute the parameters defining a Householder orthogonal
+transformation which zeroes specified components in a given vector, or in
+a column or row of a matrix. Also they optionally apply either a newly
+defined transformation or a previously defined Householder transformation to
+a vector or a set of vectors, which typically would be columns or rows of a
+matrix.
+
+Two versions are provided. For the usual case in which both the pivot vector
+and the vectors to which the transformation is to be applied are column
+vectors, we recommend the use of DHTCC or SHTCC. If either the pivot vector
+or the vectors to which the transformations are to be applied, or both, are
+row vectors, one must use DHTGEN or SHTGEN.
+
+These subroutines are used by other library subroutines, and can be used as
+modules in implementing other linear algebra algorithms.
+
+\subsection{Usage}
+
+\subsubsection{Usage of SHTGEN and DHTGEN}
+
+We use the term {\em pivot vector} to mean the vector that plays a special role in
+determining or defining the Householder transformation. When MODE = 1 a
+transformation will be determined that is appropriate to zero components L1
+through M of the pivot vector. These components are then replaced by
+values that partially define the appropriate Householder transformation.
+Component LPIVOT of the pivot vector, and UPARAM are also assigned values to
+complete the definition of the transformation. After defining the
+transformation it will optionally be applied to specified vectors.
+
+When MODE = 2 the transformation defined in a previous call with MODE
+= 1 will be applied to specified vectors.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf MODE, LPIVOT, L1, M, LDU, LDC, NCV}
+
+\item[LOGICAL] \ {\bf COLU, COLC}
+
+\item[REAL] \ {\bf U}(LDU,$*$){\bf , UPARAM, C}(LDC,$*$)
+
+\end{description}
+
+Assign values to all integer and logical arguments and to the relevant real
+arguments.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SHTGEN(MODE, LPIVOT, L1,\\
+M, U, LDU, COLU, UPARAM,\\
+C, LDC, NCV, COLC)\\
+\end{tabular}}
+\end{center}
+
+Computed results will be returned in U(,), UPARAM, and/or C(,),
+depending on the initial settings of the integer arguments.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[MODE] \ [in] Set by the user to the value 1 or~2. If MODE = 1, the subroutine
+computes parameters defining a Householder transformation as described in
+Section D. If MODE = 2, it is assumed that Householder transformation
+parameters have already been defined by a previous call with MODE = 1. In
+either case, if NCV $> 0$, the subroutine will apply the current
+transformation to the set of NCV M-vectors stored in the array C(,).
+
+\item[LPIVOT, L1, M] \ [in] These integers specify that the vectors to be referenced
+or operated upon are M-dimensional, and the components to be referenced or
+operated upon in each vector are the one indexed by LPIVOT and the set
+indexed from L1 through M. To define a nontrivial transformation these
+integers must satisfy
+\begin{equation*}
+1 \leq \text{LPIVOT} <\text{L1} \leq \text{M}
+\end{equation*}
+If these inequalities are not all satisfied, the subroutine returns without
+doing any computation. This is not regarded as an error. It has the implicit
+effect of applying an identity transformation.
+
+\item[U(,)] \ [inout] The array U(,) contains the pivot vector as either a column
+or a row. Examples:
+
+If the pivot vector is column J of an array declared as A(IDIM,JDIM), the
+arguments corresponding to ``U, LDU, COLU" should be written as ``A(1, J),
+IDIM, .true.".
+
+If the pivot vector is row I of an array declared as A(IDIM,JDIM), the
+arguments corresponding to ``U, LDU, COLU" should be written as ``A(I,1),
+IDIM, .false.".
+
+\item[LDU] \ [in] Leading dimensioning parameter for U(,).
+
+\item[COLU] \ [in] Must be set to .true.\ if the pivot vector is a column of U(,)
+and to .false.\ if the pivot vector is a row of U(,).
+
+\item[UPARAM] \ [inout] Holds a value completing the definition of a Householder
+transformation. See description in Section D. This value will be computed by
+the subroutine when MODE = 1 and must be present on entry when MODE\ = 2.
+
+\item[C(,)] \ [inout] If NCV $\leq$ 0, no reference will be made to C(,).
+If NCV $> 0$, the array C(,) is regarded as containing a set of NCV M%
+-vectors. These are regarded as column vectors if COLC = .true.\ and row
+vectors if COLC\ = .false. On entry C(,) contains vectors to be
+transformed, and on return C(,) contains the vectors resulting from
+application of the current Householder transformation. Examples:
+
+To apply a transformation to columns J + 1 through N of an array declared
+as A(IDIM,JDIM), the arguments ``C, LDC, NCV, COLC" should be written as
+``A(1, J+1), IDIM, N$-$J, .true.".
+
+To apply a transformation to rows K + 1 through M1 of an array declared as
+A(IDIM,JDIM), the arguments ``C, LDC, NCV, COLC" should be written as
+``A(K+1,~1), IDIM, M1$-$K, .false.".
+
+\item[LDC] \ [in] Leading dimensioning parameter of C(,).
+
+\item[NCV] \ [in] Number of vectors in C(,) to be transformed. If
+NCV $\leq $ 0, the array C(,) will not be referenced.
+
+\item[COLC] \ [in] Must be set to .true.\ if the vectors to be transformed are column
+vectors of C(,), and to .false.\ if the vectors to be transformed are row
+vectors of C(,).
+\end{description}
+
+\subsubsection{Usage of SHTCC and DHTCC}
+
+Subroutine DHTCC is a modification of DHTGEN specialized for the case of
+COLU\ = .true.\ and COLC\ = .true.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf MODE, LPIVOT, L1, M, LDC, NCV}
+
+\item[REAL] \ {\bf U}$(*)${\bf , UPARAM, C}(LDC,$*)$
+
+\end{description}
+
+Assign values to all integer and logical arguments and to the relevant real
+arguments.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SHTCC(MODE, LPIVOT, L1, M,\\
+U, UPARAM, C, LDC, NCV)\\
+\end{tabular}}
+\end{center}
+
+Computed results will be returned in U(,), UPARAM, and/or C(,),
+depending on the initial settings of the integer arguments.
+
+\paragraph{Argument Definitions}
+
+The arguments have the same meanings as the arguments of the same names in
+the call to SHTGEN. Note that arguments LDU, COLU, and COLC are not used,
+and U is a one-dimensional array. This subroutine functions as though COLU
+= .true.\ and COLC = .true.
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change the REAL statement to DOUBLE PRECISION and
+change the subroutine names SHTGEN and SHTCC to DHTGEN and DHTCC
+respectively.
+
+\subsection{Examples and Remarks}
+
+The program DRSHTCC illustrates the use of SHTCC. The array D(,) is
+initialized with a $3\times 2$ matrix, $A$, in its first 2 columns, and a $%
+3\times 3$ identity matrix in columns 3 through 5. Subroutine SHTCC is used
+to compute the QR factorization of $A$, $i.e.$, the program determines an
+orthogonal matrix, $Q$, and a triangular matrix, $R$, such that $A = Q R$.
+Results are shown in ODSHTCC.
+
+For additional examples of the use of SHTCC and SHTGEN see the source code
+for the library subroutines SHFTI or SSVDRS.
+
+\subsection{Functional Description}
+
+Let ${\bf u}$ be a nonzero $n$-vector and define $\beta  = -\|{\bf u}\|^2/2$. The matrix
+\begin{equation*}
+Q = I + \beta ^{-1}{\bf uu}^t
+\end{equation*}
+is symmetric and orthogonal, and is called a Householder transformation
+matrix.
+
+A product of the form ${\bf w} = Q{\bf v}$ can be computed by the steps:
+\begin{align*}
+\gamma &= ({\bf u}^t{\bf v})/\beta\\
+{\bf w} &= {\bf v} + \gamma {\bf u}
+\end{align*}
+Typically one desires a ${\bf u}$ such that for some particular nonzero vector, ${\bf v}$%
+, the vector ${\bf w} = Q{\bf v}$ will consist of zeros except for the first component.
+Given ${\bf v}$, the appropriate ${\bf u}$ and $\beta $ to accomplish this can be
+defined mathematically as follows:
+\begin{align*}
+\sigma &= 1 \hspace{.7in} \text{if } v_1 > 0 \text{ and } {-}{1} \text{ otherwise}\\
+u_1 &= v_1 + \sigma \|{\bf v}\|\\
+u_i &= v_i, \hspace{.6in} i = 2{\text, ..., }n\\
+\beta  &= -\sigma u_1\|{\bf v}\| \hspace{.2in} \text{(Note that }\beta  \leq 0.)
+\end{align*}
+With this definition of $\sigma $, ${\bf u}$, and $\beta $, and thus of $Q$,
+the vector ${\bf w} = Q{\bf v}$ will have components:
+\begin{align*}
+w_1 &= -\sigma \|{\bf v}\|\\
+w_i &= 0, \hspace{.4in} i = 2\text{, ..., }n.
+\end{align*}
+In applications it is frequently convenient to regard the vectors ${\bf v}$, ${\bf u}$,
+and ${\bf w}$ of the above formulas as embedded in higher dimensional vectors with
+other components which play no role in the current transformation.
+Specifically we regard the host vector for ${\bf v}$ (and similarly for ${\bf u}$ and ${\bf w})
+$ as being of dimension M, with $v_1$ at position LPIVOT and $v_2$, ..., $%
+v_n$ in positions L1 through M. Thus we are identifying $n$ with the value
+M $-$ L1 + 2. We assume $1 \leq \text{LPIVOT} < \text{L1} \leq \text{M}.$
+
+On input with MODE = 1 the array U(,) contains ${\bf v}$ embedded as specified
+by the integers LPIVOT, L1, and M, and with the Fortran~77 storage mapping
+as specified by the arguments LDU and COLU. The subroutine computes $w_1$
+and ${\bf u}$. It stores the $u_1$ in UPARAM, $w_1$ in place of $v_1$, and $u_2$, $%
+...,u_M$ in place of $v_2$, $...,v_M.$
+
+When applying transformations the quantity $\beta $ is computed as $\beta  =
+u_1w_1$, using the value of $u_1$ stored in UPARAM and $w_1$ stored in U(,).
+
+This is essentially Algorithm H12 of \cite{Lawson:1974:SLS} with a change
+in the way the user specifies the column/row options.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+To define and/or apply a nontrivial transformation one must have
+\begin{equation*}
+1 \leq \text{LPIVOT} < \text{L1} \leq \text{M}
+\end{equation*}
+If these conditions are not all satisfied the subroutine returns
+immediately, doing no computation. This is not regarded as an error
+condition as it may occur intentionally as an end condition in a loop. It
+will have the effect of computing and/or applying an identity
+transformation.
+
+If, on entry with MODE = 1, the components of the pivot vector indexed by
+LPIVOT, and L1 through M, are all zero, the subroutine will effectively
+define an identity transformation. It will set UPARAM = 0. This is not
+regarded as an error condition.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DHTCC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DHTCC, DNRM2\rule[-5pt]{0pt}{8pt}}\\
+DHTGEN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DAXPY, DDOT, DHTGEN, DNRM2\rule[-5pt]{0pt}{8pt}}\\
+SHTCC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SHTCC, SNRM2\rule[-5pt]{0pt}{8pt}}\\
+SHTGEN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SAXPY, SDOT, SHTGEN, SNRM2}\\
+\end{tabular}
+
+Original version designed and programmed by C.  L.  Lawson and R.  J.
+Hanson, JPL, 1968, and published in \cite{Lawson:1974:SLS} as subroutine
+H12.  Adapted to Fortran~77 for the MATH77 library by Lawson and S.  Y.
+Chiu, June~1987.
+
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSHTCC}\vspace{10pt}
+\lstinputlisting{\codeloc{shtcc}}
+
+\vspace{30pt}\centerline{\bf \large ODSHTCC}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{shtcc}}
+\end{document}

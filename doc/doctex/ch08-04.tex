@@ -1,0 +1,378 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\usepackage{bm}
+\begin{document}
+\hyphenation{DJACG}
+\begmath 8.4 Computing Numerical Derivatives, Gradients and Jacobians
+
+%\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology,
+%\thisyear \ Math \`a la Carte, Inc.}
+% Original author is Doug Salane.
+% Modifications by Richard Hanson, 21-06/2002.
+\subsection{Purpose}
+
+This subroutine computes approximate gradient vectors and Jacobian matrices of
+vector functions $\mathbf{f}(\mathbf{y})$ in several variables.  This routine
+is used to compute approximate derivatives for problems where only function
+information is available.  To approximate a scalar derivative function,
+consider it an equivalent $1 \times 1$ Jacobian matrix.  Either one-sided or
+central differences can be used.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf MODE, M, N, LDFJAC, IOPT(k),
+ LWK, IWK({\bf LIWK}$\geq$ 21), LIWK}\\
+See the description of IOPT for the $k$ required.
+
+\item[DOUBLE PRECISION]  {\bf Y}($\geq${\bf N}){\bf , F}($\geq${\bf M}){\bf ,\\
+ FJAC}(LDFJAC,$\geq${\bf N}){\bf , YSCALE}(1 or $\geq${\bf N}),\\
+  {\bf FAC}($\geq${\bf N}){\bf , WK}({\bf LWK} $\geq$ {\bf 3*M+18})
+\end{description}\vspace{-10pt}
+
+\begin{tabbing}
+\hspace{.2in}\=Assign values to M, N, LDFJAC  and IOPT().\\
+\>Set Y() to the value of the vector $\mathbf{y}$ at which\\
+\>\ \ \ \ \=partial derivatives are needed, and set F()\\
+\>\ \ \ \ \=to $\mathbf{f}(\mathbf{y})$. \\
+\>Set MODE = 0.\\
+10\>continue \\
+
+C Approximate FJAC(,) as the M $\times $ N Jacobian\\
+C matrix of first partial derivatives of $\mathbf{f}(\mathbf{y})$ with\\
+C respect to $\mathbf{y}$, evaluated at Y():
+
+\end{tabbing}\vspace{-15pt}
+\begin{center}
+\fbox{\begin{tabular}{l}
+\quad {\bf CALL DJACG(MODE, M, N, Y, F,}\\
+\quad \quad {\bf FJAC, LDFJAC, YSCALE, FAC,}\\
+\quad \quad {\bf IOPT, WK, LWK, IWK, LIWK)}\\
+\end{tabular}}
+\end{center}
+\begin{tabbing}
+\hspace{.2in}\=if (MODE .gt. 0) then\\
+
+\>\ \ \ \ \=Compute WK() as an M-vector of function\\
+\>\>\ \ \ \ \=values $\mathbf{f}(\mathbf{y})$ evaluated at perturbed
+$\mathbf{y}$ in Y().\\
+
+\>\>go to 10\\
+\>end if\\
+\>Here the process is normally completed, if there \\
+\>are no error conditions. Approximations to the\\
+\> partials are in FJAC(,), with related scaling\\
+\> and performance data in FAC() and IWK().\\
+\end{tabbing}\vspace{-15pt}
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[MODE]  \ [inout] On initial entry set MODE = 0. The routine DJACG
+ will normally return a number of times with MODE = J,
+ the index of the derivative being computed.  A return value of MODE=0 means
+ the approximate derivatives are computed.  A return value of MODE = K $<$ 0
+ means that argument number $-$K has an error condition.
+
+ For J $>$ 0 the calling code should compute WK() as a
+function of Y() and call DJACG again, not altering MODE.
+
+\item[M]  \ [in] Number of terms in F() and number of rows of data in
+FJAC(,).  Must have M .gt. 0.
+
+\item[N]  \ [in] Number of terms in Y() and number of columns of data in
+FJAC(,).  Must have N .gt. 0.
+
+\item[Y()] \ [inout] Initially must contain the vector $\mathbf{y}$ at which
+  the partial will be computed. Contains perturbed $\mathbf{y}$ on each return
+  with MODE = J $>$ 0. On final return with MODE = 0, contains the original
+  $\mathbf{y}$.  Only component J is perturbed with each return, but more than
+  one evaluation for a given J may occur.  After DJACG computes FAC() for the
+  problem, one evaluation per variable is typically needed if central
+  differences are not used..
+
+\item[F()] \ [in] On entries with MODE $\geq $ 0, the user has function
+  values in F(), {\em i.e.}, F($I$) $=f_I \mathbf{y}).$ The user
+  should initialize F()=$\mathbf{f}(\mathbf{y)}$ before the routine is
+  entered with MODE = 0.
+
+\item[FJAC(,)]  \ [inout] , The numerical derivatives, {\em i.e.},
+ FJAC$(i,j)=\partial f_i/\partial y_j$.  For default usage, 
+ this is designated as [out] except in columns
+ receiving special treatment, as noted in IOPT().
+
+\item[LDFJAC]  \ [in] Declared first dimension of the array FJAC(,).
+ Require LDFJAC $\geq $ M or N=1.
+
+\item[YSCALE()]  \ [in] An array of length 1 or N. The user can provide
+             representative sizes for $\mathbf{y}$ values in the array
+             YSCALE(). The user can also use YSCALE() to give
+             appropriate directions for the differences.  If YSCALE(1) =0
+             then Y() itself is used for the scaling.
+
+\item[FAC()]      \ [inout] An array of length N. The value
+FAC(J)  contains the factor for differencing variable J.
+  If FAC(1)=0, the array FAC() is set to the square root  of
+  machine  precision on the first call to DJACG.
+  Unless the user wishes to initialize FAC(),
+  this array should not be altered between subsequent  calls
+  to  DJACG.
+
+     The user  may  provide  FAC()  values  if  desired.
+   If the user provides these values, FAC(J) should be
+   set to a value between 0 and 1.  The routine DJACG
+   ensures that FACMIN $\leq$ FAC(J) $\leq$ FACMAX.  The values
+   for FACMIN  and FACMAX are saved in the storage
+   locations WK(3M+1), WK(3M+2)
+   when DJACG exits with MODE .gt. 0.
+
+\item[IOPT()] \ [in] An integer array defining the methods used to
+   compute the derivatives.  The default is to use one-sided differences to
+   compute derivatives.  Entries in this array are interpreted as follows.
+
+\begin{description}
+\item[0] Use the current settings for all remaining variables.  The starting
+  setting is to use one-sided differences.
+\item[$k > 0$] Use the current settings for all variables from the last 
+specified up to and including variable $k$.
+\item[$-1$] Set to use  one-sided differences.  (Not needed at the 
+beginning since this is the default state.)
+\item[$-2$] Set to use central differences.
+  
+  This will typically yield more accuracy than the one-sided differences, but
+  with the expense of an additional function evaluation per variable.  The
+  increment used for central differencing is T=$\mathit{macheps}^{-1/6}$
+  times the increment used in one-sided differencing.
+          
+  To change this factor for succeeding variables, assign a new value between
+  calls with MODE = J in the storage location FAC(J).
+  
+  The default value T=$\mathit{macheps}^{-1/6}$ is based on the
+  approximate relation T*FAC(J) = $\mathit{macheps}^{2/3}$.  This value
+  is near an optimal choice, under certain conditions on higher derivatives,
+  provided FAC(J) = $\mathit{macheps}^{1/2}$.  Sometimes larger or
+  smaller values of FAC(J) will give more accuracy than the default.
+
+  
+\item[$-3$] Set to accumulate the result from whatever type of differences
+  have been specified above into initial values provided in FJAC(1:M,J).
+  This must be followed by a number $\geq 0$ as any number $< 0$ will turn
+  this off.
+  
+  This partial consists of the prior computed values FJAC(1:M,J) plus
+  additional values that are computed with divided differences. The value
+  F() should equal the part of the function to be differenced.
+
+\item[$-4$] Skip variables.  This must be followed by a value $\geq 0$ 
+as any  number $< 0$ will turn this off.
+
+No function evaluation is made when skipping a variable.  It is assumed that
+this partial is computed in the user's program in some way other than with
+divided differences.
+\end{description}
+
+
+An an illustration, suppose column 3 is not to be computed and column 4 is to
+be accumulated.  The rest of the columns are computed with one-sided
+differences and no additional options.  These requirements are designated by:
+IOPT(1:7) = $2,\ -4,\ 3,\ -3,\ 4,\ -1,\ 0$.
+
+\item[WK()] \ [inout] A work array whose dimension is at least LWK.
+  Values of $\mathbf{f}(\mathbf{y)}$ are placed in WK() when MODE =
+    J $>$ 0 is returned.  The additional locations of WK() are used for
+  scratch storage.
+
+\item[LWK] \ [in] The required length of the work array, LWK $\geq$ 3M+18.
+  
+\item[IWK()] \ [inout] An integer array whose dimension is at least LIWK.  The
+  first 10 positions of IWK() contain diagnostic information, which can
+  normally be ignored.  The remaining locations are used for scratch storage.
+  
+  IWK(1) gives the number of times the function, {\em i.e.}\ 
+  $\mathbf{f}(\mathbf{y})$, was computed.
+  
+  IWK(2) gives the number of columns in which three attempts were made
+  to increase a percentage factor for differencing ({\em i.e.}\ a component in the
+  FAC() array) but the computed $\Delta_J$ remained too small relative to
+  Y(J) or YSCALE(J).  In such cases the percentage factor is set
+  to the square root of the unit roundoff of the machine.
+  
+  IWK(3) gives the number of columns in which the computed $\Delta_J$ was
+  zero to machine precision because Y(J) or YSCALE(J) was zero.
+  In such cases $\Delta_J$  is set to the square root of the unit roundoff.
+  
+  IWK(4) gives the number of Jacobian columns which had to be recomputed
+  because the largest difference formed in the column was close to zero
+  relative to $\mathit{scale}$, where
+\begin{equation*}
+  \mathit{scale} = \max( |f_i (\mathbf{y})|,|f_i(\mathbf{y}+\bm{\Delta)}|)
+\end{equation*}
+and $i$ denotes the row index of the largest difference in the column
+currently being processed.  IWK(10) gives the last column where this
+occurred.
+
+IWK(5) gives the number of columns whose largest difference is close to
+zero relative to $\mathit{scale}$ after the column has been recomputed.
+
+IWK(6) gives the number of times scale information was not available for
+use in the roundoff and truncation error tests.  this occurs when
+\begin{equation*}
+  \min (|f_i(\mathbf{y})|,|f_i (\mathbf{y}+\bm{\Delta)}|) = 0.
+\end{equation*}
+where $i$ is the index of the largest difference for the column currently
+being processed.
+
+IWK(7) gives the number of times the increment for differencing $\Delta_J$
+was computed and had to be increased because (Y(J)+ $\Delta_J) -$ Y(J) was too
+small relative to Y(J) or YSCALE(J).
+
+
+IWK(8) gives the number of times a component of the FAC() array
+was reduced because changes in function values were large and excess
+truncation error was suspected. IWK(9) gives the last column in which
+this occurred.
+
+IWK(9) gives the index of the last column where the corresponding
+component of the FAC() array had to be reduced because excessive
+truncation error was suspected.
+
+IWK(10) gives the index of the last column where the difference was
+small and the column had to be recomputed with an adjusted increment, as in
+IWK(4).  The largest derivative in this column may be inaccurate due to
+excessive roundoff error.
+
+
+\item[LIWK] \ [in] The required length of the array IWK(), LIWK $\geq $
+    21.
+
+\end{description}
+
+\subsubsection{Modifications for Single Precision}
+
+For single precision usage change the DOUBLE PRECISION statements to REAL and
+change the name DJACG to SJACG. It is recommended that one use the double
+precision rather than the single precision version of this package for better
+reliability and accuracy.
+
+\subsection{Example}
+\subsubsection{A Gradient Computation}
+
+The function is $f(y_1,y_2) = a \exp(b y_1)+c y_1 {y_2}^2$.  Its gradient
+vector, or $1 \times 2$ Jacobian matrix, is
+  \begin{equation*}
+  [\partial f/\partial y_1,\partial f/\partial y_2]=
+                         [a b \exp(b y_1)+c {y_2}^2, 2c y_1 y_2]
+  \end{equation*}
+  This formula is used for comparison to the computed results.  Values of the
+  parameters and variables in the program are:
+
+\begin{enumerate}
+\item[] $a=2.5$, $b=3.4$, $c=4.5$
+\item[] $y_1=2.1$, $y_2=3.2$
+\end{enumerate}
+
+This driver illustrates how to:
+\begin{enumerate}
+\item Compute approximate derivatives using one-sided divided differences
+  (default)
+\item Use one-sided differences on the first component and analytically
+  compute the second component
+\item Accumulate a known term of the first component with a differenced term
+  that is not known a priori
+\item Use central differences for both partials, getting more accuracy with
+  additional function evaluations
+\end{enumerate}
+
+[The code and output listing are shown below.]
+
+
+\subsection{Functional Description}
+
+Let $\mathbf{y}$ denote the vector given initially in Y().  Let $\epsilon $
+denote the machine precision, $\mathit{macheps}$. This is provided by the
+functions D1MACH(4) and R1MACH(4) in single precision. (See
+Chapter~19.1).
+
+Let $\mathbf{e}_j$ denote the $n$-vector that is all zeros except for the
+$j^{th}$ component which is one.
+
+For each $i$ and $j$ compute%
+\begin{equation*}
+\hspace{-12pt}\text{FJAC(i,j)}=
+\frac{f_i(\mathbf{y}+h_j \mathbf{e}_j)-f_i(\mathbf{y)}}{h_j}
+\end{equation*}
+The error in this difference approximation to the derivative $%
+\partial f_i/\partial y_j$ is bounded by the magnitude of%
+\begin{equation*}
+h_jM_2/2+\delta /h_j
+\end{equation*}
+where $M_2$ denotes the magnitude of $||\partial ^2 f/\partial ^2y_j||_2$
+evaluated at some point on the line segment from $\mathbf{y}$ to $%
+\mathbf{y}+h_j \mathbf{e}_j$, and $\delta $ is a bound on the error in computing
+$||\mathbf{f}(\mathbf{y})||$.
+
+A key feature of DJACG is its heuristic for efficiently estimating values of
+$\Delta_j = h_j=\mathit{fac}_j\times \mathit{scale}_j$ to maintain precision.
+The algorithm for choosing $\mathit{fac}_j$ is found in Salane,
+\cite{Salane:NUMD:1986}.  August, 1986.  A user should save values of
+$\mathit{fac}_j$ between computations of partials, particularly when values of
+{$\mathbf{y}$} do not change much and several evaluations of the partials are
+anticipated.
+
+The routine DJACG is re-entrant and thread-safe.  This is done by
+avoiding the use of elementary functions, except SQRT(). All required
+scalars are saved in the working arrays WK() and IWK() during
+reverse communication.
+
+An evaluation of the function $\mathbf{f}(\mathbf{y})$ can use DJACG as
+part of that computation.  This feature will be useful when approximating
+higher order derivatives of a smooth function, or using threaded algorithms to
+concurrently compute the Jacobian matrix columns.  To use the re-entrant or
+threaded functionality, separate storage copies of the arguments are usually
+required.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures}
+
+Require MODE = 0 or $> 0$ on any entry to DJACG. A returned value
+of MODE = 0 is normal, meaning the derivatives are approximated.  Values
+of MODE = K $< 0$ mean that argument number $-$K has an error
+condition.  Additional diagnostic information about numerical cancellation or
+excessive truncation error is found in IWK(2:10).
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DJACG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH}\\
+SJACG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH}\\
+\end{tabular}
+
+Designed and programmed by D. A. Salane, Sandia Labs. (1986).
+  Modified by  R. J. Hanson, Rice University, (June, 2002) with advice from
+  F. T. Krogh.
+
+\begcode
+
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDJACG1}\vspace{5pt}
+\lstinputlisting{\codeloc{djacg1}}
+
+\vspace{20pt}\centerline{\bf \large ODDJACG1}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{djacg1}}
+
+\end{document}
+

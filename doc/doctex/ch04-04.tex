@@ -1,0 +1,232 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{DRSACCUM}
+\begmath 4.4 Sequential Preprocessing of Linear Least-Squares Data
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Let a linear least-squares problem be denoted by
+\begin{equation*}
+A{\bf x} \simeq {\bf b}
+\end{equation*}
+where $A$ is a given $m\times n$ matrix with $m \geq n$, ${\bf b}$ is a
+given $m$-vector (or $m\times nb$ matrix) and it is required to find an $n$%
+-vector (or $n\times nb$ matrix), ${\bf x}$, that is an approximate solution
+to this equation in the least-squares sense. The given data for this problem
+can be regarded as the composite matrix, $[A:{\bf b}].$
+
+The subroutine, SACCUM or DACCUM, can be used to preprocess the data matrix,
+$[A:{\bf b}]$, sequentially, $i.e.$, it can process the matrix by individual
+rows or by blocks of rows. This is useful in problems in which $m$ is much
+larger than $n$ and the product $m\times n$ is so large that it would be
+inconvenient or impossible to allocate storage arrays of total size
+$( m\times n) + (m\times nb)$ to hold the data matrix, $[A:{\bf b}]$. It is also useful if
+it is desired to have the processing begin before the value of $m$ is known.
+This subroutine can function using total array storage space as small as $%
+(n+2)\times (n+nb)$ floating-point numbers.
+
+The result of this preprocessing is an upper-triangular array of data
+defining a least-squares problem that is equivalent to the original problem
+in the sense that it has the same solution, the same covariance matrix, and
+the same condition number. The transformed problem will have at most $n + 1$
+rows. The resulting triangular system can be solved directly if there is no
+concern about the problem being ill-conditioned. Otherwise, one can apply
+the subroutines of Chapters~4.2 or~4.3 to the transformed problem.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf LDA, N, LDB, NB, IR1, NROWS, NCOUNT}
+
+\item[REAL]  \ {\bf A}(LDA, $\geq $N){\bf , B}(LDB, $\geq $NB) or {\bf B}%
+(LDB)
+\end{description}
+
+On the initial call to SACCUM for a new problem set LDA, N, LDB, NB, IR1$= 1$%
+, and NROWS. On the initial call and all subsequent calls accumulating data
+for the same problem, set NROWS and store NROWS rows of new data into A(,)
+and B($,)$ beginning at row IR1.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SACCUM(A, LDA, N, B, LDB,\\
+NB, IR1, NROWS, NCOUNT)\\
+\end{tabular}}
+\end{center}
+
+Following the call the contents of A(,) and B(,) will have been altered
+reflecting the processing of the new data. The value of IR1 may have been
+increased.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A(,)] \ [inout] On each call to SACCUM the user assigns an integer
+value to NROWS and places NROWS rows of the data matrix, $[A:{\bf b}]$, into
+rows IR1 through $\text{IR1}+\text{NROWS}-1$ of A(,) and B(,).
+
+On each return the contents of A(,) and B(,) and possibly the value of IR1
+will have been modified. The output data in the first IR1 $-$ 1 rows of A(,)
+and B(,) will constitute a least-squares problem having the same solution as
+the problem represented by the data accumulated so far. The elements to the
+left of the diagonal in rows~2 through IR1 $-$ 1 of A(,) will be zero on
+return.
+
+\item[LDA] \ [in] The leading dimensioning parameter for the array A(,). LDA
+must be at least as large as the largest value the expression $\text{IR1}+
+\text{NROWS}-1$ will ever have on entry to SACCUM during the processing of the
+current problem. Note that IR1 will never exceed N + 2. If $\mu $ is the
+largest value that will be assigned to NROWS, then it suffices to set LDA $%
+\geq \text{N}+1+\mu .$
+
+\item[N] \ [in] Number of columns in the data matrix, $A$.
+
+\item[B(,)] \ [inout] See discussion above for A(,).
+
+\item[LDB] \ [in] Leading dimensioning parameter for the array B(,). Must
+satisfy the same constraints as described above for LDA.
+
+\item[NB] \ [in] Number of columns in the right-side data matrix, $B$. Set NB =
+1 if the right-side is a single vector. If NB = 0 the array B(,) will not be
+referenced.
+
+\item[IR1] \ [inout] Must be set to the value~1 before the first call to
+SACCUM for a problem. On each return IR1 will be updated by SACCUM to the
+value $\min ($IR1 + NROWS, N + 2). See discussion of A(,) above for the
+meaning and usage of IR1.
+
+\item[NROWS] \ [in] The number of rows of new data being provided to SACCUM
+on the current entry. The user must set this value on the initial entry for
+a new problem. After that the user may leave it unchanged or change it on
+any entry.
+
+\item[NCOUNT] \ [inout] Total number of rows of data provided so far for
+the current problem.  This is simply the sum of the values of NROWS
+provided on all entries to SACCUM for the current problem.  The subroutine
+initializes the counting when entered with IR1 = 1.
+\end{description}
+
+\subsubsection{Changes for Double Precision}
+
+For double precision usage change the REAL statement to DOUBLE PRECISION and
+change the subroutine name from SACCUM to DACCUM.
+
+\subsection{Examples and Remarks}
+
+As an example of the use of SACCUM the program DRSACCUM computes a least-%
+squares fit to a set of twelve data points by a seventh degree polynomial.
+The output is shown in ODSACCUM.
+
+For simplicity we have chosen to process just one row at a time. Thus NROWS
+has the value~1 in each call to SACCUM. It would be more efficient to
+process more rows on each call.
+
+To investigate the dependence of execution time on the setting of NROWS we
+solved a $200 \times 5$ problem with two right-side vectors using a number
+of different settings of NROWS. The transformed problem was then solved
+using DHFTI. For comparison we also solved the problem directly using DHFTI.
+We found the time for solution processing only one row at a time was about
+1.7 times the time to solve it directly. The time to solve it processing
+10~rows at a time was about~1.2 times the direct solution time. These ratios
+might differ substantially in different computing environments.
+
+\subsection{Functional Description}
+
+This subroutine uses orthogonal transformations to process the given data,
+producing an equivalent least-squares problem.  This method of sequential
+accumulation is treated in detail in \cite{Lawson:1974:SLS}.  To avoid
+complications we discuss here only the usual case in which the total
+number of rows of data accumulated exceeds $n$.  Then the transformed
+problem will be of the form%
+\begin{equation*}
+\left[
+\begin{array}{c}
+R \\
+0
+\end{array}
+\right] {\bf x}\simeq \left[
+\begin{array}{c}
+{\bf y} \\ \alpha
+\end{array}
+\right]
+\end{equation*}
+where $R$ is an $n\times n$ upper triangular matrix, ${\bf y}$ is an $n$%
+-vector, and $\alpha $ is a scalar quantity. The matrix $R$ will be in the
+array A(,) and ${\bf y}$ and $\alpha $ will be in B($,).$
+
+For enhanced efficiency the subroutine uses Givens orthogonal
+transformations when processing a small number of new rows of data and
+Householder orthogonal transformations when processing a larger set of new
+rows.
+
+The transformed quantities are related to the data, $[A:{\bf b}]$, by the
+relations, $R^tR = A^tA$, $R^t{\bf y} = A^t{\bf b}$, and ${\bf y}^t{\bf y} +
+\alpha ^2 = {\bf b}^t{\bf b}.$
+
+The solution, ${\bf x}$, for the transformed problem is also the solution
+for the original least-squares problem, $A{\bf x} \simeq {\bf b}$. If the
+matrix $A$ is of rank N and sufficiently well-conditioned, the solution can
+be computed by solving the triangular system, $R{\bf x} = {\bf y}$.
+Alternatively the transformed system can be analyzed and/or solved using
+subroutines from Chapters 4.2~or~4.3.
+
+The residual vector for the transformed least-squares problem is $\left[
+\begin{array}{c}
+0 \\
+\alpha
+\end{array}
+\right] $.
+
+The norm of this residual vector is $|\alpha |$ and this is also equal to $\|%
+{\bf b} - A{\bf x}\|.$
+
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+IR1 must be set to~1 on the first call to SACCUM and must not be altered
+subsequently by the user during the processing for one problem.
+
+SACCUM will return immediately, with no error message, if NROWS $\leq $ 0.
+
+Let $k$ = IR1 + NROWS $-$ 1. This will be the index of the last row of A(,)
+and B(,) containing new data on entry to SACCUM. If $k >$ LDA or $k >$ LDB,
+the subroutine will issue an error message using the error processing
+routines of Chapter~19.2 with an error level of 0 and return, doing no
+computation.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DACCUM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DACCUM, DHTCC, DNRM2, DROTG, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SACCUM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SACCUM, SHTCC, SNRM2, SROTG}\\\end{tabular}
+
+These subroutines are adaptations to the JPL MATH77 library of the
+algorithms that were developed by C. L. Lawson and R. J. Hanson at JPL in
+1972 and described in detail in \cite{Lawson:1974:SLS}.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSACCUM}\vspace{10pt}
+\lstinputlisting{\codeloc{saccum}}
+
+\vspace{30pt}\centerline{\bf \large ODSACCUM}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{saccum}}
+\end{document}

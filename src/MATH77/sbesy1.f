@@ -1,0 +1,81 @@
+      REAL             FUNCTION SBESY1 (X)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+c>> 1996-03-30 SBESY1 Krogh  Added external statement.
+C>> 1995-11-03 SBESY1 Krogh  Changes to simplify C conversion.
+C>> 1994-11-11 SBESY1 Krogh  Declared all vars.
+C>> 1994-10-20 SBESY1 Krogh  Changes to use M77CON
+C>> 1991-01-14 SBESY1 CLL Changed to generic name SIN.
+C>> 1990-11-29 CLL
+C>> 1985-08-02 SBESY1 Lawson  Initial code.
+C JULY 1977 EDITION.  W. FULLERTON, C3, LOS ALAMOS SCIENTIFIC LAB.
+C C.L.LAWSON & S.CHAN, JPL, 1984 FEB ADAPTED TO JPL MATH77 LIBRARY.
+c     ------------------------------------------------------------------
+c--S replaces "?": ?BESY1, ?BESJ1, ?BMP1, ?INITS, ?CSEVL, ?ERM1
+c     ------------------------------------------------------------------
+      EXTERNAL R1MACH, SBESJ1, SCSEVL
+      INTEGER NTY1
+      REAL             X, BY1CS(20), AMPL, THETA, TWODPI, XMIN, XSML,
+     1  Y, R1MACH, SCSEVL, SBESJ1
+C
+C SERIES FOR BY1        ON THE INTERVAL  0.          TO  1.60000E+01
+C                                        WITH WEIGHTED ERROR   8.65E-33
+C                                         LOG WEIGHTED ERROR  32.06
+C                               SIGNIFICANT FIGURES REQUIRED  32.17
+C                                    DECIMAL PLACES REQUIRED  32.71
+C
+      SAVE NTY1, XMIN, XSML
+C
+      DATA BY1CS / +.320804710061190862932352018628015E-1,
+     *  +.126270789743350044953431725999727E+1,
+     *  +.649996189992317500097490637314144E-2,
+     *  -.893616452886050411653144160009712E-1,
+     *  +.132508812217570954512375510370043E-1,
+     *  -.897905911964835237753039508298105E-3,
+     *  +.364736148795830678242287368165349E-4,
+     *  -.100137438166600055549075523845295E-5,
+     *  +.199453965739017397031159372421243E-7,
+     *  -.302306560180338167284799332520743E-9,
+     *  +.360987815694781196116252914242474E-11,
+     *  -.348748829728758242414552947409066E-13,
+     *  +.278387897155917665813507698517333E-15,
+     *  -.186787096861948768766825352533333E-17,
+     *  +.106853153391168259757070336000000E-19,
+     *  -.527472195668448228943872000000000E-22,
+     *  +.227019940315566414370133333333333E-24,
+     *  -.859539035394523108693333333333333E-27,
+     *  +.288540437983379456000000000000000E-29,
+     *  -.864754113893717333333333333333333E-32 /
+C
+      DATA TWODPI / 0.636619772367581343075535053490057E0 /
+      DATA NTY1, XMIN, XSML / 0, 2*0.E0 /
+C     ------------------------------------------------------------------
+      IF (NTY1 .EQ. 0) then
+      call SINITS (BY1CS, 20, 0.1E0*R1MACH(3), NTY1)
+C
+      XMIN = 1.571E0 * EXP (MAX(LOG(R1MACH(1)), -LOG(R1MACH(2))) +
+     1  0.01E0)
+      XSML = SQRT (4.0E0*R1MACH(3))
+      endif
+C
+      IF (X .LE. 0.E0) THEN
+        SBESY1 = 0.E0
+        CALL SERM1 ('SBESY1',1,0,'X IS ZERO OR NEGATIVE','X',X,'.')
+      ELSE IF (X .LE. XMIN) THEN
+        SBESY1 = 0.E0
+        CALL SERM1 ('SBESY1',2,0,'X SO SMALL Y1 OVERFLOWS','X',X,'.')
+      ELSE IF (X .LE. 4.E0) THEN
+        IF (X .LE. XSML) THEN
+          Y = 0.E0
+        ELSE
+          Y = X * X
+        END IF
+        SBESY1 = TWODPI * LOG(0.5E0*X)*SBESJ1(X) + (0.5E0 +
+     *           SCSEVL (.125E0*Y-1.E0, BY1CS, NTY1))/X
+      ELSE
+        CALL SBMP1 (X, AMPL, THETA)
+        SBESY1 = AMPL * SIN(THETA)
+      END IF
+      RETURN
+      END

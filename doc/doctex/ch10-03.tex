@@ -1,0 +1,173 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 10.3 Complex Fourier Transform
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine computes Fourier transforms for complex data in up to
+6~dimensions using the fast Fourier transform. The relation between values $z$
+and Fourier coefficients $\zeta $ is defined by%
+\begin{multline*}
+ z(j_1,j_2,\ldots,j_{ND})= \sum_{k_1=0}^{N_1-1} \cdots\\
+\sum_{k_{ND}=0}^{N_{ND}-1}
+\zeta (k_1,k_2,...,k_{ND})W_1^{j_1k_1} \cdots
+W_{ND}^{j_{ND}k_{ND}},\text{ and}
+\end{multline*}\vspace{-20pt}
+\begin{multline*}
+\zeta(k_1,k_2,\ldots,k_{ND})=\frac 1N_1 \cdots \frac 1N_{ND}
+\sum_{j_1=0}^{N_1-1} \cdots\\
+\sum_{j_{ND}=0}^{N_{ND}-1}
+ z(j_1,\ldots,j_{ND}) W^{-j_1k_1} \cdots W^{-j_{ND}k_{ND}}
+\end{multline*}
+where $N_\ell =2^{\text{M}(\ell)}$, $W_\ell =e^{2\pi i/N_\ell}$, $%
+0\leq j_\ell,\ k_\ell \leq N_\ell -1$, and $z$ and $\zeta $ are complex.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[\bf COMPLEX]  \ {\bf A}$(N_1$, $N_2$, ..., $\geq N_{ND})$
+\ \ $[N_k=2^{\text{M}(k)}]$
+\item[\bf REAL]  \ {\bf S}$(\geq \max (\nu _1${\bf , $\nu _2$, ..., $\nu
+_{ND})-1)$} $[\nu _k=2^{\text{M}(k)-2}]$
+\item[\bf INTEGER]  \ {\bf M}$(\geq {\textstyle ND})${\bf , ND, MS}
+\item[\bf CHARACTER]  \ {\bf MODE$*(\geq {\textstyle ND})$}
+\end{description}
+On the initial call set MS to~0 to indicate the array S($)$ does not yet
+contain a sine table. Assign values to A(), MODE, M, and ND.
+$$
+\fbox{{\bf CALL SCFT(A, MODE, M, ND, MS, S)}}
+$$
+A() will contain computed results. S($)$ will contain the sine table used in
+computing the Fourier transform. MS may have been changed.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A()]  [inout] If the argument MODE selects analysis in all dimensions,
+A() contains values $z$ on entry, and Fourier coefficients $\zeta $ on exit.
+If MODE selects analysis in all dimensions, A() contains Fourier
+coefficients $\zeta $ on entry, and values $z$ on exit. When A() contains $z$%
+, A($j_1+1$, $j_2+1$, ..., $j_{ND}+1)=z(j_1$, $j_2$, ..., $j_{ND})$, and
+when A() contains $\zeta $, A($k_1+1$, $k_2+1$, ..., $k_{ND}+1)=\zeta (k_1$,
+$k_2$, ..., $k_{ND})$, 0\ $\leq j_i,k_i\leq 2^{\text{M}(i)}-1$, $i=0$, 1, ..., ND.
+
+\item[MODE]  [in] The character MODE$(k{:}k)$ selects Analysis or Synthesis
+in the $k^{th}$ dimension. 'A' or 'a' selects Analysis, transforming $%
+z$'s to $\zeta $'s. 'S' or 's' selects Synthesis,
+transforming $\zeta $'s to $z^{\prime }s.$
+
+\item[M($)$]  [in] Defines $N_k=2^{\text{M}(k)}$, the number of complex data points
+in the $k^{th}$ dimension. Require 0$\ \leq \text{M}(k)\leq 30$ for
+all $k$. No action is taken in dimensions for which M($k)=0.$
+
+\item[ND]  [in] Number of dimensions. Require 1 $\leq $ ND $\leq $ 6.
+
+\item[MS]  [inout] Gives the state of the sine table in $S()$.  Let
+$\text{MS}_{in}\text{ and MS}_{out}$ denote the values of MS on entry
+and return respectively. If the sine table has not previously been
+computed, set $\text{MS}_{in} = 0$ or $-$1 before the call. Otherwise
+the value of $\text{MS}_{out}$ from the previous call using the same
+S() array can be used as $\text{MS}_{in}$ for the current call.
+
+Certain error conditions described in Section E cause the subroutine
+to set $\text{MS}_{out} = -2$ and return.  Otherwise, with $\max _i
+\{\text{M}(i)\} > 0$, the subroutine sets $\text{MS}_{out} = \max ($M(1),
+M(2), ..., M(ND), $\text{MS}_{in}).$
+
+If $\text{MS}_{out} > \max (2, \text{MS}_{in}),$ the subroutine sets
+NT = $2^{\text{MS}_{out}-2}$ and fills S() with NT $-$ 1 sine values.
+
+If $\text{MS}_{in}=-1$, the subroutine returns after the above
+actions, not transforming the data in A().  This is intended to allow
+the use of the sine table for data alteration before a subsequent Fourier
+transform, as discussed in Section G of Chapter~16.0.
+
+\item[S($)$]  [inout] When the sine table has been computed, S($j)=\sin \pi
+j/(2\times {\textstyle NT})$, $j=1$, 2, ..., NT $-$ 1, see MS above.
+\end{description}
+\subsubsection{Modifications for Double Precision}
+
+Change SCFT to DCFT and the REAL type statement to DOUBLE PRECISION. If it
+is available, one can change the COMPLEX type statement to DOUBLE PRECISION
+COMPLEX. For portability, (or out of necessity) one can change the COMPLEX
+statement to DOUBLE PRECISION and change the first dimension to be twice as
+big. The data should then be stored in A with the imaginary parts of the
+complex numbers following immediately after the real parts.  This
+representation is compatible with the representation used in Fortran
+90, and with most compilers that extend Fortran~77 to provide a double
+precision complex type.
+
+\subsection{Examples and Remarks}
+
+Estimate the spectral composition of%
+$$
+f(t)=[\sin 2\pi (t+0.1)+4\cos 2\pi (\sqrt{2}\,t+0.3)]+0i
+$$
+where we make the same assumptions and use the same $\Delta t$ and N as in
+the example for SRFT1. Differences between the results given here and those
+obtained for SRFT1 are due to the use of sigma factors in SRFT1. (It is more
+efficient to use SRFT1 when $f$ is a real function. A real function was used
+here to show the effect of the sigma factors.) Note that the peaks are
+slightly sharper here than they are for SRFT1, but that as one leaves the
+peaks the coefficients do not tend to zero nearly as rapidly as when the
+sigma factors are used. The program to do these calculations and the results
+are given at the end of this chapter.
+
+\subsection{Functional Description}
+
+The multi-dimensional complex transform involves calling SFFT to compute
+one-dimensional complex transforms with respect to each dimension. For ND $=
+1$, the formulas are given by Eqs.\,(9) and (10) in Chapter~16.0. For ${%
+\textstyle ND} \geq 1$, the formula for $z$ given $\zeta $ is given in
+Purpose above.  More details can be found in \cite{Krogh:1970:CFT}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Require 1 $\leq $ ND $\leq $ 6 and 0 $\leq $ M($k)\leq 30$ for all $k$.
+MODE must have one of its allowed values. If any of these conditions are
+violated, the subroutine will issue an error message using the error
+processing procedures of Chapter~19.2 with severity level~2
+to cause execution to stop. A return is made with $\text{MS}=-2$
+instead of stopping if the statement ``CALL\ ERMSET($-$1)'' is executed
+before calling this subroutine.
+
+If the sine table does not appear to have valid data, an error message is
+printed, and the sine table and then the transform are computed.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCFT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ DCFT, DFFT, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SCFT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ ERFIN, ERMSG, IERM1, IERV1, SCFT, SFFT}\\
+\end{tabular}
+
+Subroutine designed and written by: Fred T. Krogh, JPL, October~1969,
+revised January~1988.
+
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSCFT}\vspace{0pt}
+\lstinputlisting{\codeloc{scft}}
+
+\vspace{5pt}\centerline{\bf \large ODSCFT}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{scft}}
+\end{document}

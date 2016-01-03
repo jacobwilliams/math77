@@ -1,0 +1,29 @@
+      subroutine DCONCM(N, COEFF)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+C>> 1994-11-11 DCONCM Krogh   Declared all vars.
+c>> 1994-10-20 DCONCM Krogh  Changes to use M77CON
+c>> 1992-06-04 DCONCM Krogh  Corrected line below.
+c>> 1992-01-31 DCONCM Krogh  Initial Code.
+c--D replaces "?": ?CONCM
+c
+c Converts COEFF in Chebyshev basis to the monomial basis.
+c
+      integer N, J, I
+      double precision COEFF(0:N), TP
+c
+      if (N .le. 0) return
+      TP = 1.D0
+      do 20 J = 0, N-2
+         do 10 I = N-2, J, -1
+            COEFF(I) = COEFF(I) - COEFF(I+2)
+   10    continue
+         COEFF(J+1) = .5D0 * COEFF(J+1)
+         COEFF(J) = TP * COEFF(J)
+         TP = 2.D0 * TP
+   20 continue
+      COEFF(N) = TP * COEFF(N)
+      COEFF(N-1) = TP * COEFF(N-1)
+      return
+      end

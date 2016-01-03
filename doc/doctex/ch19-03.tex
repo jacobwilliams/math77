@@ -1,0 +1,564 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 19.3 Extended Error Message Processor
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The subroutines described here print error messages and diagnostic messages.
+These routines are intended primarily for use by other library routines.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Setting or Getting a Message Processor
+Parameter}
+
+\begin{description}
+\item[INTEGER]  \ {\bf MACT}($\geq k_1$){\bf , IDAT}($\geq k_2$)
+
+\item[CHARACTER*($\geq k_3$)]  \ {\bf TEXT}($\geq k_4$)
+\end{description}
+
+The values for the $k_i$'s depend on the actions desired.  For the
+actions described prior to the section on advanced features $k_1 = 2
+\times ($the number of actions) + 1, $k_2=1$, and $k_3$ and $k_4$ are~1
+unless one of the actions is MEHEAD, in which case $k_3$ should be~4.
+
+Assign values to MACT(). Prior to the section on advanced features,
+IDAT(), and TEXT() (with one exception) are not referenced.
+$$
+\fbox{{\bf CALL MESS(MACT, TEXT, IDAT)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[MACT()]  \ [inout] Used to set or check parameters used by the message
+processor. Starting at MACT(1), is a list of integer pairs followed by a
+single MERET=51, which terminates the list. If the first integer is $>$ 0,
+it is an index specifying the parameter that one wants to set and the
+following integer gives the value to be assigned to the parameter. If the
+first integer is negative, its absolute value specifies a parameter as
+above, and the value of that parameter is returned in the second integer. A
+single call can get and/or set as many of these parameters as desired.
+Below is a list of parameter names (which we recommend be used for the
+clarity of the code), and their values, that are used as the first integer
+in an entry. The second integer of the entry is denoted by Kj, where j is
+the value of the first integer.
+
+\begin{description}
+\item[MESUNI=10]  (0 $\leq $ K10 $\leq $ 99) Set the scratch file unit
+number to K10.  If the scratch unit is required and K10 has not been
+defined, its default value is~$31-k$, where k is the smallest positive
+integer for which unit~$31-k$ is available.  If K10 is set to~0, a
+scratch unit is assumed not to be available, and tables with long
+lines will be printed with each row on multiple lines.
+
+\item[MEHEAD=11]  (0 $\leq $ K11 $\leq $ 1) Defines the print that
+surrounds an error message.  K11=0 gives nothing, and~1 gives
+TEXT(1)(1:4) repeated 18~times. If this is not used, one gets
+72~\$'s. (To get a blank line use 1 with TEXT(1) = $^{\prime
+}{\quad}^{\prime }.)$
+
+\item[MEDDIG=12]  (-50 $\leq $ K12 $\leq $ 50) Set default digits to
+print for floating point. If K12 $>$ 0 then K12 significant digits
+will be printed, if K12 $<$ 0, then $-$K12 digits will be printed
+after the decimal point, and if K12 = 0, the default will be used,
+which is the full machine precision. Setting or getting this value
+will only work properly if the action is taken by calling SMESS or
+DMESS as appropriate; see below. There are separate internal values
+for K12 in SMESS and DMESS.
+
+\item[MEMLIN=13]  (39 $\leq $ K13 $\leq $ 500) Set line length for
+diagnostic messages to K13.  (Default is~128.)
+
+\item[MEELIN=14]  (39  $\leq $ K14 $\leq $ 500) Set line length for
+error messages to K14. (Default is~79.)
+
+\item[MEMUNI=15]  (-99 $\leq $ K15 $\leq $ 99) Set unit number for
+diagnostic messages to K15. If K15 = 0 (default), a Fortran PRINT
+statement is used.
+
+\item[MEEUNI=16]  (-99 $\leq $ K16 $\leq $ 99) Set unit number for error
+messages to K16. If K16 = 0 (default), a Fortran PRINT statement is
+used.
+
+\item[MESCRN=17]  (0 $\leq $ K17 $\leq $ 100000000) Set number of lines
+to print to standard output before pausing for ``go'' from user.
+Default is~0, which never stops.
+
+\item[MEDIAG=18]  (0 $\leq $ K18 $\leq $ 1000000000) Not currently in
+use by MATH77 routines.  Described more fully below.
+
+\item[MEMAXE=19]  (0 $\leq $ K19 $\leq $ 1000000000) Set the maximum
+error value. When retrieving this value, it is the maximum value seen
+for $10000 s+1000 p+i$, where $s$, $p$, and $i$ are the stop and
+print levels, and the index on the last error message processed,
+respectively.
+
+\item[MESTOP=20]  (0 $\leq $ K20 $\leq $ 8) Set the stop level for error
+messages. If an error message has a stop index $>\min $(K20,~8), the
+program is stopped after processing the message. The default value is
+K20=3.
+
+\item[MEPRNT=21]  (0 $\leq $ K21 $\leq $ 8) Set the print level for
+error messages. If an error message has a print index $>$ K21, or the
+message is going to stop when finished, information in an error
+message is processed, else all the actions including printing are
+skipped. (MESTOP controls stopping.) The default value is K21=3.
+
+\item[MERET=51]  End of the list. (Only requires a single integer.)
+\end{description}
+
+\item[TEXT()]  \ [in] Only referenced if MEHEAD is one of the actions. See the
+description above.
+
+\item[IDAT()]  \ [in] Not referenced by the application discussed here.
+\end{description}
+
+\subsubsection{Getting and Setting the Default for Digits to Print for
+Floating Point Numbers}
+
+As mentioned above, the setting or retrieving of the number of decimal
+digits, MEDDIG above, requires a call to SMESS for single precision, and a
+call to DMESS for double precision. Either of these calls can be used to set
+any of the other parameters also. These calls require the additional
+declaration of a floating point array FDAT(), which must be single precision
+if SMESS is called and must be double precision if DMESS is called.
+$$
+\fbox{{\bf CALL SMESS(MACT, TEXT, IDAT, FDAT)}}
+$$
+$$
+\fbox{{\bf CALL DMESS(MACT, TEXT, IDAT, FDAT)}}
+$$
+As above, the only argument actually used for this application is MACT().
+
+\subsubsection{Advanced Features}
+
+Most of the features listed below are used someplace in one of the
+library routines.  The options that use FDAT require calling SMESS or
+DMESS, the other options can call MESS, SMESS, or DMESS.  All
+variables passed to these routines are arrays which must have a
+declared dimension large enough to process the options being specified.
+Internal variables, all of which have a default value of 1, are used to
+keep track of locations as follows:
+
+\begin{tabular}{lp{2.3in}}
+NTEXT & The next text to be output starts at TEXT(NTEXT).\\
+NIDAT & The next output from IDAT starts at IDAT(NIDAT).\\
+NFDAT & The next output from FDAT starts at FDAT(NFDAT).\\
+NMDAT & The next output from MDAT starts at MDAT(NMDAT), where
+        MDAT is defined by actions MEMDA1--MEMDA5 below, and
+        NMDAT is set to one at the end of every text output.
+\end{tabular}
+
+An action that uses data pointed to by one of the above will cause
+the pointer to be incremented to one past the last location used.  An
+exception is NMDAT, which when it reaches 5 is not incremented and the
+value pointed to is incremented instead.
+
+When an option requires more than a single additional number to
+define it, a new letter followed by the index associated with the
+option is used to denote each additional number.  The additional
+values of MACT available are:
+
+\begin{description}
+\item[MEDIAG=18]  (0 $\leq $ K18 $\leq $ 1000000000) Set the diagnostic level
+  desired.  Once again, note that this is not used in MATH77.
+  The error message routines makes no use of K18.  MESS merely
+  serves as a place to set it and to answer inquiries on its
+  value.  It is intended to be set by users of library
+  software.  Library packages that make use of this number
+  are expected to use it as described below.  If K18 = 0 (the
+  default), no diagnostic print is being requested.  Else $m$ =
+  mod(K18,\ 256) determines whether a package will do
+  diagnostic printing.  Associated with a library package is
+  a number L that must be a power of 2 $<$ 129, and that
+  should be mentioned in the documentation for the package.
+  If the bit logical or($m$,L) = L then diagnostic output for
+  the routine with the associated value of L is activated.
+  The value of L should have been selected by the following
+  somewhat vague rules.  Let $\log_2(\text{L}) = 2 i + j,$ where $j$
+  is 0 or 1.  Select $i$ = level of the library package, where
+  the level is 0 if no other library routine that is likely
+  to be used with the package could reasonably be expected to
+  want any embedded diagnostics, and otherwise is
+  min(4, I+1), where I is the maximum level for any library
+  routine that is likely to be used with the package.
+  Select $j$ = 0 if the user is relatively unlikely to want
+  diagnostics, and $j$ = 1, if this is a routine for which
+  considering its level the user is relatively likely to want
+  diagnostic output.  The next 8 bits, mod(K18/256, 256), may
+  be used by the library routine to select the actual output
+  that is to be given.  These bits may be ignored,  but if
+  they are used, the lowest order bits should correspond to
+  less voluminous output that is more likely to be requested.
+  Finally, K18 / ($2^{16}$) may be used to give a count on how
+  many times to print the diagnostics that are given.  This
+  count may be interpreted by library routines in slightly
+  different ways, but when used it should serve to turn off
+  all output after a certain limit is reached.  By
+  convention, if this is 0 there is no upper bound on the
+  count.
+\item[METDIG=22]  ($-50$ $\leq $ K22 $\leq $ 50) As for MEDDIG (=12,
+  above), except the value here is temporary, lasting until the return,
+  or next use of this action.  If 0, the internal value for K12 is used
+  instead.
+\item[MENTXT=23]  (1 $\leq $ K23 $\leq $ 10000000) Set value of NTEXT to K23.
+\item[MEIDAT=24]  (1 $\leq $ K24 $\leq $ 1000000000) Set value of NIDAT to K24.
+\item[MEFDAT=25]  (1 $\leq $ K25 $\leq $ 1000000000) Set value of NFDAT to K25.
+\item[MEMDAT=26]  (1 $\leq $ K26 $\leq $ 5) Set value of NMDAT to K26.
+\item[MEMDA1=27]  (K27) set MDAT(1) to K27.  See description of NMDAT above.
+\item[MEMDA2=28]  (K28) set MDAT(2) to K28.
+\item[MEMDA3=29]  (K29) set MDAT(3) to K29.
+\item[MEMDA4=30]  (K30) set MDAT(4) to K30.
+\item[MEMDA5=31]  (K31) set MDAT(5) to K31.
+\item[METABS=32]  (1 $\leq $ K32 $\leq $ 100) set spacing for tabs to K32.
+  The default value is K32=6.
+\item[MEERRS=33] (K33) set the current error counter to K33.  (To retrieve
+  this value set a location in MACT() to $-33$, and the count will be returned
+  in the following location.)  This count is set to 0 on the first call made
+  to MESS.
+\item[MECONT=50]  Exit, but no print of current print buffer.  The error or
+  diagnostic message is to be continued immediately.
+\item[MERET=51] All done with diagnostic or error message.  Complete
+  processing and return; or for some error messages stop.
+\item[MEEMES=52]  (K52, L52, M52) Start an error message with severity level
+  K52, index for the error of L52, and message text starting
+  at TEXT(M52).  If M52 is 0, message text starts at
+  TEXT(NTEXT), and if M52 $<$ 0, no message text is
+  printed as part of this action.  This option assumes that TEXT(1) starts
+  with text giving the name of the subprogram or package terminated with a
+  `\$B'.  Library routines should set K52 = $10\times s + p$, where $s$ is
+  the stop level desired, and $p$ the print level, and should have
+  $10 > p \geq s \geq 0.$
+  We offer the following guidelines as a yardstick for
+  setting the value of $s$.
+\begin{description}
+\item[= 9]  User has ignored warning that program was going to be stopped.
+\item[= 8]  Program has no way to continue.
+\item[= 7]  User has given no indication of knowing that functionality of
+       results is reduced.  (E.g. not enough space for some result.)
+\item[= 6]  Program could continue but with reduced functionality.
+\item[= 5]  Results far worse than user expected to want.
+\item[= 4]  User has given no indication of knowing that results do not
+       meet requested or expected accuracy.
+\item[= 3]  Warning is given that program will be stopped without some
+       kind of response from the calling program.
+\item[= 2]  Program is not delivering requested or expected accuracy.
+\item[= 1]  Some kind of problem that user could correct with more care in
+       coding or in problem formulation.
+\item[= 0]  Message is for information of uncritical nature.
+\end{description}
+           Print levels might be counted down so that warnings given
+           several times are no longer given, or be counted up so
+           that a warning is only given after a certain threshold is
+           reached.  Levels should be selected with the understanding
+           that the default is to print or stop only for levels $>$ 3.
+\item[METEXT=53]  Print TEXT, starting at TEXT(NTEXT).  Print ends
+           with the last character preceding the first '\$'.  Special
+           actions are determined by the character following the '\$'.
+           Except as noted, the '\$' and the single character that
+           follows are not printed.  In the text below, ``to continue",
+           means to continue print of TEXT with the next character
+           until the next ``\$".  Except for the one case noted, NTEXT
+           is set to point to the second character after the ``\$".
+           Possibilities for the character following the ``\$'' are
+           (letters must be in upper case):
+\begin{description}
+\item[B] $\underline{\text{B}}$reak text, but don't start a new line.
+\item[E] $\underline{\text{E}}$nd of text and line.
+\item[R] Break text, don't change the value of NTEXT.  Thus next
+        text $\underline{\text{R}}$epeats the current.
+\item[N] Start a $\underline{\text{N}}$ew line, and continue.
+\item[I] Print $\underline{\text{I}}$DAT(NIDAT), set NIDAT = NIDAT + 1,
+         and continue.
+\item[J] As for I above, except use the last integer format
+         defined by a ``\$(", see below.
+\item[F] Print $\underline{\text{F}}$DAT(NFDAT), set NFDAT = NFDAT + 1,
+         and continue.
+\item[G] As for F above, except use the last floating format
+         defined by a ``\$(", see below.
+\item[M] Print $\underline{\text{M}}$DAT(NMDAT), set NMDAT = NMDAT + 1,
+         and continue.
+\item[H] Marks terminator for column and row $\underline{\text{H}}$eadings;
+        see table, vector, and matrix output below.  This causes enough
+        blanks to be generated to keep column headings centered over their
+        columns.  After the blanks are generated, text is continued
+        until the next '\$'.  This is not to be used except inside
+        column or row headings.  The last row or column should be
+        terminated with a '\$E' or if appropriate, a '\$\#' for a row or
+        column label.
+\item[(] Starts the definition of a format for integer or floating
+        point output.  The format must require no more than 12
+        characters for floating point and may not contain a ``P" field
+        (e.g. ``(nnEww.ddEe)", where each of the lower case letters
+        represents a single digit), and no more than 7 characters for
+        integer output.  If the next character following the ``)" that
+        ends the format is not a ``\$" then ``\$J" or ``\$G" type output
+        is done; see above.  In either case processing of TEXT then
+        continues.
+\item[T] $\underline{\text{T}}$ab.  See METABS (=32 above).
+\item[\#] Used in matrix row or column labels.  This prints the current
+        row or column index, respectively, ends the text for the
+        current row or column, and resets the text pointer to where
+        it started.
+\item[\$] a single '\$' is printed; continue output of text.
+\item[$-$] Starts a negative number for skipping, see next below.
+\item[0-9] A sequence of digits (perhaps preceded by a `$-$' sign defines an
+  extra amount to skip the index (ahead or back) for fetching the next thing
+  from FDAT or IDAT (whichever is referenced next).  We recommend this be used
+  just prior to the \$ item that requires the skip.  (The default is to start
+  one past the last thing printed.)
+\item[C] Only used by {\tt pmess} which deletes it and the preceding '\$'.
+        Used at the end of a line to indicate
+        $\underline{\text{C}}$ontinued text.
+ \item [{\em blank}] A blank ending up in column 72 is replaced by
+        ``\$~'' by pmess, thus avoiding bugs in some Fortran compilers.  If
+        the user inputs a ``\$~'', not followed by anything pmess starts a new
+        data statement with an incremented array name; if followed by a ``D''
+        pmess will arrange for the preceding text to be stored in an array (so
+        that not too many continuation lines are required) and outputs a
+        comment so the C conversion is done correctly.
+\item[other] Don't use this --- the '\$' is ignored, but new features may
+        change the action.
+\end{description}
+\item[ME????=54]  Not used.
+\item[METABL=55] (K55, L55, M55, N55) Note this action automatically
+  returns when done, further locations in MACT are not examined.  This
+  action prints a heading and/or data that follows a heading.  If K55
+  is 1, then the heading text starting in TEXT(NTEXT) is printed prior
+  to printing the data.  This text should contain embedded ``\$H"'s to
+  terminate columns of the heading.  If there is no heading on a
+  column, use `` \$H".  Note the leading blank.  If the heading is to
+  continue over k columns, begin the text with ``\$H" repeated $k-1$
+  times with no other embedded characters.  The very last column must
+  be terminated with ``\$E" rather than ``\$H".  After tabular data
+  are printed, K55 is incremented by 1, and compared with L55.  If K55
+  $>$ L55, K55 is reset to 1, and if the data that was to be printed
+  required lines that were too long, data saved in the scratch file is
+  printed using the headings for the columns that would not fit on the
+  first pass.  Note that only one line of tabular data can be printed
+  on one call to this subroutine.\newline M55 gives the number of
+  columns of data associated with the heading which is the sum of the
+  ``rr'' values.\newline N55 is a vector containing as many entries as
+  needed to get the sum of the ``rr'' values equal to M55.  The
+  $k^{th}$ integer in N55 defines the printing action for the $k^{th}$
+  column of the table.  Let such an integer have a value defined by
+  $rr + 100 \times (t + 10 \times (dd + 100 \times ww)),$ i.e.
+  $wwddtrr,$ where $0 \leq rr,dd,ww < 100,$ and $0 \leq t < 10.$
+\begin{description}
+\item[rr] The number of items to print.
+\item[t] The type of output.
+\begin{description}
+\item[1]  Print text starting at TEXT(NTEXT), rr = 01.
+\item[2]  Print the value of K55, rr = 01.
+\item[3]  Print integers starting at IDAT(NIDAT).
+\item[4]  Print starting at FDAT(NFDAT), using an F format.
+\item[5]  Print starting at FDAT(NFDAT), using an E format.
+\item[6]  Print starting at FDAT(NFDAT), using an G format.
+\end{description}
+\item[dd]   Number of digits after the decimal point.
+\item[ww]   The total number of print positions used by the column,
+           including the space used to separate this column from the
+           preceding one.  This must be big enough so that the column
+           headings will fit without overlap.
+\end{description}
+\item[MEIVEC=57]  (K57) Print IDAT as a vector with K57 entries.  The vector
+           output starts on the current line even if the current line
+           contains text.  This is useful for labeling the vector.
+           The vector starts at IDAT(NIDAT).
+           If K57 $<$ 0,  indexes printed in the labels for the vector
+           start at NIDAT, and entries from NIDAT to $-$K57 are
+           printed.
+\item[MEIMAT=58]  (K58, L58, M58, I58, J58) Print IDAT as a matrix with K58
+           declared rows, L58 actual rows, and M58 columns.  If K58 $<$ 0,
+           instead of using 1 for the increment between rows, and K58
+           for the increment between columns, $-$K58 is used for the
+           increment between rows, and 1 is used for the increment
+           between columns.  If L58 $<$ 0, the number of actual rows is
+           mod($-$L58, 100000), and the starting row index is $-$L58 /
+           100000.  Similarly for M58 $<$ 0. TEXT(I58) starts the text for
+           printing row labels.  If I58 $<$ 0, no row labels are
+           printed.  If I58 = 0, it is as if it pointed to text
+           containing ``Row \$E".  Any ``\$" in a row or column label must
+           be followed by ``H" or ``E" which terminates the text for the
+           label.  In the case of \$H, text for the next label follows
+           immediately, in the case of \$E the current row index is
+           printed in place of the \$E and the next label uses the same
+           text.  J58 is treated similarly to I58, except for column
+           labels, and with ``Row \$E" replaced with ``Col \$E".  The
+           matrix starts at IDAT(NIDAT), and NIDAT points one past the
+           end of the matrix when finished.
+\item[MEJVEC=59]  (K59) As for MEIVEC, except use the format set from
+           using \$(.
+\item[MEJMAT=60]  (K60, L60, M60, I60, J60) As for MEIMAT, except use the
+           format set from using \$(.
+\item[MEFVEC=61]  (K61) As for MEIVEC, except print FDAT as a vector with
+           K61 entries.  The vector starts at FDAT(NFDAT).
+\item[MEFMAT=62]  (K62, L62, M62, I62, J62) As for action MEIMAT, but
+           print FDAT instead, and use NFDAT in place of NIDAT.
+\item[MEGVEC=63]  (K63) As for MEFVEC, except use the format set by using \$(.
+\item[MEGMAT=64]  (K64, L64, M64, I64, J64) As for MEIMAT, except use the
+           format set by using \$(.
+\item[MEIVCI=65]  (K65, L65) As for MEIVEC, except the vector entries have a
+           spacing of K65, and there are L65 entries in the vector.
+\item[MEJVCI=66]  (K66) As for MEIVCI, except use the format set by
+           using \$(.
+\item[MEFVCI=67]  (K67, L67) As for MEFVEC, except the vector entries have a
+           spacing of K67, and there are L67 entries in the vector.
+\item[MEGVCI=68]  (K68) As for MEFVCI, except use the format set by
+           using \$(.
+\item[MEFSPV=69] (K59)  K59 gives the number of entries in the sparse
+  vector, IDAT gives indexes of the entries, and FDAT gives the
+  corresponding values.  One may want to make use of MEMDA1, and
+  MEMDA2 to save for example the column index and the number of
+  entries for output in a text message that precedes the output of the
+  vector.  The user will need to write a loop to output a sparse
+  matrix, and output of sparse integer vectors in not supported.
+\end{description}
+
+\subsubsection{Constructing Message Data with {\tt pmess}}
+For complicated messages, making up the Fortran DATA statements,
+required can be quite difficult.  Even for simple cases, we recommend
+using the stand alone program {\tt pmess} to construct both the DATA
+statements, and PARAMETER statements that define variables that can
+be used to reference messages.  One can then change input message
+text, run {\tt pmess}, and replace the old output in the code with the new
+output, without requiring other changes in the code.  {\tt pmess} expects
+input from ``standard input", and writes output to the file {\tt tmess}.
+Thus for the example given in the section below, with an input file
+of {\tt drsmess.err} the program is executed as follows (at least for DOS
+and Unix)
+$$
+\fbox{{\bf \tt pmess $<$drsmess.err}}
+$$
+and the file {\tt tmess} can be inserted into a Fortran routine.  In order to
+follow the declaration order imposed by the Fortran standard, and to
+avoid splitting the output generated by {\tt pmess}, we recommend inserting the
+output from {\tt pmess} after all other specification statements in the code,
+but before other data statements (if any).
+
+{\tt pmess} generates parameters LTXTAA, LTXTAB, \ldots .  These names are
+associated with individual messages that might be printed, and are
+identified by comments of the form cAA, cAB, \ldots generated by {\tt pmess}.
+The values generated for these parameters are the character positions of
+the message in the particular character array in which that message is
+stored.  Messages are first stored in a character array named MTXTAA, but
+if a line consisting of a single `\$' in column 1 is encountered the last
+two letters of this name are advanced as for LTXTxx, and further text is
+stored in the new character array.  {\tt pmess} generates both the declarations
+and the data for these character arrays.
+
+The comments (and just the comments) generated by {\tt pmess} can be used as
+inputs to {\tt pmess}.  Thus we recommend including these comments in the code
+both as documentation for the messages, and to simplify generating the
+data if changes to messages are desired.  If these comments are passed as
+input to {\tt pmess}, then the reference to column~1 above should be to
+column~5.
+
+{\tt pmess} replaces a blank in column 72 of output character strings with a
+`\$', and inserts a blank in the continued string.  This is done because
+some editors delete trailing blanks, and some compilers require that the
+trailing blanks in continued character data be present.
+
+There are three special cases used in {\tt pmess}, none of which generates
+text in the output arrays.  A ``\$C'' at the end of a line indicates that the
+text on the following line is a continuation of the text on this line.  At
+least for use in a Fortran 77 environment one should not use input lines
+longer than 68 characters to allow for the 4 extra spaces required by the
+generated comments.  A ``\$~'' at the start of a line causes the code to use a
+new array for the following text, and a ``\$~D'' at the start of a line tells
+{\tt pmess} to separate the data for the preceding text into separate array
+elements.  The latter is necessary if the text would require more than 19
+continuation lines.  Special comments for the conversion to C are also output
+for this case.
+
+Recall that for error messages, the text must start with the subprogram
+name, this name should be terminated with `\$B'.  We suggest that after
+the subprogram name, one give the text for the error messages in order.
+Then the text for error message $i$, can be located from an array
+referenced by the error index.
+
+\subsection{Examples and Remarks}
+
+{\tt pmess} transformed the data in {\tt drsmess.err} to statements included in
+the listing for DRSMESS.FOR. The output from running DRSMESS is given
+in ODSMESS. This illustrates how error messages can be generated, and
+how the length of the output line can be changed from the default
+(which is~79) to~40.
+
+Other library routines can be examined to see how various error
+messages and diagnostic outputs have been implemented.  Most of the
+features described here can be found in the source code for either
+DIVA or DIVADB,
+
+\subsection{Functional Description}
+
+The routines mentioned here are called by a number of library routines for
+the printing of both error messages and diagnostic information.  The
+user can call the routines described here to alter the actions they
+take when called by other library routines.
+
+Other approaches to handling error messages can be found in the references
+cited below.
+\nocite{Fox:1978:PMS}
+\nocite{Fox:1978:AFP}
+\nocite{IMSL:1989:ML}
+\nocite{Jones:1983:XER}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Use of indexes other than those described here, cause MESS to print
+the message ``Actions in MESS terminated due to error in usage of
+MESS.'' and then to return.  There are a two errors that cause
+MESS to execute an unrequested ``STOP.''  Such a STOP will print one
+of the two following messages.
+
+``Could not assign scratch unit in MESS.''\newline
+``Stopped in MESS {-}{-} Column width too small in a heading.''
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Algorithm and code due to F. T. Krogh, JPL, November, 1991.  Last
+change in March, 2006 to add output of sparse vectors.
+
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DMESS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DMESS, MESS\rule[-5pt]{0pt}{8pt}}\\
+MESS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, MESS\rule[-5pt]{0pt}{8pt}}\\
+SMESS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, MESS, SMESS}\\
+\end{tabular}
+
+\begcode
+
+\bigskip\
+
+\centerline{{\bf \large drsmess.err}}\vspace{10pt}
+\lstset{language={}}
+\lstset{xleftmargin=.8in}
+\lstinputlisting{\extrasloc{drsmess.err}}
+\newpage
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+
+\centerline{\bf \large DRSMESS}\vspace{5pt}
+\lstinputlisting{\codeloc{smess}}
+
+\vspace{30pt}\centerline{\bf \large ODSMESS}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{smess}}
+\end{document}

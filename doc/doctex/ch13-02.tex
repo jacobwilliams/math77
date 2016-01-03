@@ -1,0 +1,689 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{SINTOP}
+\begmath 13.2 Numerical Evaluation of Integrals Over Several Dimensions
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This collection of subprograms estimates the value of the integral $I_n$,
+where%
+\begin{gather*}
+\{I_0\}_f=\emptyset \vspace{2pt} \\
+I_k=\int \rule[-15pt]{0pt}{34pt}_{\displaystyle
+\hspace{-9pt}a_k(x_{k+1},...,x_n,
+\{I_{k^{\prime}}\}_{a_k})}^%
+{\displaystyle \hspace{-2pt}b_k(x_{k+1},...,x_n,\{I_{k^{\prime}}\}_{b_k})}
+\hspace{-1.3in}f_k(x_k,...,x_n,\{I_{k-1}\}_{f_k})\,dx_k,\ \
+1\leq k\leq n-1\\
+I_n=\int_{\displaystyle a_n}^{\displaystyle b_n}f_n(x_n,
+\{I_{n-1}\}_{f_n})\,dx_n,
+\end{gather*}
+$a_n$ and $b_n$ are constants, $a_1$, ..., $a_{n-1}$, $b_1$, ..., $b_{n-1}$
+and $f_1$, ..., $f_n$ are functions provided by the user. The notation
+$\{I_{k-1}\}_g$ means a set of zero or more integrals of dimension less
+than $k$, used in the calculation of $g$, and $k^{\prime }$ is less than
+the dimensionality of the integral enclosing $I_k(k^{\prime }$ may be
+greater than $k)$. Usually, $f_k$ is $I_{k-1}$ for $k>1$, and
+$\{I_{k^{\prime}}\}_{a_k}$ and $\{I_{k^{\prime}}\}_{b_k}$ are empty.
+
+Using $n=2$ for illustration, this formulation of the multiple integration
+problem includes the simple case of%
+\begin{equation*}
+I_2=\int_{\displaystyle a_2}^{\displaystyle b_2}\int_{\displaystyle %
+a_1(x_2)}^{\displaystyle b_1(x_2)}f_1(x_1,x_2)\,dx_1\,dx_2,
+\end{equation*}
+but it also allows for improved computational efficiency if the integrand
+can be factored as%
+\begin{equation*}
+I_2=\int_{\displaystyle a_2}^{\displaystyle b_2}f_2(x_2)\int_{\displaystyle %
+a_1(x_2)}^{\displaystyle b_1(x_2)}f_1(x_1,x_2)\,dx_1\,dx_2,
+\end{equation*}
+and in addition it allows for the more general case of%
+\begin{equation*}
+I_2=\int_{\displaystyle a_2}^{\displaystyle %
+b_2}f_2(x_2,I_1^{(a)}(x_2),I_1^{(b)}(x_2),...)\,dx_1\,dx_2,
+\end{equation*}
+where $I_1^{(a)}(x_2)$, $I_1^{(b)}(x_2)$, ... are integrals over one
+dimension. This includes the case in which, for example, $I_1^{(a)}(x_2)$ is
+a limit for $I_1^{(b)}(x_2).$
+
+\subsection{Usage}
+
+Described below under B.1 through B.5 are:
+
+\begin{tabular*}{3.3in}{@{}l@{~~}l}
+B.1 & \hspace{-20pt} Program Prototype, Single Precision\dotfill
+\pageref{PPSP}\\
+\quad B.1.a & The Calling Routine\dotfill \pageref{Calling}\\
+\quad B.1.b & Argument Definitions\dotfill \pageref{ArgDef}\\
+\quad B.1.c & The User-supplied Subroutine SINTF to\rule{.34in}{0pt}\\
+ & Calculate Limits and Integrands\dotfill \pageref{SINTF}\\
+\quad B.1.d & Argument Definitions for SINTF\dotfill \pageref{ArgSINTF}\\
+\quad B.1.e & Actions to be Accomplished by SINTF\dotfill \pageref{ActSINTF}\\
+\quad B.1.f & Passing Extra Information into SINTF\dotfill \pageref{ExtSINTF}\\
+\end{tabular*}
+
+\begin{tabular*}{3.3in}{@{}l@{~~}l}
+B.2 & \hspace{-20pt} Program Prototype, Single Precision,\\
+ & \hspace{-20pt} Reverse Communication\dotfill \pageref{PPRC}\\
+\quad B.2.a & The Calling Routine\dotfill \pageref{CallingRC}\\
+\quad B.2.b & Argument Definitions\dotfill \pageref{ArgDefRC}\\
+B.3 & \hspace{-20pt} Methods to Request Unusual Usage
+Through\rule{.3in}{0pt}\\
+ & \hspace{-20pt} the Arguments IOPT and WORK\dotfill \pageref{UnusualUse}\\
+B.4 & \hspace{-20pt} Changing the Selection of Some Options\\
+ & \hspace{-20pt} During the Computation\dotfill \pageref{ChangeSel}\\
+B.5 & \hspace{-20pt} Modifications for Double Precision
+Usage\dotfill \pageref{DPuse}\\
+\end{tabular*}
+
+\subsubsection{Program Prototype, Single Precision.\label{PPSP}}
+
+\paragraph{The Calling Routine\label{Calling}}
+
+\begin{description}
+\item[INTEGER]  \ {\bf NDIMI, NWORK, IOPT}$(\geq k)$\newline
+[$k$ depends on options used ($\geq 2$).]
+
+\item[REAL]  \ {\bf ANSWER, WORK}(NWORK)
+\end{description}
+
+Assign values to NDIMI and NWORK.
+
+Assign values to IOPT() and elements of WORK() referenced by options (see
+Section B.3). For simplest usage, set
+
+\hspace{.2in}IOPT$(2)=0$
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SINTM (NDIMI, ANSWER,\\
+WORK, NWORK, IOPT)\\
+\end{tabular}}
+\end{center}
+
+If the computation is successful (see the description of values of IOPT(1)
+below) the result is in ANSWER and the estimate of the error in the result
+is in WORK(1).
+
+\paragraph{Argument Definitions\label{ArgDef}}
+
+\begin{description}
+\item[NDIMI] \  [in] Number of dimensions of integration, $n$ in Section A.
+
+\item[ANSWER] \  [out] Estimate of the integral.
+
+\item[WORK()] \  [inout] On completion, WORK(1) contains an estimate of the
+upper bound of the magnitude of the difference between ANSWER and the true
+value of the integral. During the integration, WORK(1:NDIMI)
+contains the abscissas $x_1$ through $x_{NDIMI}$, WORK(NDIMI+1:2$\times $NDIMI)
+contains the lower limits $a_1$ through $a_{NDIMI}$,
+and WORK(2$\times $NDIMI+1:3$\times $NDIMI) contains the
+upper limits $b_1$ through $b_{NDIMI}$.
+WORK(NDIMI+1:NWORK) may be referenced by the option vector IOPT() as
+described below and in Section B.3, and to pass parameters to SINTF as
+described in Section B.1.f.
+
+\item[NWORK] \  [in] Specifies the amount of space allocated for the array
+WORK(). NWORK must be $\geq 220\times \text{NDIMI} - 217.$
+
+\pagebreak
+\centerline{{\bf Table of Options for SINTM}\hspace{.5in}}
+\ {\bf Option}\newline
+{\bf Number\hspace{.3in}Brief Description}\vspace{-3pt}
+\begin{itemize}
+\item[0]  No more options.
+
+\item[1]  No effect. Reserved for future use. Do not use option~1.
+
+\item[2]  Select level of diagnostic output.
+
+\item[3]  Specify error tolerances.
+
+\item[4]  Specify an a posteriori estimate of the absolute error in the
+calculated value of the integrand.
+
+\item[5]  Specify an a priori estimate of the relative error expected in the
+calculated values of integrands.
+
+\item[6]  Use reverse communication.
+
+\item[7]  Specify minimum index of quadrature formula.
+
+\item[8]  No effect. The parameter may provide information to SINTF.
+
+\item[9]  Specify maximum number of integrand evaluations allowed.
+
+\item[10]  Return number of integrand evaluations used.
+
+\item[11]  Specify location of singularity or discontinuity in integrand.
+
+\item[12]  Specify absolute errors in the limits.
+
+\item[13]  Specify location in IOPT of notification of nonstandard dimension
+changes.
+\end{itemize}\vspace{-3pt}
+
+\rule{2.9 in}{1 pt}\vspace{3pt}
+
+\item[IOPT()] \  [inout] Used to return status information to the user, to
+allow the selection of options, and to pass parameters to SINTF as described
+in Section B.1.f. IOPT(1) returns a status indicator with the possible
+values:
+
+\begin{description}
+\item[\rm $-$NDIMI] \  Normal termination with either the absolute or relative
+error tolerance criteria satisfied (see option~3 below and in Section
+B.3).
+
+\item[\rm $-$NDIMI$-1$] \  Normal termination with neither the absolute nor
+relative error tolerance criteria satisfied, but the tolerance relative to
+the locally achievable precision is satisfied. This is the normal status
+value when no tolerances are specified. (See option~3 below and in
+Section B.3).
+
+\item[\rm $-$NDIMI$-2$] \  Normal termination with none of the error tolerance
+criteria satisfied. (See option~3 below and in Section B.3).
+
+\item[\rm $-$NDIMI$-3$] \  Error termination, NWORK is too small.
+
+\item[\rm $-$NDIMI$-4$] \  Bad value for an element of IOPT().
+
+\item[\rm $-$NDIMI$-5$] \  Too many function values needed (see option~9 below and
+in Section B.3).
+
+\item[\rm $-$NDIMI$-$k$-5$] \  Error termination. The $k^{th}$ integrand
+apparently contains a non-integrable singularity. The approximate abscissa
+of the singularity in the $k^{th}$ dimension is in ANSWER, and the abscissas
+of exterior dimensions are in WORK$(k$+1:NDIMI). WORK(1)
+contains a large number.
+
+\item[\rm $-$NDIMI$-$NDIMI$-$k$-5$] \  When applying the usage that allows
+changing the dimensionality of the next integral to be computed in a
+nonstandard way (Section B.1.e), the specified dimensionality $k$ of an
+inner integral is not less than the dimensionality of the outer integral.
+\end{description}
+
+The remainder of IOPT() may be used to select options and to pass parameters
+to SINTF. If no options are selected, set IOPT$(2)=0.$
+\end{description}
+
+See Section B.3 for a detailed description of options and the table
+on the left for an overview.
+
+\paragraph{The User-Supplied Subroutine SINTF to Calculate Integrands and
+Limits\label{SINTF}}
+
+SINTM requires that the user provide values of the integrand and values of
+the lower and upper limits, and allows the user to make functional
+transformations of inner integrals before they are used as integrands of
+outer integrals. In the case of simple usage these values are provided by a
+user-supplied subroutine of the form:
+
+{\tt \begin{tabbing}
+SUBROUTINE SINTF(ANSWER, WORK, IFLAG)\\
+REAL \ ANSWER, WORK(*)\\
+INTEGER \ IFLAG\\
+\rm .\ .\ .
+\end{tabbing}}
+
+\paragraph{Argument Definitions for SINTF\label{ArgSINTF}}
+
+\begin{description}
+\item[ANSWER] \  [inout] Usage depends on IFLAG.
+
+\item[WORK({\rm 1:NDIMI})]  \ [inout] Storage for the currently needed
+values of $x_1$,\ ..., $x_{NDIMI}$. When IFLAG $\neq 0$, $x_1$ is not
+needed and WORK(1) has a different usage described below.
+
+\item[WORK({\rm NDIMI+1:2$\times $NDIMI})]  \ [inout] Storage for
+lower integration limits, $a_1$, ..., $a_{NDIMI}.$
+
+\item[WORK({\rm 2$\times $NDIMI+1:3$\times $NDIMI)}]  \ [inout]
+Storage for upper integration limits, $b_1$, ..., $b_{NDIMI}.$
+
+\item[WORK({\rm $220\times \text{NDIMI}-216:\text{NWORK}$})] \ [inout]
+May be used to pass extra information into SINTF, See Section~B.1.f.
+
+\item[IFLAG] \ [inout] On input, IFLAG indicates the action to be taken by
+SINTF.  The value of IFLAG may be changed by SINTF.  IFLAG may be used to
+pass extra information into SINTF, See Section~B.1.f.
+
+\end{description}
+
+Most mathematical software that requires user defined function
+information allows the user to pass in the name of a subprogram for
+evaluating the function.  The approach used here has the advantage of not
+requiring the user to declare his subprogram in an external statement
+(It's not unusual for this to be forgotten.), and of giving a meaningful
+diagnostic when no such routine is provided.  If one is solving different
+problems with different programs, one can use different file names for the
+different function subprograms, all of which would use the same entry
+name.  The linker must then be told which of these function subprograms
+should be used in forming the executable file.  If one wants to solve
+several different problems in the same program, one should code the
+separate cases in one subprogram and select the one desired by passing a
+``case'' variable into the routine.  This can either be done as part of
+IFLAG as mentioned above, or can be done through the use of named
+common.  One can also use reverse communication and call subprograms with
+different names for the different cases.
+
+\paragraph{Actions to be Accomplished by SINTF\label{ActSINTF}}
+
+{\bf IFLAG} = 0\ \ The Inner Integrand\newline
+When IFLAG\ $= 0$, SINTF must compute the inner integrand, $f_1$, as a
+function of $x_1$, ..., $x_{NDIMI}$, and return the result in ANSWER.
+
+{\bf IFLAG} $< 0$\ \ After Computing $I_{-IFLAG}$\newline
+When IFLAG $< 0$, say IFLAG\ $= -i$, the current value of the integral
+$I_i$ is provided in ANSWER, and the estimated error $E_i$ in this value
+is provided in WORK(1). Frequently, one will have $f_{i+1} = I_i$, and
+$a_i$ and $b_i$ will not depend on integrals, in which case
+$\varepsilon_{i+1} = E_i = $ WORK(1), and SINTF can simply RETURN, taking
+no action.
+
+In more complicated cases, SINTF must compute the integrand $f_{i+1}$ as a
+function of $x_{i+1}$, ..., $x_{NDIMI}$, $I_i$, and perhaps other
+integrals as described in the next paragraph. The value of $f_{i+1}$ must
+be in ANSWER on return, and the error $\varepsilon _{i+1}$ in $f_{i+1}$
+must be in WORK(1).
+
+If $f_{i+1}$ depends on integral(s) not yet computed then SINTF must
+remember $I_i$ and $E_i$ for subsequent use, and set IFLAG to the number of
+dimensions of the next integral to be evaluated; IFLAG must be less than the
+number of dimensions of the enclosing integral. If option~13 is selected
+then K13 is used for this communication instead of IFLAG. IFLAG is the first
+element of the IOPT vector passed to SINTM (see Section B.1.f). It is the
+responsibility of SINTF to remember the state of computation of the several
+integrals upon which $f_{i+1}$ depends. That is, to know when to change
+IFLAG (or K13), when not to change it, and when to evaluate $f_{i+1}.$
+
+To estimate errors and control the selection of evaluation points during
+calculation of $I_{i+1}$, SINTM needs an estimate of the error in
+$f_{i+1}$. In the simple case when $f_{i+1}=I_i$, and $a_i$ and $b_i$ do
+not depend on integrals, one has $\varepsilon _{i+1}=E_i=$ WORK(1) and no
+special action is required. In general, however, one must compute%
+\begin{equation*}
+\text{WORK(1) }=\sum_{\{\,j\mid I_i^{(j)}\in \{I_i\}_f\,\}}|\partial
+f_{i+1}/\partial I_i^{(j)}|\ E_i^{(j)}
+\end{equation*}
+Where $E_i^{(j)}$ is the error in $I_i^{(j)}$. If some arguments of
+$f_{i+1}$, say $y_j$, cannot be precisely calculated and represented, then
+one must add $\Sigma \ |\partial f_{i+1}/\partial y_j|\ E(y_j)$, where
+E($y_j)$ is the error in the calculation of $y_j$, onto the above sum.
+
+{\bf IFLAG} $> 0$\ \ Before Computing $I_{IFLAG}$\newline
+When IFLAG $>0$, say IFLAG $=i$, SINTF must compute $a_i$ and $b_i$ as
+functions of $x_{i+1}$, ..., $x_{NDIMI}$, storing $a_i$ in WORK(NDIMI +
+IFLAG) and $b_i$ in WORK(2$\times $NDIMI + IFLAG). SINTF will be called
+only once with IFLAG = NDIMI, since the outer limits $a_{NDIMI}$ and
+$b_{NDIMI}$ must be constants, and thus need to be set only once. These
+may be stored into WORK() either by the user's main program before the
+initial call to SINTM or else by SINTF when it is called with IFLAG =
+NDIMI. Similarly, if the limits $a_k$ and $b_k$ of $I_k$ are constant,
+they may be stored into WORK() by the user's main program before the
+initial call to SINTM, or on any call to SINTF for which IFLAG $\geq k.$
+
+Suppose a limit $a_i$ or $b_i$ depends on variables of integration $\{x_m |\
+i < k \leq m \leq $ NDIMI$\}$. Then $a_i$ or $b_i$ may be calculated any
+time that $i \leq $ IFLAG\ $< k$, but for maximum efficiency should be
+calculated when IFLAG\ $= k-1$. Similarly a subexpression of $f_i$ that
+depends on $\{x_m |\ i < k \leq m \leq $ NDIMI$\}$ should be calculated when
+IFLAG $= k$, and used when IFLAG $= -i.$
+
+For $1 \leq i <$ NDIMI the integral $I_i$, having the limits $a_i $ and $b_i$,
+may subsequently be used as an argument in computing $f_{i+1}$.  Let $q$ be
+the maximum of $|\partial f_{i+1}/\partial I_i|$ over all integrals on which
+$f_{i+1}$ depends. If $q \neq 1$, then during an entry at which $a_i$ and
+$b_i$ are being computed, SINTF must also compute $q$, or an upper bound for
+$q$, and store this value in WORK(1).  This value is used internally to decide
+how much accuracy is needed for the coming integration.  Note that if
+$f_{i+1}$ is of the form $q(x_{i+1},\ \ldots,\ x_{NDIMI}) I_i$, then the $q$
+computed here can be saved and reused for computing the values of ANSWER and
+WORK(1) when IFLAG = $-(i+1)$.
+
+If it is known that the integrand, $f_i$, has a single singularity
+affecting integration from $a_i$ to $b_i$, SINTF should transmit
+information on the type and location of this singularity to SINTM
+during each entry that computes $a_i$ and $b_i$. To do this, SINTF
+should store the location (on the $x_i$ axis) of the singularity into
+WORK($|$K11$|$), where K11 is transmitted to SINTM, either by a call
+to SINTOP with Option~11, or by storing K11 into IFLAG.  If the
+singularity is at one of the limits, then $\text{NDIMI}< |\text{K11}|
+\leq 3\times \text{NDIMI}$ is allowed.  Otherwise, one should have
+$|\text{K11}| > 220\times \text{NDIMI}-217$. The sign of K11 affects
+the internal transformations made to cope with the singularity as
+described in Section~B.3 of Chapter~13.1.  If singularities are
+present in more than one dimension of the multiple integration, one
+must use a different value of $|$K11$|$ for each different
+singularity location.
+
+SINTM provides for the case that $f_{i+1}$ might depend on several
+integrals, some of which have fewer than $i$ dimensions. When it is
+necessary to evaluate an integral of dimension less than $i$, set IFLAG (or
+K13 if option~13 has been selected) to the number of dimensions of the
+integral to be evaluated, and set the appropriate limits into WORK() as
+described above.
+
+To illustrate nonstandard changes in dimensionality, suppose that the
+integrand of a three dimensional integral depends on a function of several
+one- and two-dimensional integrals, and suppose one chooses to evaluate the
+one-dimensional integrals first. When SINTM first requests SINTF to provide
+the limits of the inner (two-dimensional) integral (IFLAG $= 2)$, change
+IFLAG to~1. Upon completion of each but the last of the one dimensional
+integrals (IFLAG $= -1)$, set IFLAG to~1. Upon completion of the last of the
+one-dimensional integrals, and upon completion of all but the last
+two-dimensional integral, set IFLAG to~2. SINTF must keep track of it's
+state using SAVE variables. That is, SINTF is responsible for knowing which
+integrand to evaluate when IFLAG $= 0$, which transformation to apply when
+IFLAG $< 0$, and which limits to supply when IFLAG $> 0$. For this
+example, an error will be signaled with IOPT$(1)=-14=-\text{NDIMI}-
+\text{NDIMI}-3-5$ if one sets IFLAG~$\geq $~3.
+
+If either of the limits $a_i$ or $b_i$ are imprecisely known or imprecisely
+representable $(e.g.$, they depend on integrals, or there is significant
+cancellation in their evaluation), then for maximum reliability the errors
+in the limits should be made known to SINTM by invoking SINTOP and selecting
+option~12. See Section~B.3.
+
+\paragraph{Passing Extra Information into SINTF\label{ExtSINTF}}
+
+The argument WORK of SINTF is the vector WORK passed from the user's calling
+routine to SINTM.  WORK() may be used to provide information for options as
+described in Section B.3, and to pass floating point information from the
+user's calling routine into SINTF.
+
+The argument IFLAG of SINTF is the first element of the IOPT() vector
+passed from the user's calling routine to SINTM. Elements of IOPT()
+(after the first) that are not used for options as described in
+Section B.3 may be used to pass integer valued information into
+SINTF. In addition, the parameter of option~8 described in Section
+B.3 may be examined by SINTF. If IFLAG is used in this way, it must
+be declared
+
+{\bf INTEGER} \ {\bf IFLAG}(*)
+
+and IFLAG(1) must be examined to determine the action.
+
+\subsubsection{Program Prototype, Single Precision, Reverse Communication.
+\label{PPRC}}
+
+\paragraph{The Calling Routine\label{CallingRC}}
+
+\begin{description}
+\item[INTEGER] \  {\bf NDIMI, NWORK, IOPT}$(\geq 3)$
+
+\item[REAL] \  {\bf ANSWER, WORK}(NWORK)
+\end{description}
+
+Assign values to NDIMI, NWORK and IOPT() and elements of WORK() referenced
+by options. Constant limits may be stored in the appropriate positions in
+WORK() as described in Section~B.1.b. Option~6 must be selected (see
+Section~B.3). For simple usage
+\begin{tabbing}
+\hspace{.2in}\=IOPT$(2) = 6$\\
+\>IOPT$(3) = 0$
+\end{tabbing}
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SINTM (NDIMI, ANSWER,\\
+WORK, NWORK, IOPT) \\
+\end{tabular}}
+\end{center}
+\hspace{.2in}DO
+$$
+\fbox{{\bf CALL SINTMA (ANSWER, WORK, IOPT)}}
+$$
+\begin{tabbing}
+\hspace{.2in}\=\ \ \ \ \=IF (IOPT(1) .GT.\ 0) THEN\\
+
+\>\>\ \ \ \ \=$\{$Calculate the limits as described in\\
+\>\>\>\ \ \ \ \=Section B.1.d when IFLAG $>0.\}$\\
+
+\>\>ELSE IF (IOPT(1) .LT. 0) THEN\\
+
+\>\>\>IF (IOPT(1) + NDIMI .LE. 0) EXIT\\
+
+\>\>\>$\{$Transform the integral as described in\\
+\>\>\>\>Section B.1.d when IFLAG $<0.\}$\\
+
+\>\>ELSE\\
+
+\>\>\>ANSWER = value of innermost integrand,\\
+\>\>\>\ \ \ \ $f_1$, at (WORK(1), ..., WORK\ (NDIMI)).\\
+
+\>\>END IF\\
+
+\>END DO\\
+
+\>$\{$Integration is complete$.\}$
+\end{tabbing}
+
+Multi-dimensional quadrature can use significant amounts of computer time.\
+The usage described above can be modified to reduce the execution time
+slightly at a cost of the user's code becoming more complicated. To do
+this, replace the single line
+
+\hspace{.2in}ANSWER $= ...$\newline
+by
+\begin{tabbing}
+\hspace{.2in}\=IOPT$(1) = 0$\\
+
+\>DO WHILE (IOPT(1) .EQ.\ 0)\\
+
+\>\ \ \ \ \=ANSWER = Value of the innermost\\
+\>\>\ \ \ \ \=integrand, $f_1$, at (WORK(1), ...,\\
+\>\>\>WORK(NDIMI))
+\end{tabbing}
+$$
+\quad \quad \fbox{{\bf CALL SINTA (ANSWER, WORK, IOPT)}}
+$$
+\begin{tabbing}
+\hspace{.2in}\=END DO\\
+
+\>IF (IOPT(1) .GT.\ 0) THEN\\
+
+\>\ \ \ \ \=$\{$Values of IOPT(1) produced by SINTMA and\\
+\>\>\ \ \ \ \=SINTA have different meanings. Calculate\\
+\>\>\>IOPT(1) as described in Section B.1.b.$\}$\\
+
+\>\>IOPT$(1) = -$(IOPT(1) + NDIMI)\\
+
+\>\>EXIT\ \  \=(from DO --- END DO in which this\\
+\>\>\>\ code is embedded)\\
+
+\>END IF
+\end{tabbing}
+
+This modification reduces by one the number of subroutine calls for every
+evaluation of the innermost integrand.
+
+\paragraph{Argument Definitions\label{ArgDefRC}}
+
+\begin{description}
+\item[NDIMI, WORK(), NWORK, IOPT()]  \ Used as described in Section
+B.1.b, except if $-$NDIMI $<$ IOPT(1) $\leq $ NDIMI, IOPT(1) is used as
+described for IFLAG in Section B.1.e.
+
+\item[ANSWER]  \ [inout] On completion, ANSWER contains an estimate of the
+integral. During integration, ANSWER provides a value of the integrand to
+SINTMA.
+\end{description}
+
+\subsubsection{Methods to Request Unusual Usage Through the Arguments IOPT
+and WORK\label{UnusualUse}}
+
+All options other than option~13 have the same qualitative effect as when
+calculating an integral over one dimension, as described in Section B.3
+of Chapter~13.1, but some options have separate effects in separate
+dimensions.  Direct calls to SINTOP should be made as described in
+Section~B.4 of Chapter~13.1. Options different from those in 13.1 are:
+
+\begin{itemize}
+\item[2]  (Argument K2) K2 is an NDIMI decimal digit integer, where the
+low order digit selects the level of diagnostic output during integration
+over $x_1$, the next digit selects the level of diagnostic output during
+integration over $x_2$, etc. The meaning of each digit is the same as the
+meaning of K2 described in Section~B.3 of Chapter~13.1.
+
+\item[9]  (Argument K9) K9 specifies only the maximum number of evaluations
+of the inner integrand $(f_1).$
+
+\item[11] (Argument K11) WORK($|$K11$|$) specifies the location of a
+singularity or discontinuity in the outer dimension.  Singularities or
+discontinuities in inner dimensions may be specified as described in
+Section~B.1.e.  In either case, a different value of K11 must be used for
+each different abscissa of a singularity or discontinuity.  However if
+several dimensions happen to have singularities or discontinuities at the
+same abscissa, the same value of K11 can be used for all of them.  The
+sign of K11 affects the internal transformations made to cope with the
+singularity as described in Section~B.3 of Chapter~13.1.
+
+\item[12] (Argument K12) The errors in the lower and upper limits are
+stored in WORK(K12) and WORK(K12+1) respectively prior to a
+call to SINTOP.  The error in the lower limit $a_i$ is defined by $ \Sigma
+\ |\partial a_i/\partial x_j|\ \epsilon \ x_j+\Sigma \ |\partial
+a_i/\partial y_j|\ E(y_j)+\Sigma \|\partial a_i/\partial I_j|\ E_j$, where
+$ x_j$ are variables of integration of outer integrals, $\epsilon $ is the
+round-off level for the appropriate precision, $y_j$ are arguments of
+$a_i$ that are neither variables of integration of outer integrals nor
+integrals, E($y_j)$ is the error in $y_j$, $I_j$ are integrals that are
+arguments of $ a_i$, and $E_j$ is the error in $I_j$.  The error in the
+integral due to error in the limit is the error in the limit times the
+integrand evaluated near the limit.  The error in the upper limit is
+calculated similarly.  If this option is not selected, or K12 $=0$, then
+the limits will be assumed to be exact.
+
+\item[13]  (Argument K13) In the IOPT vector passed to SINTM, K13 may be
+used to notify SINTM of nonstandard changes in the dimensionality of
+integration. If option~13 is not selected, IOPT(1) may be used for this
+purpose. But notice that reporting singularities might also use IOPT(1).
+\end{itemize}
+
+\subsubsection{Changing the Selection of Some Options During the Computation
+\label{ChangeSel}}
+
+The method of changing the selection of options 1, 2, 6, 7, 9, 12 and~13
+during the integration is described in Chapter~13.1, Section~B.4.
+
+\subsubsection{Modifications for Double Precision Usage\label{DPuse}}
+
+For double precision usage, change all REAL type statements to DOUBLE
+PRECISION and change the prefix of all subroutine names from SINT to DINT.
+
+\subsection{Examples and Remarks}
+
+See DRSINTMF and ODSINTMF, or DRSINTMR and ODSINTMR for an example of the
+use of SINTM to compute%
+\begin{equation*}
+\int_0^\pi \int_0^y\frac{x\cos y}{x^2+y^2}\,dx\,dy=0.
+\end{equation*}
+The difference between DRSINTMF and DRSINTMR is that DRSINTMF uses forward
+communication, while DRSINTMR uses reverse communication.
+
+DRSINTMF and DRSINTMR demonstrate the use of functional transformation of
+the inner integrand to reduce the cost of calculating the integral. The
+factor $\cos y$ in the integrand does not depend on the inner variable of
+integration. In this context, $f_1 = x\ / (x^2 + y^2)$, and $f_2 = I_1 \cos
+\ y$. Special care is taken when $y$ is near zero, as the denominator of
+$f_1 $ might underflow.
+
+The above integral is really the product of two one-dimensional integrals
+(let $z = x/y)$. This situation is not uncommon. Since the cost of
+estimating multi-dimensional integrals by nested estimation over one
+dimension is exponential in the number of dimensions, the possibility of
+this situation should always be considered.
+
+\subsection{Functional Description}
+
+The integral over several dimensions is computed by repeated integration
+over one dimension, as shown in Section~A. The integral over one dimension
+is estimated using the subprograms described in Chapter~13.1. See Section~D
+of Chapter~13.1 for a functional description.
+
+Extensive test results are given in \cite{Krogh:1978:PTR}.  Since there
+are no other multi-dimensional quadrature subprograms extant that provide
+the functionality of SINTM and DINTM, it is not practical to carry out
+extensive comparative tests.  Since SINT1 and DINT1 are, however, more
+reliable and require fewer function values than other one-dimensional
+quadrature routines, it is to be expected that SINTM and DINTM are more
+reliable and require fewer function values than other subprograms that
+evaluate multi-dimensional integrals by repeated integration over one
+dimension.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Error messages are printed using the extended error message processor
+described in Chapter~19.3. If an error does not result in a ``stop,'' error
+signals are returned to the user by values of the status flag in IOPT(1).\
+Printing, when enabled by Option~2, is executed in subroutines SINTO for
+single precision and DINTO for double precision. Both of these programs also
+use the message processor described in Chapter~19.3. One can change the
+action on errors and parameters affecting the output of messages, by calling
+the message/error routine MESS before calling this routine.
+
+\subsection{Supporting Information}
+
+The source language for these subroutines is ANSI Fortran 77.
+
+Common blocks referenced: SINTC and SINTEC in the single precision
+versions, and DINTC and DINTEC in the double precision versions.
+SINTC and DINTC are written using several COMMON statements, for
+maintenance purposes. This usage conforms to the ANSI Fortran-77
+standard, but at least one compiler interprets it improperly. If you
+experience inscrutable errors, try re-writing the COMMON statements
+for SINTC (or DINTC) into a single statement.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DINTM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCOPY, DINTA, DINTDL, DINTDU, DINTF, DINTM, DINTMA, DINTNS,
+DINTO, DINTOP, DINTSM, DMESS, MESS\rule[-5pt]{0pt}{8pt}}\\
+DINTMA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCOPY, DINTA, DINTDL, DINTDU, DINTF, DINTMA, DINTNS, DINTO,
+DINTSM, DMESS, MESS\rule[-5pt]{0pt}{8pt}}\\
+SINTM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, MESS, SCOPY, SINTA, SINTDL, SINTDU, SINTF, SINTM, SINTMA,
+SINTNS, SINTO, SINTOP, SINTSM, SMESS\rule[-5pt]{0pt}{8pt}}\\
+SINTMA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, MESS, SCOPY, SINTA, SINTDL, SINTDU, SINTF, SINTMA, SINTNS,
+SINTO, SINTSM, SMESS}\\
+\end{tabular}
+
+Designed by Fred T.\ Krogh and W.\ Van Snyder, JPL, 1977. Programmed by W.\
+Van Snyder, 1977. Revised by W. Van Snyder, 1986, 1988.
+
+Error/Message handling revised by F. T. Krogh, March~1992.
+
+
+Two demonstration drivers are shown below, with the output they produced
+when run on an IBM PC/AT with an 80287 floating point coprocessor. The first
+demonstrates forward communication usage; the second demonstrates reverse
+communication usage.
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSINTMF}\vspace{10pt}
+\lstinputlisting{\codeloc{sintmf}}
+
+\vspace{20pt}\centerline{\bf \large ODSINTMF}\vspace{-5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sintmf}}
+\bigskip\
+
+\centerline{\bf \large DRSINTMR}\vspace{10pt}
+\lstinputlisting{\codeloc{sintmr}}
+
+\vspace{30pt}\centerline{\bf \large ODSINTMR}\vspace{-5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sintmr}}
+\end{document}

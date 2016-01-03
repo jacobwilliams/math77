@@ -1,0 +1,192 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-02}
+\begmath 2.2 Error Function, Gaussian Probability Integral, etc.
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms compute values of the error function,
+the complementary
+error function, and an exponentially scaled complementary error
+function, \cite{ams55:erf,Hart:1968:CA:erf}.  The closely related Gaussian or
+normal probability integral can be computed by subprograms described in Chapter
+15.2.
+
+Error function:
+\begin{align*}
+\erf (x)&=\frac 2{\sqrt{\pi }}\int_0^xe^{-t^2}dt\\
+\intertext{Complementary error function:}
+\erfc (x)&=1-\erf (x)=\frac 2{\sqrt{\pi }}\int_x^\infty e^{-t^2}dt\\
+\intertext{Exponentially scaled complementary error function:}
+\erfce (x)&=\exp (x^2)\ \erfc (x)
+\end{align*}
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf X, Y, SERF, SERFC, SERFCE}
+\end{description}
+
+Assign a value to X and obtain the value of erf, erfc, or erfce,
+respectively, as follows:
+$$
+\fbox{{\bf Y = SERF(X)}} \hspace{.4in} \fbox{{\bf Y = SERFC(X)}}
+$$
+$$
+\fbox{{\bf Y = SERFCE(X)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument at which function evaluation is desired. Require
+$\text{X} \geq 0$ when using SERFCE.
+
+\item[Y]  \ [out] Value of function returned.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision change the REAL type statement to DOUBLE PRECISION and
+change the function names to DERF, DERFC, and DERFCE.
+
+\subsection{Examples and Remarks}
+
+See DRSERF and ODSERF for an example of the usage of these subprograms.
+
+The ANSI Fortran 77 standard does not include the error function, or the
+related functions, erfc and erfce, as intrinsic functions.
+
+Some Fortran systems, however, do provide such functions. For example,
+UNISYS ASCII Fortran and IBM VS-Fortran provide ERF, ERFC, DERF, and DERFC,
+with ERF and ERFC being ``generic," whereas VAX-11 Fortran does not provide
+these functions.
+
+In a system having DERF or DERFC as intrinsics, a reference to one of these
+function names will cause the vendor-supplied code to be used. If one wishes
+to override this and use the code from this library one must declare the
+function name to be EXTERNAL in the referencing program unit.
+
+Whenever the user's mathematical problem involves the expression, $1-\erf (x)$%
+, $\erfc (x)$ should be used instead. This will give significantly better
+relative accuracy as $x$ increases above 0.5, and no worse accuracy for $x <
+0.5.$
+
+In cases in which the user's problem involves the expression, $\exp (x^2)
+[1-\erf (x)]$, with $x \geq 0$, $\erfce (x)$ should be used. This avoids the
+problem of $\exp (x^2)$ reaching the overflow limit for fairly modest values
+of $x$, since $\erfce (x)$ is asymptotic to $1/(x\ \pi ^{1/2})$ as $x$
+approaches infinity.
+
+\subsection{Functional Description}
+
+The function $\erf (x)$ is an odd function, increasing monotonically from $-$1
+at $x = -\infty $ to +1 at $x = +\infty .$
+The function $\erfc (x) = 1 - \erf (x)$ approaches zero rapidly as $x$
+increases. More specifically, $\erfc (x)$ is asymptotic to
+\begin{equation*}
+u(x) =  \exp (-x^2) / (x \sqrt \pi) \text{ as }x \rightarrow + \infty .
+\end{equation*}
+For $x > 5$, $\erfc (x)$ satisfies $0.98 u(x) < \erfc (x) < u(x)$.
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-02 }
+
+The largest value of $x$ for which $\erfc (x)$ does not underflow is estimated
+by this subprogram using the System Parameters subprogram on first entry.
+Examples of this limiting value, called XMAX in the subprogram, are 9.18 for
+IEEE single precision and 26.53 for IEEE double precision.
+
+The mathematical function $\erfce (x)$ is defined for all $x$ but it is
+expected to be used only for large positive $x$. Thus the subprograms SERFCE
+and DERFCE are designed only for use with $x \geq 0.$
+
+These subprograms are based on polynomial approximations and code due to L.
+W. Fullerton, Los Alamos, 1977, and rational approximations due to W. J.
+Cody, \cite{Cody:1969:RCA}. By use of the System Parameters subprogram the
+accuracy adjusts to the machine precision. The stored coefficients provide for
+precision to about 30 significant decimal digits for DERF, DERFC, SERF, and
+SERFC. The accuracy for DERFCE and SERFCE is up to 30 significant decimal
+digits for $0 \leq x \leq $ XMAX, and up to 18 digits for $x \geq $ XMAX.
+
+\subparagraph{Accuracy Tests}
+
+The single precision subprograms were tested on a UNISYS 1100 by comparison
+with the corresponding double precision subprograms at over 45000 points.
+The relative precision of the UNISYS single precision arithmetic is $\rho =
+2^{-27} = 0.745$\,E$-8$. The test results may be summarized as follows:
+
+\begin{center}
+\begin{tabular}{lcr}
+ & {\bf Argument} & \multicolumn{1}{c}{\bf Max. Rel.}\\
+\multicolumn{1}{c}{\bf Function} & {\bf Interval} &
+\multicolumn{1}{c}{\bf Error}\\
+SERF & \multicolumn{1}{c}{$x \leq 1$} & $2.1\rho $\rule{.25in}{0pt}~\\
+ & $x \geq 1$ & $1.2\rho $\hspace{.25in}\rule[-7pt]{0pt}{8pt}\\
+SERFC & [$-$7, 0.5] & $2.1\rho $\rule{.25in}{0pt}\\
+ & [0.5, 1.0] & $5.1\rho $\rule{.25in}{0pt}\\
+ & [1.0, 2.8] & $8\rho $\rule{.25in}{0pt}\\
+ & [2.8, 4.0] & $16\rho $\rule{.25in}{0pt}\\
+ & [4.0, 5.7] & $32\rho $\rule{.25in}{0pt}\\
+ & [5.7, 8.0] & $64\rho $\rule{.25in}{0pt}\\
+ & [8.0, 8.6] & $128\rho $\rule{.25in}{0pt}\rule[-7pt]{0pt}{8pt}\\
+SERFCE & [0, 2] & $4\rho $\rule{.25in}{0pt}\\
+& [2, 4] & $8\rho $\rule{.25in}{0pt}\\
+& [4, 50] & $2\rho $\rule{.25in}{0pt}
+\end{tabular}
+\end{center}
+
+The increase of relative error in SERFC with increasing arguments is an
+inherent property of the erfc function.
+
+\bibliographystyle{math77}
+\bibliography{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+The argument for SERFCE or DERFCE must be nonnegative. If it is negative the
+subprogram will issue an error message and return a zero result.
+
+If the argument for SERFC or DERFC exceeds XMAX, defined above in Section D,
+the subroutine will issue a warning message and return a zero result.
+
+Error and warning messages are processed using the subroutines of
+Chapter~19.2 with an error level of zero.
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DERF & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERF, DERM1, DERV1, DINITS, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\DERFC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERF, DERM1, DERV1, DINITS, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\DERFCE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERF, DERM1, DERV1, DINITS, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\SERF & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERF, SERM1, SERVI, SINITS\rule[-5pt]{0pt}{8pt}}\\SERFC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERF, SERM1, SERVI, SINITS\rule[-5pt]{0pt}{8pt}}\\SERFCE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERF, SERM1, SERVI, SINITS\rule[-5pt]{0pt}{8pt}}\\\end{tabular}
+
+Based on a 1977 program by L. W. Fullerton, Los Alamos, and a 1969 program
+by E. W. Ng, JPL. Present version by C. L. Lawson and S. Y. Chiu, JPL, 1983.
+
+
+\begcodenp
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSERF}\vspace{10pt}
+\lstinputlisting{\codeloc{serf}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSERF}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{serf}}
+
+\closegraphsfile
+\end{document}

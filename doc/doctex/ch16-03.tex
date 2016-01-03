@@ -1,0 +1,1166 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl16-03}
+\begmath 16.3 Plotting Using \TeX
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms produce plots for documents prepared using the \TeX\ or
+\LaTeX\ languages.
+
+\subsection{Usage}
+
+To produce a plot using \TeX\ or \LaTeX, one constructs a program that uses
+SPLOT.  SPLOT writes a file of \TeX\ or \LaTeX\ commands.  The file is
+then incorporated into a \TeX\ or \LaTeX\ document, which is then processed
+by a \TeX\ or \LaTeX\ processor.  Detailed instructions are given in
+Section \ref{IntoTeX} below.
+
+Sections \ref{PPSP} through \ref{DP} below describe:\\
+\begin{tabular*}{3.20in}{@{}l@{~~~}l}
+\quad \ref{PPSP}    & Program Prototype, Single Precision\dotfill \pageref{PPSP}\\
+\quad \ref{Argdef}  & Argument Definitions\dotfill \pageref{Argdef}\\
+\quad \ref{Numopt}  & Numerical Option Descriptions\dotfill \pageref{Numopt}\\
+\quad \ref{Textopt} & Textual Option Descriptions\dotfill \pageref{Textopt}\\
+\quad \ref{IntoTeX} & Incorporating the Output Into a \TeX\ or\rule{0.50in}{0pt}\\
+ & \LaTeX\ Document\dotfill
+ \pageref{IntoTeX}\\
+\quad \ref{DP}      & Modifications for Double Precision\dotfill \pageref{DP}\\
+\end{tabular*}
+
+\subsubsection{Program Prototype, Single Precision\label{PPSP}}
+\begin{description}
+\item[INTEGER] \ {\bf NX}
+\item[REAL]    \ {\bf XSIZE, YSIZE, X}($\geq$ NX), {\bf Y}($\geq$ NX),
+                      {\bf OPT}(see below)
+\item[CHARACTER] \ {\bf COPT}(see below)
+\end{description}
+Assign values to NX, XSIZE, YSIZE, X, Y, OPT and COPT, and use the following
+subroutine reference.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SPLOT (XSIZE, YSIZE, X, NX, Y,\\
+OPT, COPT)\\
+\end{tabular}}
+\end{center}
+At this point, \TeX\ or \LaTeX\ commands to produce the plot are in the file
+{\tt splot.tex} (unless another file name is selected by options).
+
+\subsubsection{Argument Definitions\label{Argdef}}
+\begin{description}
+\item[XSIZE] \ [in] Physical horizontal size of the drawing area for the plot.
+  Default units are inches.
+\item[YSIZE] \ [in] Physical vertical size of the drawing area for the plot.
+  Default units are inches.  The nominal drawing area for the plot is a
+  region of size XSIZE $\times$ YSIZE.  The origin of the physical
+  coordinate system is at the lower left corner, and all border lines
+  are on the boundary of this region. Physical coordinates outside this
+  area may be specified.  The actual area of the image is increased by
+  outward-pointing ``tick'' marks (see option \ref{tick} in Section
+  \ref{Numopt}), ``tick'' labels (see options \ref{border} and \ref{tick}
+  in Section \ref{Numopt}) or annotations placed outside the drawing area
+  (see option \ref{text} in Section \ref{Numopt}).
+
+  Many of the options refer to user coordinates that are specified in
+  the same units as the points that are plotted.  Different user
+  coordinates may be used in a plot, see option~\ref{dataset} in
+  Section~\ref{Numopt}.
+\item[X]     \ [in] Array of NX abscissas.
+\item[NX]    \ [in] Number of abscissas in X and ordinates in Y.
+\item[Y]     \ [in] Array of NX ordinates.
+  See also option \ref{ncurv} in Section \ref{Numopt}.
+\item[OPT]   \ [inout] OPT(1) is status output.  Nonzero values indicate
+  a problem for which an error message is printed. Possibilities are
+    listed in the comments of subroutine SPLOTE in the file {\tt splot.f}
+    or {\tt splot.for}.  Unless one has taken special action by calling
+    MESS, see Chapter~19.3, all except for 6 warning messages stop
+    execution.  Values from 1--6 are for warnings, 10--19 are for problems
+    in COPT, 20--32 are for problems in OPT, values $\geq 40$ are caused
+    by problems that probably are due to bugs in this plotting software
+    that should be fixed.\\
+  Beginning in OPT(2), the user provides option specifications as described
+  in Section \ref{Numopt}.
+\item[COPT]  \ [in] Character options, and data used by options in OPT, as
+  described in Section \ref{Textopt}.
+\end{description}
+
+For simplest usage, set OPT(2)~= 0 and COPT~= 'Q'.
+
+\subsubsection{Numerical Option Descriptions\label{Numopt}}
+Options are specified by providing a sequence of codes starting in OPT(2),
+and by sequences of characters in COPT().
+
+For options specified in OPT(), each code is a whole number, followed by
+zero or more ``arguments.''
+
+Arguments are numbers, which depending on the option, may be whole
+numbers.  They may be data or indices into the array COPT() indicating the
+location of a character datum.  Where we write (Argument X=n) below, n is
+the default value for X if the option is not selected.
+
+``Whole numbers'' in OPT() are determined by using the Fortran nint()
+intrinsic function, that is, the nearest whole number to OPT(j) is used
+if OPT(j) is expected to be a whole number.
+
+If an option code is negative, say OPT(j) $<$ 0, then OPT(j) is not
+processed, but the number of ``arguments'' used by option $|$OPT(j)$|$
+are skipped.
+\end{multicols}
+\begin{multicols}{2}[
+\begin{center}
+\begin{tabular}{|c|p{2.55in}|c|p{2.35in}|}
+\multicolumn{4}{c}{\large Summary of Options\rule[-10pt]{0pt}{10pt}}\\
+\hline
+Option \rule{0pt}{10pt}  &  & Scratch & \\
+or Field & {\qquad \raisebox{1.3ex}[0pt][0pt]{Brief Description}} &
+File &
+\multicolumn{1}{c|}{\raisebox{1.3ex}[0pt][0pt]{Remarks, Other affected
+options}}\\ \hline
+0 \rule{0pt}{10pt} &   End of options. & & \\
+A\ref{opt}/$10^0$  & Finish or not, set units
+   &   & Subsequent data  \\
+A\ref{opt}/$10^1$  & Interpolation
+   & Y & Subsequent data \\
+A\ref{opt}/$10^2$  & $\log_{10}$ on X, (polar -- not implemented)
+   & Y & Subsequent data,
+         \ref{text}--\ref{xtick},
+         \ref{line}--\ref{ellipse}  \\
+A\ref{opt}/$10^3$  & $\log_{10}$ on Y or polar info.
+   & Y & Subsequent data,
+         \ref{text}--\ref{xtick},
+         \ref{line}--\ref{ellipse}  \\
+A\ref{opt}/$10^4$  & Lines at X = 0, Y = 0 &   & \\
+A\ref{opt}/$10^5$  & \TeX\ or \LaTeX\
+   &   & Use final value \\
+\ref{ncurv}   &   For multiple curves
+   & Y & Required by some cases in option \ref{symbol}\\
+\ref{pen}  & Solid, dashed, dotted curves, width, etc.
+   & Y & Subsequent data, \ref{line}, \ref{pline} \\
+\ref{border}  &   Border characteristics
+   &   & Use final value for each border or axis \\
+\ref{tick}, \ref{tick1} &   Length and spacing of border tick marks
+   &   & Use final value for each border or axis \\
+\ref{dataset} &  Change current data set
+   & Y & data, \ref{Xminmax}, \ref{Yminmax}, \ref{border}, \ref{onesymb},
+    \ref{text}, \ref{number}, and \ref{line} -- \ref{pellipse}\\
+\ref{Xminmax}, \ref{Yminmax} &   Adjust user coordinates, clipping
+   &   & Digits $10^{3:4}$ of S\ref{border} \\
+\ref{symbol}  &   Plot symbols, error bars, vectors
+   & Y & Subsequent data  \\
+\ref{onesymb} &   Plot a single symbol, etc.
+   & Y & Nothing  \\
+\ref{arrow}   &   Draw arrow heads on curves
+   & Y & Subsequent data, \ref{line}, \ref{pline}  \\
+\ref{linwid}  & Set various line widths & & \\
+A\ref{linwid}--D\ref{linwid}
+   & Line widths for border, tick, etc. &   & Use final value\\
+E\ref{linwid} & Line widths for rectangles and ellipses
+   & Y & \ref{rect}, \ref{ellipse}, \ref{prect}, and \ref{pellipse} \\
+\ref{text}    &   Text annotation
+   & Y & Nothing  \\
+\ref{number}  &   Put a number on the plot
+   & Y & Nothing  \\
+\ref{xtick}   &   Extra tick / annotation
+   & Y & Nothing  \\
+\ref{bad}     &   Bad data value
+   &   & Use final value \\
+\ref{nouse_1} &  Not used. & & \\
+\ref{line}   &   Draw a line
+   & Y & Nothing  \\
+\ref{rect}    &   Draw a rectangle
+   & Y & Nothing  \\
+\ref{ellipse} &   Draw an ellipse
+   & Y & Nothing  \\
+\ref{pline}--\ref{pellipse} & As for \ref{line}--\ref{ellipse}, but in
+physical coordinates & Y & Nothing  \\
+\ref{fill}    &   Type of fill for closed regions
+   & Y & Subsequent data, \ref{rect}, \ref{ellipse}, \ref{prect},
+     \ref{pellipse} \\
+\ref{nouse_2} &  Not used. & & \\
+\ref{debug}   &   Debug output
+   &   & Final value per call, then reset \\
+\hline
+\end{tabular}
+\end{center}
+]
+
+The third and fourth columns of the table are described in Section
+\ref{SOE}.
+
+\vspace{5pt}{\bf Number\hspace{.4in}Description}\vspace{-5pt}
+\renewcommand{\labelenumi}{\bf \theenumi}
+\begin{enumerate}
+\setcounter{enumi}{-1}
+\item   No more options.  Option zero must be specified, and must be last
+        in the list of options. If no other options are specified, the
+        following defaults apply:
+  \begin{itemize}
+  \item Physical units are inches.
+  \item One curve is plotted, using a solid line 0.5 points wide.
+          Points are connected by a B\'ezier curve that is not closed.
+  \item XMIN, XMAX, YMIN and YMAX are determined automatically.
+  \item All four borders are drawn, with automatically determined and
+          labeled ``tick'' marks on the bottom and left borders.
+  \item The output is \LaTeX\ in file {\tt splot.tex}.
+  \end{itemize}
+\item\label{opt}  (Argument N\ref{opt} = 0) N\ref{opt} is a whole number
+        in which the decimal digits specify options.  Digits of
+        N\ref{opt} mean:
+  \begin{itemize}
+  \item[$10^0$]
+   \begin{itemize}
+   \item[0 =] Finish the curve, and the plot. Physical units are in
+          inches.
+   \item[1 =] Finish the curve, and the plot. Physical units are in
+          millimeters.  1 in.\ = 25.4 mm.
+   \item[2 =] Finish the curve, and the plot. Physical units are in
+          points.  1 in.\ = 72.27pt.
+   \item[3 =] Finish this {\tt mfpic} group, but allow the plot to be
+          continued on a subsequent call.  Use this for multiple curves if
+          you have capacity problems with Metafont.  This option requires
+          that in your \TeX \ or \LaTeX \ document the file generated by
+          SPLOT be included with a statement of the form
+          $\backslash$hbox\{$\backslash$input ... \}, where ... is the
+          file generated by SPLOT and there is a space preceding the
+          closing ``\}''. In \LaTeX \ one can use mbox in place of hbox.
+          (Units are needed only when plot finishes.)
+   \item[4 =] Finish the curve but allow the plot to be continued on a
+          subsequent call.
+   \item[5 =] More data for the current curve may be provided on a
+          subsequent call.
+   \end{itemize}
+        See special considerations in Section C.
+  \item[$10^1$]
+    \begin{itemize}
+    \item[0 =] Interpolate between points using a B\'ezier curve; do not
+          close the curve.
+    \item[1 =] Interpolate between points using a B\'ezier curve; close
+          the curve with a B\'ezier curve.
+    \item[2 =] Interpolate between points using a B\'ezier curve; close
+          the curve with a straight line.
+    \item[3 =] Connect points using straight lines; do not close the
+          curve.
+    \item[4 =] Connect points using straight lines; close the curve with a
+          straight line.
+    \item[5 =] Do not connect the points.  This is frequently used with
+         option \ref{symbol}.
+   \end{itemize}
+  \item[$10^2$]
+    Specifies how X is used to determine the abscissa, $\xi$ of the point
+    plotted, and how a border or axis with labels depending on X is
+    labeled.  When $10^\xi$ is output for a label, if the
+    major ticks are 1 unit apart in $\xi$, then minor ticks
+    (if any) will be spaced logarithmically.
+    \newline
+
+    \hspace{.25in}\begin{tabular}{ccc}
+    Value & Plot & Labels\\
+    0 & $\xi = \text{X}$ & $\xi$\\
+    1 & $\xi = \text{X}$ & $10^\xi$\\
+    2 & $\xi = \log_{10}\text{X}$ & $\xi$ \\
+    3 & $\xi = \log_{10}\text{X}$ & $10^\xi = \text{X}$ \\
+    4 & \multicolumn{2}{l}{Polar coordinates, $r = \text{X}\geq 0$}\\
+    \end{tabular}\newline
+
+     Options for logarithmic or polar conversion apply to curves, and to
+     options \ref{text}, \ref{number}, and \ref{xtick}.  Those for
+     logarithmic conversions apply to options \ref{line}--\ref{ellipse}.
+     {\bf Polar coordinates are not implemented in the current code.}
+     \newline
+      In the case of polar coordinates, the points plotted are
+    $(\text{X} \cos \text{Y},\, \text{X} \sin \text{Y})$, and
+    \begin{itemize}
+    \item[$\bullet$] XMIN, XMAX, YMIN and YMAX are interpreted as
+          $r_{\min}$, $r_{\max}$, $\theta_{\min}$, and $\theta_{\max}$,
+          respectively.
+    \item[$\bullet$] $r_{\min} \geq$ 0 is required.
+    \item[$\bullet$] Physical coordinates are Cartesian.  The origin
+          of the physical coordinate system coincides with the origin
+          of the user (polar) coordinate system, and is within the
+          figure.
+    \item[$\bullet$] In a user Cartesian coordinate system derived
+          from the polar coordinate system, $x_{\min}$ is $-r_{\max}$ if
+          $\theta_{\min} \leq 180^{\circ} + k \times 360^{\circ} \leq
+          \theta_{\max}$ for some integer $k$, else it is $\min(0, r_{\max}
+          \cos \theta_{\min}, r_{\max} \cos \theta_{\max})$.  $x_{\max}$,
+          $y_{\min}$ and $y_{\max}$ are defined similarly.  Given a point
+          $(r, \theta)$ in the user's polar coordinate system, in the
+          physical Cartesian coordinate system,
+          $\text{X}_{\text{physical}} = \text{XSIZE}
+          \frac{r \cos \theta}{x_{\max}-x_{\min}}$, and
+          $\text{Y}_{\text{physical}} = \text{YSIZE}
+          \frac{r \sin \theta}{y_{\max}-y_{\min}}$.
+    \item[$\bullet$] The border indices are $1 \Rightarrow \theta = \theta_{\min}$,
+          $2 \Rightarrow r = r_{\min}$, $3 \Rightarrow \theta =
+          \theta_{\max}$ and $4 \Rightarrow r = r_{\max}$.
+    \end{itemize}
+  \item[$10^3$] The preceding table applies with X replaced by Y and
+    $\xi$ replaced by $\eta$ unless in polar coordinates.  In the case
+    of polar coordinates, \newline
+
+    \hspace{.25in}\begin{tabular}{ccc}
+     Value & $\theta$ is given & Labels\\
+    0 & in radians & degrees\\
+    1 & in degrees & degrees\\
+    2 & in radians & radians\\
+    3 & in degrees & radians\\
+    \end{tabular}
+  \item[$10^4$] Let $x_b$ denote a vertical line drawn from border to
+    border at the 0 point on the bottom border, if for this border
+    XMIN$\,<0<\,$XMAX.  Similarly let $x_t$ be a vertical line
+    at 0 as defined by the top border, $y_\ell$ a horizontal line
+    relative to the 0 on the left border, and $y_r$ a horizontal line
+    relative to the 0 on the right border.  In all cases if the 0 line
+    isn't strictly inside the borders, the line is not drawn.
+    \begin{itemize}
+    \item[0 =] Draw $x_b$ and $y_\ell$.
+    \item[1 =] Do not draw any extra lines.
+    \item[2 =] Draw $x_b$ only.
+    \item[3 =] Draw $y_\ell$ only.
+    \item[4 =] Draw $x_t$ only.
+    \item[5 =] Draw $y_r$ only.
+    \item[6 =] Draw $x_b$ and $y_r$.
+    \item[7 =] Draw $x_t$ and $y_\ell$.
+    \item[8 =] Draw $x_t$ and $y_r$.
+    \end{itemize}
+  \item[$10^5$] 0 gives \LaTeX\ output, 1 gives \TeX\ output.
+\end{itemize}
+\item\label{ncurv}  (Arguments K\ref{ncurv} = NX, L\ref{ncurv} = 1)
+        L\ref{ncurv} sets of ordinates are provided in Y.  K\ref{ncurv} is a
+        whole number that gives NDIMY, the declared first dimension for Y
+        (K\ref{ncurv} $\geq$ NX), and L\ref{ncurv} is a whole number that
+        gives NY, the number of sets of ordinates, {\em i.e.}\ the effective
+        second dimension for Y.  The total dimension for Y must be $\geq$
+        NDIMY~$\times$ NY.  If a curve has been started but not yet
+        finished, that is, SPLOT was most recently previously called with
+        option \ref{opt}, and with digit $10^0$ of N\ref{opt}~= 5, and NY
+        is changed by specifying this option, an error message is
+        produced.  NY must not be greater than the parameter MAXNY in
+        SPLOT, which is currently 50.
+
+\item\label{pen}  (Argument P\ref{pen} = 50) S\ref{pen} specifies
+        whether lines drawn are solid, dashed, or dotted, and the pen width
+        for solid or dashed lines.  In the case of dashed lines one can
+        indicate the length of the lines and the nominal space between
+        them.  In the case of dotted lines, one can specify the diameter
+        of the dots and the space between them.  Digits of S\ref{pen} are
+        used as follows:
+        \begin{itemize}
+        \item[$10^0$]  Pen type.
+        \begin{itemize}
+          \item[= 0] Solid lines. (The only other thing to specify for
+          this case is line width in $10^{1:2}$ below.)
+          \item[= 1] Dashed lines.
+          \item[= 2] Dotted lines.
+          \item[= 3,4] As for 1,2, except units for the length of dashes
+           or the diameter of the dots is in deci-points instead of in
+           points.  See $10^{3:4}$ below.
+          \item[= 5--8]  As for 1--4, except units for the length of the
+           spaces, see $10^5$ below, are in deci-points instead of in
+           points.
+          \end{itemize}
+        \item[$10^{1:2}$] The width for solid or dashed lines in
+        deci-points. A value of 0 gives the default value of 5
+        deci-points.  Here are lines of widths 3, 5, 7 and 10 deci-points:
+        \vrule width 0.3pt\ \vrule width 0.5pt\ \vrule width 0.7pt\ \vrule
+        width 1.0pt\ .
+        \item[$10^{3:4}$] The length of the dashed lines or the diameter
+        of the dots.  Units are points or deci-points, depending on the
+        value of the low order digit of P\ref{pen}.
+        \item[$10^5$] The nominal space between the dashed lines or the
+        dots.  Units are points or deci-points, depending on the
+        value of the low order digit of P\ref{pen}.
+    \end{itemize}
+        The following table gives vertical lines showing various
+        possibilities with both the spacing and the length for dashes and
+        dots given in points. \vspace{5pt}
+
+{\small
+\hspace{-16pt}\begin{tabular}{*{15}{@{\hspace{9pt}}l}}
+        Spacing: & 1 & 1 & 2 & 2 & 2 & 3 & 3 & 3 & 3 & 4 & 4 & 4 & 4 & 4
+\\
+        Dashes:  & 1 & 2 & 1 & 2 & 3 & 1 & 2 & 3 & 4 & 1 & 3 & 4 & 5 & 7
+\\
+        Dots:    & 1 &$\frac 32$& 1 &$\frac 32$& 2 & 1 & 2 &$\frac 52$&
+        3 & 2 &$\frac 52$& 3 & $\frac 72$& 4
+
+        \end{tabular}
+}
+
+   \hspace{34pt} \mbox{\input pl16-03a }
+
+\item\label{border}  (Arguments N\ref{border}, S\ref{border}, T\ref{border} =
+        0)  N\ref{border} is a whole number in which every decimal digit
+        $k$ for which $1 \leq k \leq 6$ stipulates that S\ref{border} and
+        T\ref{border} specify characteristics for border $k$.  Border
+        indices are: 1~$\Rightarrow$ bottom, 2~$\Rightarrow$ left,
+        3~$\Rightarrow$ top, 4~$\Rightarrow$ right, 5~$\Rightarrow$
+        X-axis if XMIN~$<$ 0 ~$<$ XMAX, 6~$\Rightarrow$ Y-axis if YMIN~$<$
+        0 ~$<$ YMAX.
+
+        S\ref{border} is a whole number in which the decimal digits have the
+        following meanings:
+  \begin{itemize}
+  \item[$10^0$]
+    \begin{itemize}
+    \item[0 =] Border $k$ is not drawn, else it is.  If border $k$ is not
+            drawn, ``tick'' marks are neither drawn nor labeled.
+    \item[1 =] Major and minor ``tick'' marks are neither drawn nor
+            labelled.
+    \item[2 =] No labels printed at major ``tick'' marks.
+    \item[3 =] Labels printed at major ``tick'' marks,
+            except those at the ends of the border.
+    \item[4 =] Labels printed at major ``tick'' marks
+            except those at the left (bottom) end of the border.
+    \item[5 =] Labels printed at major ``tick'' marks
+            except those at the right (top) end of the border.
+    \item[6 =] Labels printed at all major ``tick'' marks.
+    \end{itemize}\vspace{5pt}
+
+    Labels are never printed at minor ``tick'' marks, and will be skipped
+    at some major tick marks if it appears the labels would overlap.
+
+  \item[$10^1$] Length, in points, of arrow head to be drawn at the right
+          or top end of the border.  If 0, there is no arrow head.
+  \item[$10^{2:3}$] Points plotted are not allowed to get closer to the
+          border than this number of points.
+  \item[$10^{4:}$] Gives the space in points to set aside for labels +
+          outward pointing tick marks + border captions.  If this is 0,
+          this space will be estimated.
+  \end{itemize}
+   The defaults for bottom and left borders are 6, for top and right
+   borders are 1, and for axes, are 0.
+
+        T\ref{border} is a whole number in which decimal digits have the
+        following meanings:
+  \begin{itemize}
+  \item[$10^{0:1}$] The number of minor intervals within each major
+          interval. If zero the value is determined automatically.
+  \item[$10^2$] Defines how range on variable is expanded.
+    \begin{itemize}
+    \item[0 =] Expand the range so that a major ``tick'' mark appears at
+            automatically-determined ends of border $k$ if the major
+            ``tick'' mark would be at zero, else expand the range to a
+            minor ``tick'' mark.
+    \item[1 =] Expand the range so that a major or minor ``tick''
+            mark appears at automatically-determined ends of border $k$.
+    \item[2 =] Expand the range so that a major ``tick'' mark appears at
+            automatically-determined ends of border $k$.
+    \item[else] Do not expand the range.
+    \end{itemize}
+  \item[$10^{3:}$] If nonzero, this is the index in COPT of the same kind
+        of text allowed after a textual option character of 1--6 as
+        defined in Section~\ref{Textopt}.  If more than one border/axis is
+        indicated, the caption pointed to will be applied to all of them.
+        Thus it is best to use COPT options 1-6 as described in Section
+        \ref{Textopt} below, unless this is being used for an extra data
+        set, see Option \ref{dataset}.
+    \end{itemize}
+
+\item\label{tick}  (Arguments N\ref{tick} = 123456, A\ref{tick} = 4.0pt,
+        B\ref{tick} = 3.0pt) N\ref{tick} has the same meaning as
+        N\ref{border}.  $|$A\ref{tick}$|$ is the physical length of major
+        ``tick'' marks along border $k$, and $|$B\ref{tick}$|$ is the
+        physical length of minor ``tick'' marks, both in points.
+        ``Tick'' marks of positive length are directed inward, while
+        ``tick'' marks of negative length are directed outward.  If the
+        physical length is $>$ than the length of the plot ($10^5$ should
+        do this), the line is drawn the full length of the plot.
+ \item\label{tick1} (Arguments N\ref{tick1}, X\ref{tick1}, D\ref{tick1})
+        N\ref{tick1} has the same meaning as N\ref{border}.  If
+        D\ref{tick1} $>$ 0 then major ``tick'' marks will be drawn at all
+        positions for which [XY]MIN~$\leq$ X\ref{tick1}~+ $k$~$\times$
+        D\ref{tick1}~$\leq$ [XY]MAX ($k$ integer).  If D\ref{tick1} $>$ 0
+        this option supersedes digits $10^{0:1}$ of T\ref{border}.
+\item\label{dataset} (Argument B\ref{dataset}, S\ref{dataset},
+        T\ref{dataset}, P\ref{dataset}, U\ref{dataset})
+        One may specify multiple data sets, and thus plot different curves
+        on the same figure with different scalings and with a specified
+        alignment. One should not specify this option without having
+        already provided all of the data and options that reference a
+        prior data set.
+        \begin{itemize}
+        \item[B\ref{dataset}]  This gives the index
+        of the border used for annotations and labels for the new data set.
+        See option \ref{border} for definitions of borders 1--4.  Values
+        of 5 and 6 refer to the current data set for X and Y, and can be
+        used to set values for P\ref{dataset} and U\ref{dataset} on the
+        initial data set.  If B\ref{dataset} indexes a border already in
+        use by another data set, that border with associated tick marks
+        and labels (if any) is output immediately, and the working area of
+        the plot is reduced by moving the new location of this border
+        towards the center of the plot.
+        \item[S\ref{dataset}] As for S\ref{border} for the new border,
+        $1 \leq \text{B\ref{dataset}} \leq 4$.
+        \item[T\ref{dataset}] As for T\ref{border} for the new border,
+        $1 \leq \text{B\ref{dataset}} \leq 4$.
+        \item[P\ref{dataset}] A distance in the same physical units as
+        XSIZE and YSIZE from the left or bottom end of the border.  See
+        U\ref{dataset} below.  If this is less than 0, there will be no
+        effort to align the points for the different data sets.
+        \item[U\ref{dataset}] A value in user coordinates associated
+        with this border.  Data will be plotted in such a way that a data
+        point with a coordinate with this value will be plotted at the
+        distance from the left or bottom end of the border indicated by
+        P\ref{dataset}.  This provides a means to align plots for the
+        different data sets.
+        \end{itemize}
+\item\label{Xminmax} (Arguments A\ref{Xminmax} = 0, B\ref{Xminmax} = 0)
+        If A\ref{Xminmax} $<$ B\ref{Xminmax}, A\ref{Xminmax}
+        (B\ref{Xminmax}) gives the smallest (largest) value of X for the
+        current dataset.  Values outside this range will be {\em clipped,
+        i.e.}\ will not appear in the plot.  If all values are in this
+        range, the plotting region is chosen as if these extreme values
+        occurred.
+
+\item\label{Yminmax} (Arguments A\ref{Yminmax} = 0, B\ref{Yminmax} = 0)
+        Similar to option \ref{Xminmax}, but for Y instead of X.
+\item\label{symbol}  (Argument N\ref{symbol} ...) Plot
+        symbols as specified by N\ref{symbol} at the current data points.
+        In addition data points are connected or not as set by digit
+        $10^1$ of N\ref{opt}.
+
+        N\ref{symbol} $<$ 0 means another N\ref{symbol} follows
+        immediately, and N\ref{symbol} = 0 draws no symbols.
+        If several curves are being plotted (see option \ref{ncurv}), the
+        first uses the first $|$N\ref{symbol}$|$, etc.  If NY specifies
+        more curves than the number of symbols specified, the
+        specification for the last N\ref{symbol} $\geq$ 0 is re-used.
+
+        $|$N\ref{symbol}$|$ is a whole number in which decimal digits
+        have the following meanings:
+        \begin{itemize}
+        \item[$10^0\neq 1$] Plot symbols with vertices evenly spaced on a
+        circle.
+        \begin{itemize}
+        \item[$10^0$] The number of vertices, $v$. $v=0$ describes a
+          circle, in which case digits $10^{1:2}$ are ignored.
+        \item[$10^1$] The number of vertices, $s$ to ``skip'' when drawing
+          edges, except that $s \geq v$ means ``draw lines from the center
+          to the vertices.''  To include all the vertices when $s<v$,
+          $\gcd(v,s+1)$ polygons are drawn, each time starting one vertex
+          counterclockwise from the previous starting vertex.
+        \item[$10^2$]  Rotation, $n$.  The first vertex is at an angle of
+          $n \: \frac{45^\circ}v$ counterclockwise from the $x$-axis
+          direction.
+        \item[$10^3$] The width of line to use, $w$, in deci-points.
+         If $w=0$ then $w = 3$ is used.  If $w=9$, the symbol is filled.
+        \item[$10^{4:5}$] The diameter of the circle in points.  If 0, 6
+        is used.
+        \item[$10^{6:}$] If this is not 0, the symbol is opaque {\em
+        i.e.}\ pixels inside the symbol are cleared before drawing the
+        symbol.
+ \end{itemize}
+        Possible values for $|$N\ref{symbol}$|$ include\vspace{5pt}
+\begin{center}
+\mbox{\input pl16-03b }
+\end{center}
+
+        If $s < v$ and $v$ is odd, the given data are at the averages of
+        the minima and maxima of the abscissas and ordinates of the
+        vertices.  Otherwise the given data are at the centers of
+        circumcircles.
+
+        \item[$10^{1:0}$=1] Plot error bars.  NY must be a multiple of 2.
+        Each point on a curve is specified by 3 numbers, {\em e.g.}\
+        $x_i,\ y_{i,1},$ and $y_{i,2}$ for the first curve.  At each $x_i$
+        a solid vertical line is drawn from $y_{i,1} - y_{i,2}$ to
+        $y_{i,1} + y_{i,2}$. The next three columns of $y$ would be used
+        for the next curve, etc. Only the points $(x_i, y_{i,1})$ are
+        connected for the first curve, and similarly for later curves.
+        \begin{itemize}
+        \item[$10^2$] Length in points of a horizontal line drawn
+        centered on the vertical line at the top and bottom of each error
+        bar.
+        \item[$10^3$] As for $10^2$, except used for a line at $y_{i,1}$
+        \item[$10^4$] Width in deci-points for the cross hatch lines.
+        \item[$10^5$] The width of the vertical line, $w$, in
+        deci-points. If $w=0$ then $w = 3$ is used.
+        \end{itemize}
+        \item[$10^{1:0}=11$] As for $10^{1:0} = 1$, except each curve is
+        specified by 4 numbers (NY must be a multiple of 3) and the top of
+        the vertical line is $y_{i,1} + y_{i,3}$ for the first curve.
+        \item[$10^{1:0}=21$] Draw ``vector fields.'' NY (see option
+        \ref{ncurv}) must be a multiple of 3.  An arrow is drawn from
+        $(x_i,~y_{i,1})$ to $(x_i+y_{i,2},~y_{i,1}+y_{i,3})$ for
+        the first curve.  The next three columns of $y$ would be used
+        for the next curve, etc.
+        \begin{itemize}
+        \item[$10^2$] Length of the arrow head in points.  If 0, no
+        arrow head is drawn.
+        \item[$10^3$] Size of circle in points to be drawn at
+        ($x_i,~y_{i,1})$.  Set to 0 if no circle is desired.
+        \item[$10^4$] Width in deci-points for the line used to
+        draw the circle above.  If this is 9, the circle is filled.
+        \item[$10^{5}$] The width of the line use to draw the arrow, $w$,
+        in deci-points. If $w=0$ then $w = 3$ is used.
+        \end{itemize}
+        \end{itemize}
+\item\label{onesymb} (Arguments X\ref{onesymb}, Y\ref{onesymb},
+        N\ref{onesymb}\ldots .)  Plot a single symbol as specified by
+        N\ref{onesymb} at (X\ref{onesymb},~Y\ref{onesymb}).
+        $|$N\ref{onesymb}$|$ has the same meaning as
+        $|$N\ref{symbol}$|$.  If digit $10^0$ of $|$N\ref{symbol}$|$
+        is 1, there are extra arguments corresponding to the
+        values of $y_{i,2}$ ... required by option \ref{symbol}.
+        N\ref{onesymb}~$\geq$ 0 means (X\ref{onesymb}, Y\ref{onesymb})
+        (and any additional arguments) are in user coordinates,
+        while N\ref{onesymb}~$<$ 0 means (X\ref{onesymb}, Y\ref{onesymb})
+        and additional arguments, if any, are in physical coordinates.
+\item\label{arrow} (Argument S\ref{arrow} = 0)  If S\ref{arrow}$~\neq$ 0
+        draw an arrow head, with a length of S\ref{arrow} points, at
+        the end of the next open curve, or at the last point given in
+        the next closed curve.
+\item\label{linwid} (Arguments A\ref{linwid}~= 100.0, B\ref{linwid}~=
+        70.0, C\ref{linwid}~= 50.0, D\ref{linwid}~= 60.0, E\ref{linwid}~=
+        30.0) \ Specify ``pens'' (as is done for option \ref{pen}) for
+        various kinds of lines. Values $\leq 0$ select the default.
+  \begin{itemize}
+  \item[A\ref{linwid}] For borders.
+  \item[B\ref{linwid}] For major ``tick'' marks.
+  \item[C\ref{linwid}] For minor ``tick'' marks.
+  \item[D\ref{linwid}] For lines drawn at X = 0  or Y = 0.
+  \item[E\ref{linwid}] For rectangles or ellipses (see options \ref{rect},
+          \ref{ellipse}, \ref{pline}, and \ref{pellipse})
+  \end{itemize}
+\item\label{text} (Arguments X\ref{text}, Y\ref{text}, T\ref{text})  Place
+        a text annotation at (X\ref{text},~Y\ref{text}).  The text begins at
+        COPT(T\ref{text}~/ 10).  If (T\ref{text}~/10) = 0, text starts
+        immediately after the text for the last option of this type, or if
+        this is the first, with the first position in COPT where this kind of
+        option could appear.  The text pointed to must be in the same form
+        as the text following an option character of 1--6 as described in
+        Section \ref{Textopt}, except the ``\{...\}'' contains text to be
+        printed rather than a caption and ``[...]'' describes the
+        justification relative to (X\ref{text},~Y\ref{text}).
+
+        T\ref{text}$\mod 10$ has the following meaning:
+        \begin{itemize}
+        \item[0 =] X\ref{text} and  Y\ref{text} are in the current user
+           coordinate system.
+        \item[1 =] X\ref{text} and  Y\ref{text} are in physical
+          coordinates.
+        \item[2--3] as for 0--1 except don't use the default prefix and
+          postfix, any data of this type required is in the text string
+          pointed to.
+        \item[4--7] as for 0--3, and in addition an opaque borderless
+        unfilled rectangle is placed ``below'' the annotation, but
+        ``above'' any plotted curves or symbols.
+        \end{itemize}
+
+\item\label{number} (Arguments V\ref{number}, X\ref{number},
+        Y\ref{number}, T\ref{number}).  Place a number given by
+        V\ref{number} on the plot at (X\ref{number}, Y\ref{number}).
+        T\ref{number} is interpreted as for T\ref{text} except that
+        if the value of T\ref{number}~/ 10 is 0, the default formatting
+        is used.  Otherwise the text pointed to in COPT has the same
+        form as described in Section \ref{Textopt} for text following an
+        option character of ``N''.
+
+\item\label{xtick} (Arguments X\ref{xtick}, T\ref{xtick})
+        Place an annotation and/or a line or tick mark at the
+        value given by X\ref{xtick} on one of the borders or axes.  If
+        X\ref{xtick} is not an interior point along this border or axis,
+        this has no action.  Digits of T\ref{xtick} are interpreted as
+        follows.
+        \begin{itemize}
+        \item[$10^0$] Defines the type of line to draw.
+        \begin{itemize}
+        \item[= 0] No line.
+        \item[= 1] A major tick mark.
+        \item[= 2] A minor tick mark.
+        \item[= 3] A solid line from border to border.
+        \item[= 4] A dashed line from border to border with 3 point dashes
+                   and a 2 point space between them.
+        \end{itemize}
+        \item[$10^1$] Gives the index of the border or axes to which this
+                     applies.
+        \item[$10^{2:}$] Points to text in COPT for an annotation that is
+            formatted with the same kind of rule as used for a numeric
+            label, see Option \ref{number}. If 0 there is no annotation.
+        \end{itemize}
+
+\item\label{bad} (Argument A\ref{bad}, Y\ref{bad}) Values of Y equal to
+        Y\ref{bad} are considered to be ``bad data.''  If A\ref{bad} is zero,
+        ``bad'' values of Y are simply skipped.  If A\ref{bad}~$>$ 0 and a
+        curve is being plotted, it will be terminated at the previous
+        ``good'' value of Y, and re-started at the next ``good'' value of Y.
+        If A\ref{bad}~$<$ 0 then testing for ``bad data'' is turned off.
+        When plotting a closed curve, if this option has been selected and
+        A\ref{bad}~$>$ 0, it is taken to be zero.
+
+\item\label{nouse_1}   Not used.
+
+\item\label{line} (Arguments XA\ref{line}, YA\ref{line}, XB\ref{line}
+        YB\ref{line})  Draw a line in user coordinates from
+        (XA\ref{line}, YA\ref{line}) to (XB\ref{line}, YB\ref{line})
+        using the currently selected line style parameters (including the
+        arrow head), and the scaling set by the most recent appearance of
+        options \ref{Xminmax} or \ref{Yminmax}.
+
+\item\label{rect} (Arguments A\ref{rect}, B\ref{rect}, C\ref{rect},
+        D\ref{rect}) Draw a rectangle specified by points (A\ref{rect},
+        B\ref{rect}) and (C\ref{rect}, D\ref{rect}), in user
+        coordinates of any two diagonally opposite corners of the
+        rectangle, after all curves are drawn, but before any annotations
+        specified by options \ref{onesymb} or \ref{text} are placed.
+        The rectangle is filled as specified by option \ref{fill}.
+
+\item\label{ellipse} (Arguments X\ref{ellipse}, Y\ref{ellipse},
+        A\ref{ellipse}, B\ref{ellipse}, R\ref{ellipse}) Draw an ellipse
+        centered at (X\ref{ellipse}, Y\ref{ellipse}) with major axis
+        A\ref{ellipse} and minor axis B\ref{ellipse}, and with the
+        major axis rotated R\ref{ellipse} degrees counterclockwise from
+        the $+x$-axis direction.  All but R\ref{ellipse} are in user
+        coordinates.  If logarithms of user coordinates are
+        ordinarily taken, logarithms of X\ref{ellipse} and Y\ref{ellipse}
+        are computed before rotation.  The input values of A\ref{ellipse}
+        and B\ref{ellipse} are used without taking logarithms.
+
+\item\label{pline} Like \ref{line}, but in physical coordinates.
+        Logarithms are never applied to coordinates in this case.
+
+\item\label{prect} Like \ref{rect}, but in physical coordinates.
+        Logarithms are never applied to coordinates in this case.
+
+\item\label{pellipse} Like \ref{ellipse}, but in physical coordinates.
+        Logarithms are never applied to coordinates in this case.
+
+\item\label{fill} (Arguments F\ref{fill}=0, ...) Specify filling of closed
+        curves, rectangles defined by option \ref{rect} or \ref{prect}, or
+        ellipses defined by option \ref{ellipse} or \ref{pellipse}.  Some
+        cases require extra arguments that are denoted by A\ref{fill},
+        B\ref{fill}, and C\ref{fill}.  One must provide exactly as many
+        arguments as the number required.  F\ref{fill} is a whole number
+        in which the decimal digits have the following meaning:
+  \begin{itemize}
+  \item[$10^0$]
+    \begin{itemize}
+    \item[0] Do not fill~-- leave transparent.
+    \item[1] Fill with solid black.
+    \item[2] Erase.
+    \item[3] Shade with dots of size A\ref{fill} and spacing B\ref{fill}.
+    \item[4] Hatch with lines of thickness A\ref{fill}, spacing
+          B\ref{fill} and angle C\ref{fill} (in degrees counter-clockwise
+          from horizontal).
+    \end{itemize}
+  \item[$10^1$] 0 = specification applies to curves, 1 = specification
+        applies to rectangles defined by option \ref{rect}, else
+        specification applies to ellipses defined by option \ref{ellipse}.
+  \item[$10^2$] 0 = specification applies to next curve, rectangle or
+        ellipses only.  Else it applies, until changed by option
+        \ref{fill}.  One can specify as many as 3 fill patterns with
+        shading or hatching and all will be applied.
+  \end{itemize}
+        A\ref{fill} and B\ref{fill} are in points, 72.27 points/inch.
+
+\item\label{nouse_2}   Not used.
+
+\item\label{debug} (Argument L\ref{debug} = 0)  Print debugging output:
+  \begin{itemize}
+  \item[L\ref{debug}$\leq$0]  No debugging output
+  \item[L\ref{debug}$>$0]  Option settings
+  \item[L\ref{debug}$>$1]  Scratch file contents, including data.
+  \end{itemize}
+\end{enumerate}
+\renewcommand{\labelenumi}{\theenumi}
+
+\subsubsection{Textual Option Descriptions\label{Textopt}}
+Data at the beginning of COPT() consists of strings headed by a single
+character that identifies the kind of string that follows.  After the
+last of such strings, COPT() may contain character strings pointed to by
+various options.  Strings pointed to must begin with ``['', ``\{'', or
+``(''.
+
+Options specified entirely in COPT() consist of a single letter or number
+code followed by text associated with the option.  All letters used in
+options may be in either upper or lower case.  Option codes may be
+preceded by blanks.  Where we write ``[\,]'', ``()'', or ``\{\}'' (no text
+inside), the following is to be understood.
+
+\begin{description}
+\item[\hbox{[\,]}] Always optional.  Contains two or four letters between
+the brackets that define how an item is centered relative to some nominal
+position.  The first is either {\tt t}, {\tt c}, or {\tt b} for top,
+center (vertically), and bottom.  The second letter is either {\tt l},
+{\tt c}, or {\tt r}, for left, center (horizontally), and right.  One may
+follow the second letter with an {\tt s} which indicates the text is
+``stacked'' (vertically), and a following letter that must be {\tt l},
+{\tt c}, or {\tt r}, to indicate how the text is justified horizontally
+inside the stack. Inside a stack, text enclosed in balanced ``\{...\}'' or
+``\$...\$'' is kept on a single line.
+\item[()] Always optional.  Contains information between the parentheses
+on formatting numbers and on the size of text (in points).  Items can
+appear in any order, with no intervening spaces.  Letters can be in either
+upper or lower case, and \# is used to denote an integer which if not
+present causes the nominal value to be used.  The following can be
+specified.
+\begin{itemize}
+\item[.] Always print a decimal point.
+\item[F\#] Font size in points.  (The only case that
+makes sense if ``()''
+is being used in connection with text output.  Thus ``(F12)'' would be
+used to indicate text or numbers that are in 12 point.)  The default is 9
+point.
+\item[D\#] Number of significant digits that must be printed.
+\item[A\#] Number of digits that are required after the decimal point.
+\item[B\#] Number of digits that are required before the decimal point,
+\item[X\#] $0 < \# < 10$,  bias for selecting the exponent notation.  If
+     \# is zero, it is replaced by 5.  The exponent notation is used if
+     there are $9-\#$) or more zeros that are serving as place holders,
+     else the usual format is used.  Note that with an input \# of 9,
+     there will always be at least 0 zeros, and exponent notation must be
+     used.
+ \end{itemize}
+\item[\{\}] Never optional, but can be replaced by a ``\#'' to get a
+default value.  Between the braces there is a text string containing
+at least one ``\#'' that is not preceded by a ``$\backslash$''.  When
+outputting a number or text, this string is copied to the output with the
+first such ``\#'' replaced by the number or text being output.  This
+provides a means to change font, size, etc.  The default for \LaTeX\
+is ``\{$\backslash $small \#\}'' and  for \TeX\ is ``\{\#\}''.
+\end{description}\vspace{5pt}
+
+{\bf Option}\vspace{-12pt}
+\begin{description}
+\item[Format] \hspace{.5in}{\bf Option Description}
+
+\item[F\{{\em File\_name}\}] Specifies a file name for the output.
+If this option is not selected, it is as if ``F\{splot.tex\}'' were used.
+\item[Q]   End of the option list.  The end of the option list may also be
+           indicated by \{, ( or [ appearing where the first letter of an
+           option code is expected --- probably text used by option
+           \ref{text}, \ref{number}, or \ref{xtick}.
+\item[A\,()\{\}] Default specification for printing numbers on
+borders and axes.  Should precede any B, T, L, R, X, or Y specifications.
+\item[B\,()\{\}] Specification for printing numbers on
+bottom border.
+\item[T\,()\{\}] Specification for printing numbers on
+top border.
+\item[L\,()\{\}] Specification for printing numbers on
+left border.
+\item[R\,()\{\}] Specification for printing numbers on
+right border.
+\item[X\,()\{\}] Specification for printing numbers on
+x-axis.
+\item[Y\,()\{\}] Specification for printing numbers on
+y-axis.
+\item[N\,\hbox{[\,]}()\{\}] Specification for printing numbers
+interior to the plot.  The default for ``[\,]'' is {\tt [cl]}.
+\item[W\,\hbox{[\,]}()\{\}] Specification for printing words or other
+  text somewhere on the plot.  If (...) is used, only the ``F'' for
+  font size applies.  The default for ``[\,]'' is {\tt [cl]}.
+\item[C\,()\{\}] Default specifications for printing border/axis
+captions.
+\item[I\{{\em Input\_file\_name}\}] Specifies the name of a file from
+which the X and Y data are to be read.  This file is opened with {\tt
+FORM~= 'UNFORMATTED'} and {\tt ACCESS~='SEQUENTIAL'}, and will have NX
+records read with a sequence of statements of the form\\
+{\tt \hspace*{0.125in}   read (IO) X, (Y(J), J=1,NY)}\\
+where IO is the unit number, automatically selected, associated with this
+file, and NY is 1 or, if set, the value of K\ref{ncurv} in option
+\ref{ncurv}.  If NX is sufficently large data is read to the end of
+the file.
+\item[M\{{\em Raw plot output}\}]The raw plot output is sent
+directly to the plot device driver, except that $\backslash$ serves
+as an escape character ({\em i.e.}$\backslash$x for any ``x'' is replaced
+by x).
+\item[``1--6''\hbox{[\,]}()\{{\em Border/axis\_caption}\}] Specification
+for a caption to be printed on a border/axis, where a single digit from 1
+to 6 is used as in Option \ref{border}.  A {\tt c} for vertical positioning
+on a vertical line or for horizontal positioning on a horizontal line
+causes the text to be centered with respect to that direction outside any
+labels that may be present.  Defaults for ``[\,]'' are {\tt [bc]}, {\tt
+[cl]}, {\tt [tc]}, {\tt [cr]}, {\tt [cr]} and {\tt [tc]} for the bottom,
+left, top, right, x-axis, and y-axis respectively.
+
+The \# is not used in this case.  When using \LaTeX \ the default
+``$\backslash$small'' is not generated in this case if the first
+character following the \{ is a $\backslash$.
+
+Thus ``1\{Label bottom border\}'' will place text centered below the
+bottom border with a baseline at the edge of the figure.  And the default
+for the $x$-axis centers text vertically just past the right end of the
+axis.  If one were to use {\tt [bc]} on the top border, the text would
+have a baseline at the top of the figure.  If defaults are used, a caption
+for a vertical line that requires more than two character lengths
+unstacked than it would require if stacked, will be stacked by adding {\tt
+sc} to the positioning information.
+\end{description}
+
+\subsubsection{Incorporating the Output Into a \TeX\ or \LaTeX\
+Document\label{IntoTeX}}
+
+SPLOT generates output intended to be processed by the {\tt mfpic}
+package of \TeX\ or \LaTeX\ macros.  See Section D below for more
+details.  Using \LaTeX\ or PDF\LaTeX\ one can generate either ``.dvi''
+files or ``.pdf'' files.  We describe both approaches, but recommend
+using PDF\LaTeX\ as it gives documents that are easier to share and it
+is easier to get set up.  Also for many of our plots we had to use our
+own version of gftopk as the standard version does not set aside
+enough memory for the character sizes that are generated for the
+plots.
+
+The general form of a \LaTeX\ document that incorporates plots generated by
+SPLOT is:
+\begin{verbatim}
+\documentclass... % for LaTeX2e
+% or \documentstyle for older LaTeX versions
+  ...
+\usepackage[metapost]{mfpic}
+  ...
+\begin{document}
+  ...
+\opengraphsfile{<fontname>}
+  ...
+\input <plotname>
+  % TeX reads the SPLOT output from the file
+  % <plotname>.tex, default is splot.tex
+  ...
+\input <anotherplotname>
+  ...
+\closegraphsfile
+  ...
+\end{document}
+\end{verbatim}
+
+The processing steps for this document illustrate usage:
+\begin{enumerate}
+\item Run the programs that invoke SPLOT:\\
+  {\tt pl16-03} \hspace{20pt}(Creates the symbols for option \ref{symbol})\\
+  {\tt drsplot} \hspace{20pt}(See Section C)
+  \vspace{-5pt}
+\item\label{DocP} Process the document:\\
+  {\tt pdflatex ch16-03}
+  \vspace{-5pt}
+\item\label{mfP} Process the font produced in step \ref{DocP}:\\
+  {\tt mpost pl16-03}\\
+  The name {\tt pl16-03} was mentioned in the command
+  ``{\tt $\backslash$opengraphsfile}'' in this document.
+  \vspace{-5pt}
+\item Process the document again, this time incorporating the
+  generated plots from step \ref{mfP}:\\
+  {\tt pdflatex ch16-03}
+  \vspace{-5pt}
+  \vspace{-5pt}
+\end{enumerate}
+
+Programs above may have different names and different usages on
+different systems.  If you are generating ``.dvi'' files and use a
+system that automatically updates a ``.dvi'' display when running
+\LaTeX, you will likely need to close this window after generating a
+new graphic font in order for the new graphic font to be displayed
+correctly.
+
+To get dvi output.
+Replace ``$\backslash $usepackage[metapost]\{mfpic\}'' with\\
+  ``$\backslash $usepackage[metafont]\{mfpic\}''.\\
+Run latex instead of pdflatex.\\
+Replace ``mpost pl16-03'' with ``mf pl16-03''\\
+Run gftopk pl16-03.*gf\\
+Run latex again.
+
+\subsubsection{Modifications for Double Precision\label{DP}}
+For double precision usage, change the REAL type statement to DOUBLE
+PRECISION, and change the subroutine name to DPLOT.  The default file name
+for output, used if option {\tt F} in COPT() is not selected, is
+{\tt dplot.tex}.
+
+\subsection{Examples and Remarks}
+
+The example given is that used to generate the plot in Chapter~2.2.
+
+If one produces a curve or set of related curves by setting the $10^0$
+digit of N\ref{opt}~=~5 and calling SPLOT several times to supply data
+values, the value of NY must be the same on every call that contributes to
+the construction of the curve(s).
+
+If one produces a plot by making several calls to SPLOT, using digit
+$10^0$ of N\ref{opt} to indicate that the plot is or is not to be finished
+on the current call, the following considerations are important:
+\begin{itemize}
+\item
+  The specifications whether ``tick'' marks are linearly or
+  logarithmically spaced are those in effect when the plot is finished.
+\item
+  The specifications whether to plot data as given, or to plot $\log_{10}~X$
+  or $\log_{10}~Y$, are remembered from one invocation of SPLOT to the
+  next, but, if changed, are separately observed.
+\item
+  The specification to use a polar coordinate system is the one in effect
+  when the plot is finished.
+\item
+  The units and values of XSIZE and YSIZE are those in effect when
+  the plot is finished.
+\end{itemize}
+
+All options are reset to their default values when SPLOT is first invoked,
+or when invoked after finishing a plot.  When SPLOT is invoked after
+having been invoked with instructions {\em not} to finish the plot, all
+optional settings retain their values from the previous invocation until
+changed by option selections in the current invocation, except that digit
+$10^0$ of N\ref{opt} is reset to zero, and L\ref{debug} is reset to zero
+before the option selections are processed.
+
+We also give a simple example here of taking output in a file to make
+a plot, and give scripts illustrating how to get the plots.
+Program {\tt plotf.f} takes output from a file and calls {\tt dplot}.
+Scripts {\tt plotpdf} and {\tt plotdvi} shows how to to do the
+whole job where the program {\tt tedxrk8} is the program used to
+generate the results and the \LaTeX\ file is {\tt stepsel.tex}.
+
+{\bf plot.f}\vspace{-10pt}
+\begin{verbatim}
+c Plot data from a file; in this case file
+c plot.out, assumed to have floating point
+c numbers x_i, y_i, z_i on each line. y(x)
+c and z(x) are plotted.  Output in this case
+c goes to file stepselp.tex.
+      double precision X(1), Y(1), OPT(8)
+      character COPT*27
+      data COPT/'I{plot.out}F{stepselp.tex}Q'/
+c                      Set for 2 curves ....
+      data OPT/ 0.D0, 2.D0, 100000.D0, 2.D0,
+c       For x in [0, 15]
+     1  8.D0, 0.D0, 15.D0, 0.D0/
+      call DPLOT(4.5D0, 3.D0, X, 100000,
+     1   Y, OPT, COPT)
+      stop
+      end
+\end{verbatim}
+
+{\bf plotpdf}\vspace{-10pt}
+\begin{verbatim}
+#!/bin/bash
+export RUNDIR=/m/math77/ode/dxrk8/new
+$RUNDIR/tedxrk8 <$RUNDIR/test.in
+$RUNDIR/plotf
+pdflatex stepsel
+mpost stepselp
+pdflatex stepsel
+\end{verbatim}
+
+{\bf plotdvi}\vspace{-10pt}
+\begin{verbatim}
+#!/bin/bash
+export RUNDIR=/m/math77/ode/dxrk8/new
+$RUNDIR/tedxrk8 <$RUNDIR/test.in
+$RUNDIR/plotf
+latex stepsel
+mf stepselp
+gftopk stepselp.*gf
+latex stepsel
+\end{verbatim}
+
+
+\subsection{Functional Description}
+
+\subsubsection{Sequence of Events}\label{SOE}
+
+Each time SPLOT is invoked, the character options in COPT are processed,
+then the numeric options in OPT are processed, then the data are
+processed.  Most numeric options, and all data, are stored on a scratch
+file, and processed when digit $10^0$ of N\ref{opt} $\leq 2$.
+
+Numeric options are processed in the order they appear, and the setting
+of one may affect the interpretation of another.  When data are processed,
+the most recently previous setting of an option that affects the data or
+their interpretation is effective, even if that setting occurred during a
+previous invocation of SPLOT for the same plot.
+
+The effects of options or fields of options on subsequent options, and
+data, are summarized in the table at the beginning of Section
+\ref{Numopt}.  The column labelled ``Scratch File'' indicates whether the
+option, or some of its fields, are put onto the scratch file, along with
+the data.
+
+The plot border, axes, tick marks, labels, and captions are output first.
+Then data on the scratch file is output in the following order.  First all
+data for a given {\tt mfpic} group is output before that for another.  Within
+each such group, curves are output, then single symbols, then rectangles
+and ellipses, and finally text annotations.
+
+\subsubsection{Context of Usage -- Interaction with \LaTeX\ and \TeX}
+
+Plots are rendered into marks on the page by converting them to characters of
+a font.  The {\tt mfpic} package instructs \TeX\ or \LaTeX\ to put commands to
+produce the font into the file {\tt $<$fontname$>$.mf} specified by the {\tt
+$\backslash$opengraphsfile} command (see Section \ref{IntoTeX}).
+
+The document is thus produced by invoking the \TeX\ or \LaTeX\ program to
+produce the file {\tt $<$fontname$>$.mf}, processing {\tt $<$fontname$>$.mf}
+by the {\tt mf} program, and then invoking \TeX\ or \LaTeX\ again to
+account for the ``font metrics'' and to incorporate the font ``characters''
+that implement the plots.
+
+After processing by the {\tt mf} program, it may also be necessary to use the
+{\tt gftopk} program, depending on how the {\tt .dvi} file is ultimately
+converted to a format for a specific printer.
+
+Finally, the document is converted from ``device independent'' ({\tt .dvi})
+form to a form usable by a specific printer by a {\tt dvi} program specific
+to that printer.
+
+Consult documentation specific to your system for details of usage of \TeX,
+\LaTeX, {\tt mf}, {\tt gftopk} and {\tt dvi} programs.
+
+A version of the {\tt mfpic} macros accompanies the libraries.
+
+Some implementations of {\tt gftopk} have insufficient capacity to process
+output from {\tt mf} resulting from using {\tt mfpic}.  A version of {\tt
+gftopk} that has more capacity accompanies the libraries.  You will need a
+C compiler to compile it for your system.
+
+\subsection{Error Procedures and Restrictions}
+
+Although this software has been used to produce the wide variety of plots
+in the MATH77 documentation, time constraints have meant that a good
+number of the options have not been checked.  It is expected that there
+will be bugs in some of these unchecked options.  These will be fixed as
+they arise.  Any errors due to a bug should be obvious from an examination
+of the plot if the bug allows the code to get this far.  The C versions of
+this code have been checked only on the simple demonstration drivers
+and thus are even more likely to suffer from bugs.
+
+An error message is produced if OPT(1) is returned non-zero.  All errors
+are processed by the error message processor described in Chapter 19.3.
+If the error messages provided do not clear up the problem, looking at
+{\tt $<$plotname$>$.tex} may clarify the problem for you.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+SPLOT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+MESS, SMESS, SPLOT, SPLOT0\rule[-5pt]{0pt}{8pt}}\\
+DPLOT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DMESS, MESS, SPLOT, SPLOT0\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+Design and code by Fred T. Krogh and W. Van Snyder, JPL, December 1997.
+Special thanks to Thomas Leathrum for creating {\tt mfpic} and to Geoffrey
+Tobin for making his latest version of {\tt mfpic} available and for
+answering questions on it's use.
+
+\closegraphsfile
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSPLOT}\vspace{10pt}
+\lstinputlisting{\codeloc{splot}}\vspace{-30pt}
+
+\vspace{30pt}\centerline{\bf \large ODSPLOT}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{splot}}
+\end{document}
+

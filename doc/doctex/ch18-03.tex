@@ -1,0 +1,142 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 18.3 Sorting Partially Ordered Data of
+\hbox{Arbitrary Structure in Memory}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Sort data having an organization or structure not supported by one of the
+subprograms in Chapter~18.1, for example, data having more than one key to
+determine the sorted order. This subprogram has similar functionality
+to GSORTP of Chapter~18.2 and is more efficient when the data are initially
+partially ordered, or when the ordering criterion is expensive to
+determine.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N, L}($\geq $N){\bf , L1, COMPAR}
+
+\item[EXTERNAL]  \ {\bf COMPAR}
+\end{description}
+
+Assign values to N and data elements indexed by~1 through N. Require
+N $\geq 1.$
+$$
+\fbox{{\bf CALL INSORT (COMPAR, N, L, L1)}}
+$$
+Following the call to INSORT the contents of L(1) through L(N) contain a
+linked list that defines the sorted order of the data. L1 is the index of
+the first record of the sorted sequence. Let I = L(J). If I = 0 record
+J is the last record in the sorted sequence, else record I is the immediate
+successor of record J in the sorted sequence.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[COMPAR]  \ [in] An INTEGER FUNCTION subprogram that defines the
+relative order of elements of the data. COMPAR is invoked as COMPAR(I, J),
+and is expected to return $-$1 (or any negative integer) if the $\text{I}^{th}$
+element of the original data is to precede the $\text{J}^{th}$ element in
+the sorted sequence, +1 (or any positive integer) if the $\text{I}^{th}$
+element is to follow the $\text{J}^{th}$
+element, and zero if the order is immaterial. INSORT does not have access to
+the data. It is the caller's responsibility to make the data known to
+COMPAR. Since COMPAR is a dummy procedure, it may have any name. Its name
+must appear in an EXTERNAL statement in the calling program unit.
+
+\item[N]  \ [in] The upper bound of the indices to be presented to COMPAR.
+
+\item[L()]  \ [out] An array to contain the definition of the sorted
+sequence. L(1:N) are set so that the immediate successor of the $%
+\text{J}^{th}$ record of the sorted sequence is L(J) if the $\text{J}^{th}$
+record is not the last record in the sorted sequence, else L(J) is zero.
+
+\item[L1]  \ [out] The index of the first record of the sorted sequence.
+\end{description}
+
+\subsubsection{Converting the Linked List in L() to a Permutation Vector}
+
+The linked list produced by INSORT (or by INSRTX, see Chapter~18-04) in
+the array L() may be converted to a permutation vector by
+$$
+\fbox{\bf CALL PVEC (L, L1)}
+$$
+where L() and L1 are as above. Upon return from PVEC, L() is a permutation
+vector, as described for the argument IP() of GSORTP (Chapter~18.2).
+
+\subsection{Examples and Remarks}
+
+The program DRINSORT illustrates the use of INSORT to sort 1000 randomly
+generated real numbers. The output should consist of the single line
+
+\hspace{.2in}INSORT succeeded
+
+\subparagraph{Stability}
+
+A sorting method is said to be $stable$ if the original relative order of
+equal elements is preserved. This subroutine uses a  merge sort algorithm,
+which is not inherently stable. To impose stability, return COMPAR =
+I $-$ J if the $\text{I}%
+^{th}$ and $\text{J}^{th}$ elements are equal.
+
+\subsection{Functional Description}
+
+The INSORT subprogram uses an opportunistic merge sort algorithm, as
+described by Sedgewick \cite{Sedgewick:1983:A}, with a modification
+suggested by Power \cite{Power:1980:ISU}.  In the basic opportunistic
+merge sort algorithm, the first step consists of detecting either
+ascending or descending sequences of initially ordered data.  In the
+second step, these sequences are merged in pairs to form half as many
+sequences, each approximately twice as long as the original sequences
+(descending sequences are considered in reverse order).  The second step
+is repeated until only one sequence remains.  The Power modification
+consists of putting each sequence into a ``bucket" indexed by the base-2
+logarithm of its length.  When a third sequence is to be put into a
+bucket, the two longest sequences are merged and put into the next bucket.
+If this would require putting three sequences into the next bucket, the
+process is repeated.  Finally, sequences remaining in the buckets after
+the initial order-detecting stage are merged, starting with the smallest
+sequences and proceeding to the largest, to produce a single sequence.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+INSORT neither detects nor reports any erroneous conditions.
+
+Limitations on the size of array that can be sorted are imposed by the
+amount of memory available to hold the array, and the length of an internal
+array to hold the ``buckets" used in the Power modification. The number of
+buckets is given by a Fortran PARAMETER, currently set to~32. This permits
+sorting at least 4,294,467,295 records.
+
+\subsection{Supporting Information}
+
+The source language is Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.2in} {\bf Required Files}\vspace{2pt} \\
+INSORT & \hspace{.35in} INSORT\\
+PVEC & \hspace{.35in} PVEC\\\end{tabular}
+
+Designed and coded by W. V. Snyder, JPL 1974. Power modification~1980.
+Adapted to MATH77,~1990.
+
+
+\begcode
+\medskip\
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRINSORT}\vspace{10pt}
+\lstinputlisting{\codeloc{insort}}
+\end{document}

@@ -1,0 +1,93 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\DeclareRobustCommand{\us}{\rule{.2pt}{0pt}\rule[-.8pt]{.4em}{.5pt}\rule{.7pt}{0pt}}
+\begin{document}
+\begmath 19.6  Running Problems in Matrix Market Format With Codes in Chapter 4.7
+
+\silentfootnote{$^\copyright$ \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These programs written in C will output either a Fortran code or a C
+code which will solve sparse matrix problems entered in Matrix Market
+Format, see \url{http://math.nist.gov/MatrixMarket/}.
+
+\subsection{Usage}
+Edit the two define's at the start of the code for your desired use,
+and compile the code.  Make up a file named mmjob which contains a
+list of names for the matrix market files that you may have an
+interest in running and that are stored on your machine.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+mmgen [--Options] Path [name\us 1] [name\us 2] ...\\
+\end{tabular}}
+\end{center}
+
+Options are a string of letters and numbers interpreted as follows.
+\begin{description}
+\item[[a] Process all lines in mmjob after processing the last
+  name\us k.  If no names are given, start with the first name in mmjob.
+\item[t] Save the transpose of the matrix, and solve $A^T \mathbf{x} =
+  \mathbf{b}$.
+\item[b0--b9] Specify the number of right hand sides in $\mathbf{b}$.
+  The defauls is b1.  In the case of 0, the matrix is factored, and
+  another call is made to solve the problem with a single right hand
+  side.
+\item[c] Compute the reciprocal of the condition number.
+\item[d] Compute the determinant.
+\end{description}
+
+\subsection{Examples and Remarks}
+
+The file mmjob listed at the end of this document gives the output
+shown.
+
+\subsection{Functional Description}
+
+Not applicable.
+
+\subsection{Error Procedures and Restrictions}
+\label{sec:errors}
+In the case of input errors, an error message is printed.
+
+\subsection{Supporting Information}
+
+The source language is C.
+
+Design and programming by Fred T. Krogh, Math \`a la Carte, Inc.
+March 2006.
+
+The random number generator from Chapter 3.1 is called by the drivers
+generated.
+\begcode
+\vspace {10pt}
+~\\
+\normalsize
+The File mmjob\\
+1138\us bus\\
+CRY10000\\
+CURTIS54\\
+add32\\
+arc130\\
+cry2500\\
+e20r5000\\
+small1\\
+
+\begin{verbatim}
+./mmgen -acd ./mmarket
+
+ Problem      N  Seconds   RESERR     XERR      Unused     Used    RCOND     DET   x 10^?
+1138_bus   1138    0.016  1.87E-16  4.44E-16     36816     16895  3.98E-08  6.78450  2151
+CRY10000  10000    1.620  1.17E-15  6.31E-03   1675872   1554563  2.52E-28  6.30195 15523
+CURTIS54     54    0.000  1.46E-15  3.20E-14      2513      1930  1.15E-03 -1.78000    -8
+   add32   4960    0.292  6.21E-16  1.34E-14    738755    211828  2.23E-03  1.13981 -9892
+  arc130    130    0.004  4.27E-16  1.43E-09      7736     12327  8.83E-08  1.10261     3
+ cry2500   2500    0.100  7.27E-16  1.19E-04     98883    240714  3.09E-24  8.65650  2445
+e20r5000   4241    1.828  8.14E-14  6.79E-10   2677775   2085209  2.95E-10 -1.24088  -671
+  small1     54    0.000  1.46E-15  3.20E-14      2513      1930  1.15E-03 -1.78000    -8
+\end{verbatim}
+
+\end{document}
+
+

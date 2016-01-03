@@ -1,0 +1,412 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\usepackage{bm}
+\begin{document}
+
+\begmath 13.0 Effective Use of the Quadrature Software
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Introduction}
+
+The quadrature software in MATH77 is designed to be efficient and
+reliable even if the user does nothing special.  For most one
+dimensional problems, one will get quite satisfactory results without
+taking any special care, even for most of the special cases discussed
+below.  But if function values are expensive or one is computing a
+large number of related integrals, and particularly in the case of
+multi--dimensional integrals, one can obtain benefits in accuracy,
+efficiency, and/or reliability by making use of the ideas discussed
+below.
+
+The sections which follow consider the following.
+
+\begin{tabular}{l@{~~}p{2.5in}}
+B. & Analytic Integration \dotfill \pageref{analytic}\\
+C. & Estimating Noise Levels \dotfill \pageref{noise}\\
+D. & Multi--dimensional Quadrature \dotfill \pageref{multi_dim}\\
+E. & Dealing with Singularities \dotfill \pageref{sing}\\
+F. & Iterated Integrals \dotfill \pageref{iter}\\
+G. & Infinite Range \dotfill \pageref{infinite}\\
+H. & Special Weight Functions \dotfill \pageref{weight}\\
+I. & Indefinite Integrals \dotfill \pageref{indefinite}\\
+J. & Cauchy Principal Values \dotfill \pageref{cauchy}\\
+K. & Undefined Integrals \dotfill \pageref{undefined}
+\end{tabular}
+
+\subsection{Analytic Integration}\label{analytic}
+One should not overlook the possibility of using a computer algebra
+system to obtain an integral, part of a multiple integral, or even
+part of a single integral in order to obtain a better behaved
+function for the numerical integration.
+
+Frequently an integral can be reduced to a special function such as
+those in Chapter 2 of MATH77.  The routines for computing these
+functions should be both more reliable and more efficient than doing
+the integration numerically.
+
+\subsection{Estimating Noise Levels}\label{noise}
+
+Options 4 and 5 in the quadrature routines allow one to provide an
+estimate of the absolute and relative errors in computing the function,
+respectively.  The quadrature routines attempt to make an estimate of
+these errors if no data are provided by the user, but it is very difficult
+to tell the difference between a noisy function, and a function which just
+needs to be sampled on a finer mesh.  If you know of cancellation errors,
+or if the function values are obtained from another computation for which
+error estimates are available, or if part of the function is computed
+using a table lookup which is known to have errors of a certain level, you
+will reduce the risk of the quadrature routine working much harder than
+necessary if you provide this information.  Note than the multiple
+quadrature routine works by applying the one dimensional routine to the
+results of applying the one dimensional routine to an inner integral which
+in turn may be the result of applying the one dimensional routine to yet
+another inner integral, etc.  In this case the routines know of the error
+estimates from the interior quadrature and make use of these estimates in
+estimating the value of these parameters for the outer integrations.
+
+\subsection{Multi--dimensional Quadrature}\label{multi_dim}
+
+The cost of computing typically goes up very rapidly with the dimension.
+The routines that we provide are meant to be used primarily for one, two,
+and three dimensional integrals.  They may be appropriate for some higher
+dimensional problems, particularly if one has an irregular boundary, or
+outer integrals are functions of inner integrals.  Effective integration
+of high dimensional integrals requires scattering the points in a way that
+is not possible with the approach used in the MATH77 routines.  Most
+commonly such problems are attacked using Monte Carlo methods, preferably
+with serious thought given to methods for reducing the variance.  For
+regular regions, the methods in \cite{Stroud:1971:ACM} and
+\cite{Cools:1993:MCR} are likely to be a good choice when they apply.
+Also see the very nice review article by Spanier and Maize
+\cite{Spanier:1994:QRM}, and the recent book by Sloan and Joe
+\cite{Sloan:1995:LMM}.
+
+When using the routines in MATH77 don't forget that singularities may be
+introduced by the form of the boundary, and that all singularities are
+best removed if at all possible.
+
+\subsection{Dealing with Singularities}\label{sing}
+
+The methods used in the MATH77 routines are based on approximating
+the function by a polynomial interpolating the function at
+judiciously chosen points.  Unfortunately polynomials do not do a
+good job of approximating certain functions.  If the function has an
+infinite low order derivative some place near the interval of
+integration (including off the real line in the complex plane),
+taking some action to remove (or weaken) the singularity can make a
+big difference in performance.  Thus, let $f(x)$, the function being
+integrated, have the form $f(x) = u(x) s(x)$, where $u$ is the
+unsmooth part, and $s$ is the smooth part.  Some examples for u(x) are
+$(x - a)^\alpha,\ (x^2-a^2)^\alpha, \log (x-a),\text{ and } 1 / (x^2
++ a^2)$, where $\alpha $ is not an integer, and the singularity is at
+$a$ in all but the last case where the singularity is at $\pm ia$ and
+$a$ is presumably small relative to the length of the interval.  It
+may not always be clear how to split functions.  For example, given a
+factor of $\sqrt{x^2-a^2}$ one might set $u(x)$ to this factor, or
+one might set $u(x) = \sqrt{x-a}$ and let $s(x)$ contain the factor
+$\sqrt{x+a}$ (assuming x and a are both positive).
+
+When there are singularities in the middle of the range of
+integration, even if one does nothing else, one is better off to break
+the interval in two pieces so all singularities occur at the
+endpoints of the interval of integration.  If there are singularities
+at both endpoints, it is best in most cases to break the interval in
+the middle, so that all one is ever dealing with in a single
+numerical integration is a function with a singularity at a single
+end point.  If you have something like a factor of $1 / \sqrt{p(x)}$,
+where p is a polynomial, take the trouble of finding the roots of $p$
+and break up the interval of integration so that there are no internal
+singularities.
+
+The first of the three approaches we consider takes advantage of the fact
+that the unsmooth part of a function frequently can be integrated
+analytically.  Following Krylov \cite[p.203]{Krylov:1962:ACI}
+\begin{align*}
+f(x) & = f_1(x) + f_2(x)\text{,  where}\\
+f_1(x) & = u(x) \sum_{j=0}^{k-1} \frac {s^{(j)}(a)}{j!} (x-a)^j
+\\
+f_2(x) & = u(x) \left [ s(x) - \sum_{j=0}^{k-1} \frac {s^{(j)}(a)}{j!}
+(x-a)^j \right ].
+\end{align*}
+Assuming the required derivatives of $s$ can be computed and that
+the integral of $f_1$ can be computed analytically, one has the simpler
+problem of integrating $f_2$.  The singularity has been weakened by
+increasing the order of the first infinite derivative by $k$.  This can
+make a significant difference in performance.
+
+Lether \cite{Lether:1977:SOC} discussed this approach in more detail for
+the case when the singularity is not on the real axis.
+
+The second approach is to make a change in variable that weakens the
+singularity.  This approach has the advantage that when it works it
+can remove the singularity entirely.  It has the disadvantage that
+the appropriate transformation may be difficult to find, such a
+transformation may not exist, and when one is some distance from the
+singularity, one may be better off without the transformation.
+
+Consider
+\begin{equation*}
+\int_a^b (x-a)^\alpha s(x)\,dx.
+\end{equation*}
+With $\xi = (x-a)^{1 / \beta}$, ($x=a + \xi^\beta $) this is transformed
+to
+\begin{equation*}
+\int_0^{(b-a)^{1/\beta}} \xi^{\beta (\alpha + 1)-1}
+s(\beta \xi^{\beta - 1} + a)\, d\xi.
+\end{equation*}
+In order to get a ``nice'' integral, we would like to have both $\beta
+(\alpha + 1) - 1$, and $\beta - 1$ be small positive integers. $\beta
+= 2$ satisfies these conditions for both $\alpha = -1/2$ and for
+$\alpha = 1/2$.  The one dimensional subroutines in MATH77 make this
+kind of transformation (once or twice) when they think they have
+determined there is a singularity at $a$.  Note that $\beta = 2$
+weakens all singularities at $a$.  But a better choice when $\alpha =
+k / 3$ ($k$ a small integer $\geq -2$) is $\beta = 3$, which you will
+have to do yourself if you want it.
+
+The third approach is not to use the MATH77 routines, but to develop
+your own quadrature formula (and routine) using $u(x)$ as a weight
+function as discussed in ``Special Weight Functions'' below.
+
+
+\subsection{Iterated Integrals}\label{iter}
+Since
+\begin{equation*}
+\int_a^b \int_a^x \cdots \int_a^x f(x) (dx)^{k+1} = \int_a^b \frac
+{(b-x)^k}{k!} f(x) dx,
+\end{equation*}
+one should never treat the left hand side as a multiple integral when
+one can just as easily integrate the right hand side as a
+one--dimensional integral.  (One can get this result using repeated
+integration by parts.)
+
+\subsection{Infinite Range}\label{infinite}
+Consider (one can always translate the integrations variable to start at 0)
+\begin{equation*}
+\int_0^\infty f(x)\,dx
+\end{equation*}
+and assume there is a monotone strictly decreasing function $\varphi(x)$
+which decreases with a rate somewhat like that for $|f|$, preferably providing
+some reasonable approximation to an upper bound for $|f(x)|$ for
+large $x$.  Once again we offer three approaches.
+
+From ones knowledge of $\varphi $, or by sampling $f(x)$ for large $x$,
+determine a value for $X$ such that
+\begin{equation*}
+\Bigl| \int_0^X f(x)\,dx - \int_0^\infty f(x)\,dx \Bigr| < .5
+\times \text{ (error required).}
+\end{equation*}
+Then use the finite integral as an approximation for the infinite
+integral, asking for enough additional accuracy in integrating it to
+compensate for the reduction in range.  If one uses this approach one
+should not pick $X$ so large that $f$ has underflowed to 0.  The
+one--dimensional routines make checks for discontinuities, both for
+enhanced reliability, and to encourage users to provide functions
+which are smooth, which greatly improves the efficiency of the
+integration.  If $f$ has underflowed, $f$ appears to be a flat 0 for
+a part of the interval, with an infinite relative jump at some point
+to a nonzero value.  Locating the point of this discontinuity is time
+consuming and the resulting diagnostic is liable to be confusing to
+someone even if it isn't to you.  Since the integration of this kind
+of problem will typically require a wide range in the mesh, the
+integration will probably not be as efficient as one might hope for.
+
+The second approach involves making a change of variable.  Assume that
+we have selected $\varphi (x)$ so that $\varphi (\infty) = 0$, and the
+inverse function is known and differentiable.  Let $\xi = \varphi (x)$
+and we have
+\begin{equation*}
+\int_0^\infty f(x)\,dx = \int_0^{\varphi (0)} -\frac {d\varphi ^{-1}(\xi)}{d\xi}
+f(\varphi ^{-1}(\xi))\,d\xi.
+\end{equation*}
+
+Examples of different $\varphi $'s are given in the table below.  We
+assume that by a crude approximation over a wide range of x, that any
+required values of $\alpha$ and $\beta$ have been estimated.
+\begin{equation*}
+\begin{array}{cccc}
+\bm{\varphi (x)} & \bm{\varphi (0)} & \displaystyle
+\bm{-\frac {d\varphi ^{-1}(\xi)}{d\xi}} & \bm{\varphi
+^{-1}(\xi)}\rule[-10pt]{0pt}{15pt}\\
+\displaystyle \frac \alpha{1+\beta*x^2} & \alpha/\beta &
+\displaystyle  \frac{\alpha \beta^{3/2}}{2 \xi^{3/2}
+  \sqrt{\alpha-\xi}} &
+\displaystyle {\sqrt{\frac{\alpha - \xi}{\beta \xi}}}
+\rule[-15pt]{0pt}{20pt} \\
+e^{-\alpha (x - \beta)} & e^{\alpha \beta} & 1/\alpha \xi &
+{\displaystyle \frac{-\log(\xi)}{\alpha}} + \beta \rule[-10pt]{0pt}{15pt} \\
+\displaystyle e^{-\alpha (x-\beta)^2} & e^{-\alpha \beta^2} &
+\displaystyle \frac{1}{2 \alpha \xi}\sqrt{\frac{-\alpha}{\log \xi}} &
+\displaystyle \sqrt{-\log(\xi)/\alpha} + \beta
+\end{array}
+\end{equation*}
+
+The hope is that $f(\varphi^{-1}(\xi))$ will cancel the part of the
+denominator that is going to 0 as $\xi$ approached 0.  This
+cancellation can be done analytically if possible, otherwise it may be
+best to fudge the 0 to a slightly larger number.  It should also be
+noted that these transformations may be useful anytime the limits on
+the original integral are widely separated.  If these limits are $a$
+and $b$, then in the transformed integral the limits are $\phi(b)$ and
+$\phi(a)$.
+
+There are two problems suggested by the above table.  First, if one
+can not do some cancellations analytically, there may be problems with
+underflow in the denominator.  Second, the transformation is
+introducing a singularity which one should probably deal with as is
+described in the section ``Dealing with Singularities'' above.
+Finally, we should note that we have essentially no experience using
+this approach and would appreciate hearing of your experience if you
+should try it.
+
+The third approach, is to use a weight function as described below.  This
+approach can not be used with the MATH77 software.
+
+\subsection{Special Weight Functions}\label{weight}
+
+Here we are concerned with the integration of functions of the form
+\begin{equation*}
+\int_a^b w(x) f(x)\,dx,
+\end{equation*}
+where w(x) is called the weight function, and f(x) is presumably a
+fairly well behaved function that it is reasonable to approximate
+with a polynomial.  In some of the cases listed below, one could
+choose to integrate part of the interval using special formulas
+designed to cope with the singularity in $w$, and integrate the rest
+of the interval using the one dimensional routines provided here.
+
+In \cite{ams55:integ-formulas} we find the following cases listed
+\begin{equation*}
+\begin{array}{lcc}
+\text{\bf Name} & {\bf w(x)} & \text{\bf Interval}\rule[-10pt]{0pt}{15pt}\\
+\text{Moments} & x^k & (0, 1) \\
+ &    \sqrt{b-y} & (a, b) \\
+ &  1 / \sqrt{b-y} & (a, b) \\
+ &  1 / \sqrt{1-x^2} & (-1, 1) \\
+ &  1 / \sqrt{(x-a)(b-x)} & (a, b) \\
+ &  \sqrt{1-x^2} & (-1, 1) \\
+ & \sqrt{(x-a)(b-x)} & (a, b) \\
+ & \sqrt{x / (1-x)} & (-1, 1) \\
+ & \sqrt{(x-a) / (b-x)} & (a, b) \\
+ & \log x & (0, 1) \\
+\text{Laguerre} & e^{-x} & (0, \infty) \\
+\text{Hermite} & e^{-x^2} & (-\infty, \infty) \\
+\text{Filon} & \cos \omega x & (a, b) \\
+\text{Filon} & \sin \omega x & (a, b)
+\end{array}
+\end{equation*}
+
+If you would like to derive your own formulas, particularly if you
+would like formulas with a built-in error estimate, we recommend the
+algorithm of Patterson \cite{Patterson:1989:AGIb}.
+
+\subsection{Indefinite Integrals}\label{indefinite}
+
+The quadrature routines in MATH77 are not designed to be useful for
+indefinite integration.  Instead of solving
+\begin{equation*}
+\int_a^t f(t)\,dt,
+\end{equation*}
+one can solve the differential equation
+\begin{equation*}
+y^\prime = f(t),\ \ y(a) = 0.
+\end{equation*}
+If one of the routines in Chapter~14.1 is used for this purpose, one
+should skip the evaluation of $f(t)$ when the corrected derivative is
+being computed.  This approach can also be useful for a definite integral
+when ${\bf f}(t)$ is a vector valued function and computations for some of
+the components can be reused in others.
+
+When solving Volterra integral equations, if one can weaken singularities
+in $f$ sufficiently (perhaps using other techniques in this chapter), so
+that using a uniform mesh is appropriate, we believe formulas based on
+using the trapezoidal rule with difference corrections are a reasonable
+choice.  See \cite[pp.~155--156]{Hildebrand:1956:INA} for the discussion
+on Gregory's formula and the Gauss summation formula.  Probably the
+easiest way to derive the appropriate formulas near the end of the
+interval is to think in terms of using the Gauss summation formula for all
+points, but using polynomial extrapolation to obtain the differences that
+would otherwise require using a function value outside the interval.  (We
+find it most convenient to think of the mean central differences as the
+average of backward differences at two other points and to use the fact
+that $\nabla^k f_n = \nabla^k f_{n+1} - \nabla^{k+1} f_{n+1}$ to get
+values for the differences near the left endpoint, and to use $\nabla^k
+f_{n+1} = \nabla^k f_{n+1} - \nabla^{k} f_n$ near the right endpoint.) The
+difference between the result at two interior points can be expressed in
+terms of the difference between mean central differences at two different
+points, giving a bandwidth of $k+3$ if the last difference used is the
+$k^{th}$ mean central difference, $\mu \delta^k f$.
+
+\subsection{Cauchy Principal Values}\label{cauchy}
+Suppose $f$ has a single singularity at $x=\xi$ in the interval
+$[a,b]$, and that although the integrals
+\begin{equation*}
+\int_a^\xi f(x)\,dx\text{, and  }\int_\xi ^b f(x)\,dx
+\end{equation*}
+don't exist, cancellation is such that the limit
+\begin{equation*}
+\underset{\varepsilon \rightarrow 0}{lim} \Bigr( \int_a^{\xi-\varepsilon}
+f(x)\,dx + \int_{\xi +\varepsilon}^b f(x)\,dx \Bigl)
+\end{equation*}
+does exist.  This limit is called the Cauchy principal value of the
+integral.  If you can, use the first approach in Section~E for dealing with
+singularities, so that the Cauchy principal value does not need to be
+computed numerically.  (Keep in mind that the problems with
+cancellation error mentioned below will still be present.)  Else, we
+propose the following (untried) method for solving such problems.
+
+First determine $\xi $ as accurately as possible, i.e. down to the
+last bit.  The zero finding program DZERO in Chapter 8.1 applied to
+$1/f$ could be used for this purpose.  Assuming $\xi $ is closer to
+$a$ than to $b$ (with obvious modifications in the opposite case),
+compute
+\begin{equation*}
+I_1 = \int_0^{a-\xi} \left [ f(\xi + x) + f(\xi - x) \right ] \, dx,
+\end{equation*}
+using DINT1, the double precision one--dimensional quadrature
+program.  If it is convenient, compute the sum in such a way as to
+minimize the cancellation that arises in summing the $f$ values.
+Sometimes this might be done analytically, sometimes one might be
+able to do the calculation of the $f$'s near $\xi $ in an extended
+precision.  One should also let DINT1 know how large the absolute
+error in the integrand can be, since when $f$ gets large there is
+going to be more cancellation than DINT1 would expect from the value
+of the difference.  Because of the problems with cancellation error,
+it is probably best to allocate most of the allowable error to
+computing $I_1$.
+
+Then compute
+\begin{equation*}
+I_2 = \int_{2 \xi - a}^b f(x)\, dx,
+\end{equation*}
+using DINT1, with option 11 to indicate there is a singularity at $x
+= \xi $.  If the singularity is close to a, one should probably use a
+negative value for the K11 associated with this option.
+
+The final result is of course given by $I_1 + I_2$.
+
+\subsection{Undefined Integrals}\label{undefined}
+We don't have much to say here except that when dealing with
+extremely complicated expressions, it is quite possible to end up
+defining a problem for which the integral does not exist.  If you
+should do this you may get a diagnostic telling you that this is the
+case, but then again you may not.  It is not easy to tell the
+difference between an integrand with a narrow very high peak, and one
+that goes off to infinity.  But if you don't get the diagnostic you
+should observe that the integral seems to be very hard to compute,
+and the accuracy is terrible.  When this happens to you at least
+consider the possibility that you have defined a problem whose best
+solution is ``define a different problem.''  You may also get the
+diagnostic that the integrand is not integrable when in fact it is,
+however your first inclination should be to trust the diagnostic.
+\nocite{Brass:1993:NI}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+Fred T. Krogh, JPL, August~1995.  Material added by Krogh at Math \`a
+la Carte, August~2009.
+\end{multicols}
+\end{document}

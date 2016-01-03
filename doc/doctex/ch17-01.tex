@@ -1,0 +1,486 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{SWPWRI}
+\begmath 17.1 Computation Using Derivative Arrays or
+\hbox{Univariate Taylor Series}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This set of subroutines performs computations using arrays of length N+1,
+where each array contains the value of a function, $f(t)$, and its first N
+derivatives with respect to $t$, evaluated at some point, $t_0$. Such an
+array can alternatively be regarded as a scaled representation of the first
+N + 1 coefficients of the Taylor series of $f(t)$ expanded at $t_0$, since
+the coefficient of $(t-t_0)^k$ in such a Taylor series is $f^{(k)}(t)/k!$
+evaluated at $t_0.$
+
+This package provides a way of computing values of the first N derivatives
+of a univariate function that is defined by a sequence of computational
+steps involving arithmetic and elementary functions, without the need to
+derive and code expressions for the derivatives.
+
+\subsection{Usage}
+
+We shall use $t$ as the generic name of the single independent variable with
+respect to which all derivatives are defined. We shall use the term
+W-variable to denote an (N+1)-tuple, consisting of a function value and
+values of the function's first N derivatives with respect to $t$, evaluated
+at some point. Note that the representation of $t$ as a W-variable evaluated
+at $t_0$ is the (N+1)-tuple, $(t_0$, 1, 0, 0, ...,~0).
+
+This package consists of one subroutine, SWSET, for assigning a value to a
+W-variable, 22~subroutines for doing arithmetic operations and computing
+elementary functions using W-variables, and three supplementary subroutines,
+SWCHN, SWRCHN, and SPASCL. These will be described in the following sections:
+
+\begin{tabular*}{3.3in}{@{}l@{~~}l}
+B.1 & SWSET\dotfill \pageref{B1}\\
+B.2 & Arithmetic and elementary functions\dotfill \pageref{B2}\\
+B.3 & SWCHN\dotfill \pageref{B3}\\
+B.4 & SWRCHN\dotfill \pageref{B4}\\
+B.5 & SPASCL\dotfill \pageref{B5}\\
+B.6 & Modifications for double-precision usage\dotfill \pageref{B6}\\
+ & \rule{3in}{0pt}~
+\end{tabular*}\vspace{-5pt}
+
+\subsubsection{SWSET, Assigning a value to a W-variable\label{B1}}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  \ {\bf VAL, DERIV, W}($\geq $N+1)
+\end{description}
+
+Assign values to N, VAL, and DERIV
+$$
+\fbox{{\bf CALL SWSET(N, VAL, DERIV, W)}}
+$$
+Computed quantities are returned in W().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[N]  \ [in] Highest order derivative to be considered. Require 0 $\leq $
+N $\leq $ NMAX. See Section E for the definition of NMAX.
+
+\item[VAL]  \ [in] Value to be assigned to the W-variable, W().
+
+\item[DERIV]  \ [in] Value to be assigned as the first derivative of the
+W-variable, W().
+
+\item[W()]  \ [out] Array of length at least N + 1 in which this subroutine
+will place N + 1 values to represent a W-variable as follows: (VAL, DERIV,
+0.0, ..., 0.0). The user should set DERIV = 1.0 to define this variable as
+the variable, $t$, with respect to which all differentiation is done. The
+user can set DERIV = 0.0 to define this W-variable to be a constant, $i.e$.
+a variable not depending on $t.$
+\end{description}
+
+\subsubsection{Arithmetic and elementary functions using W-variables\label{B2}}
+
+In describing the following subroutines, X() and Y() denote input
+W-variables and Z() denotes an output W-variable. The variables A and I are
+input variables that are constant relative to $t.$
+
+In most of these subroutines the output array Z() must occupy storage
+locations distinct from any of the input data. Exceptions to this rule are
+SWSUM, SWDIF, SWPRO, SWSUM1, SWDIF1, and SWPRO1. The subroutine SWQUO, which
+computes $x/y \rightarrow z$, permits $x$ and $z$ to occupy the same
+storage, but $y$ and $z$ must occupy distinct storage.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N, I}
+
+\item[REAL]  \ {\bf A, X}($\geq $N+1){\bf , Y}($\geq $N+1){\bf , Z}($\geq $%
+N+1)
+\end{description}
+
+Assign values to N, I, A, X(), and Y(), as appropriate.
+
+\begin{center}
+{\bf Two-argument operations with both arguments depending on $t.$}
+
+\fbox{\begin{tabular}{@{\bf \ }lr}
+CALL SWSUM(N, X, Y, Z) & $x+y \rightarrow z$\\
+CALL SWDIF(N, X, Y, Z) & $x-y \rightarrow z$\\
+CALL SWPRO(N, X, Y, Z) & $x\times y \rightarrow z$\\
+CALL SWQUO(N, X, Y, Z) & $ x/y \rightarrow z$\\
+CALL SWATN2(N, X, Y, Z) &  atan2($x,y) \rightarrow z$\\
+\multicolumn{2}{c}{where for atan2: \ $-\pi < z \leq \pi $ and
+$\tan (z) = x/y$}\\
+\end{tabular}}
+\end{center}
+
+\pagebreak
+
+\begin{center}
+{\bf Two-argument operations with only one argument depending on $t.$}
+
+\fbox{\begin{tabular}{@{\bf \ }lr}
+CALL SWSUM1(N, A, Y, Z) & $ a+y \rightarrow z$\\
+CALL SWDIF1(N, A, Y, Z) & $ a-y \rightarrow z$\\
+CALL SWPRO1(N, A, Y, Z) & $ a\times y \rightarrow z$\\
+CALL SWQUO1(N, A, Y, Z) & $ a/y \rightarrow z$\\
+CALL SWPWRI(N, I, Y, Z) & $ y^i \rightarrow z$\\
+\multicolumn{2}{c}{(See following note.)}\\
+\end{tabular}}
+\end{center}
+
+Note: I may be positive, negative, or zero. If I = 0, SWPWRI sets Z(1) = 1.0
+and all derivative values of $z$ to~0.0, regardless of the given value of $y$%
+. It is an error to have $y = 0.0$ when I $< 0.$
+
+\begin{center}
+{\bf One-argument operations with the argument depending on $t.$}
+
+\fbox{\begin{tabular}{@{\bf \ }lr}
+CALL SWSQRT(N, X, Z) &  $\sqrt x \rightarrow z$\\
+CALL SWEXP(N, X, Z) & $\exp (x) \rightarrow z$\\
+CALL SWLOG(N, X, Z) & $\log (x) \rightarrow z$\\
+CALL SWSIN(N, X, Z) & $\sin (x) \rightarrow z$\\
+CALL SWCOS(N, X, Z) & $\cos (x) \rightarrow z$\\
+CALL SWTAN(N, X, Z) & $\tan (x) \rightarrow z$\\
+CALL SWASIN(N, X, Z) & $\sin^{-1}(x) \rightarrow z$\\
+CALL SWACOS(N, X, Z) & $\cos^{-1}(x) \rightarrow z$\\
+CALL SWATAN(N, X, Z) & $\tan^{-1}(x) \rightarrow z$\\
+CALL SWSINH(N, X, Z) & $\sinh(x) \rightarrow z$\\
+CALL SWCOSH(N, X, Z) & $\cosh(x) \rightarrow z$\\
+CALL SWTANH(N, X, Z) & $\tanh(x) \rightarrow z$\\
+\end{tabular}}
+\end{center}
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[N]  \ [in] Highest order derivative to be considered. Require 0 $\leq $
+N $\leq $ NMAX. See Section E for the definition of NMAX.
+
+\item[A]  \ [in] Floating point value that is independent of $t.$
+
+\item[I]  \ [in] Integer value that is independent of $t.$
+
+\item[X()]  \ [in] An input W-variable.
+
+\item[Y()]  \ [in] An input W-variable.
+
+\item[Z()]  \ [out] An output W-variable.
+\end{description}
+
+\subsubsection{SWCHN, application of the chain rule\label{B3}}
+
+This subroutine is called by all of the elementary function subroutines. The
+user will not need to call it directly unless the user is developing a new
+function subroutine that is not conveniently representable in terms of the
+available functions.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  \ {\bf X}($\geq $N+1){\bf , F}($\geq $N+1)
+\end{description}
+
+Assign values to N, X(), and F().
+$$
+\fbox{{\bf CALL SWCHN(N, X, F)}}
+$$
+Computed quantities are returned in F().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[N]  \ [in] Highest order derivative to be considered. Require 0 $\leq $
+N $\leq $ NMAX. See Section E for the definition of NMAX.
+
+\item[X()]  \ [in] On entry, X() must contain $x(t_0)$ and derivatives
+through order N of $x(t)$ with respect to $t$. X() will be unchanged by this
+subroutine.
+
+\item[F()]  \ [inout] On entry, F() must contain $f(x_0)$ and derivatives
+through order N of $f(x)$ with respect to $x$, evaluated at $x_0=x(t_0)$. On
+return F() will contain $f(x(t_0))$ and derivatives through order N of $%
+f(x(t))$ with respect to $t$, evaluated at $t_0$. Note that the contents of
+F(1) will remain unchanged.
+\end{description}
+
+\subsubsection{SWRCHN, application of the reverse chain rule\label{B4}}
+
+This subroutine reverses the action of SWCHN, in the sense that if one were
+to make the two calls
+
+CALL SWCHN(N, X, F)
+
+CALL SWRCHN(N, X, F)
+
+the first would transform the contents of the array F(), and the second
+would (if X(2) is nonzero) transform the contents of F() back to the same
+values (to within computational errors) as before the first call. See
+Section C for application of SWRCHN to series reversion.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  \ {\bf X}($\geq $N+1){\bf , F}($\geq $N+1)
+\end{description}
+
+Assign values to N, X(), and F().
+$$
+\fbox{{\bf CALL SWRCHN(N, X, F)}}
+$$
+Computed quantities are returned in F().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[N]  \ [in] Highest order derivative to be considered. Require 0 $\leq $
+N $\leq $ NMAX. See Section E for the definition of NMAX.
+
+\item[X()]  \ [in] On entry, X() must contain $x(t_0)$ and derivatives
+through order N of $x(t)$ with respect to $t$. X(2), representing $dx/dt$
+evaluated at $t_0$, must be nonzero. The contents of X(1) will not be used
+by this subroutine. X() will be unchanged by this subroutine.
+
+\item[F()]  \ [inout] On entry, F() must contain $f(x(t_0))$ and derivatives
+through order N of $f(x(t))$ with respect to $t$, evaluated at $t=t_0$. On
+return F() will contain $f(x_0)$ and derivatives through order N of $f(x)$
+with respect to $x$, evaluated at $x_0=x(t_0)$. Note that the contents of
+F(1) will remain unchanged.
+\end{description}
+
+\subsubsection{SPASCL, computation of the ``Pascal triangle" of binomial
+coefficients\label{B5}}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  \ {\bf C}($\geq $ 1 + (N*(N+1))/2)
+\end{description}
+
+Assign a value to N.
+$$
+\fbox{{\bf CALL SPASCL(N, C)}}
+$$
+Computed quantities are returned in C().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[N]  \ [in] Highest order derivative to be considered. Require 0 $\leq $
+N $\leq $ NMAX. See Section E for the definition of NMAX.
+
+\item[C()]  \ [out] On return will contain values constituting the ``Pascal
+triangle'' of binomial coefficients. For example, if N = 4, the Pascal
+triangle is
+\end{description}
+
+\begin{center}
+\begin{tabular}{c}
+1\\
+1\ \ \ 1\\
+1\ \ \ 2\ \ \ 1\\
+1\ \ \ 3\ \ \ 3\ \ \ 1\\
+1\ \ \ 4\ \ \ 6\ \ \ 4\ \ \ 1
+\end{tabular}
+\end{center}
+
+SPASCL omits the first element of each row except the first, and thus
+returns the 11~values: 1, 1, 2, 1, 3, 3, 1, 4, 6, 4,~1.
+
+\subsubsection{Modifications for Double Precision\label{B6}}
+
+For double-precision usage, replace the initial S in the name of each
+subroutine with D, and replace the REAL declarations by DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+As a demonstration problem, consider the following assignments:
+
+\begin{tabbing}
+\hspace{.2in}\=$t$ = 2\\
+\>$z_1$ = log(sqrt($t$))\\
+\>$z_2$ = exp(2 * $z_1$)\\
+\>$d$ = $z_2$ - $t$
+\end{tabbing}
+
+This should result in $z_2 = t$ and $d = 0$. These quantities and their
+derivatives through order~3 with respect to $t$ are computed by the program
+DRDCOMP. The results are shown in ODDCOMP. Note that $d$ and all of its
+derivatives are zero to machine accuracy, as they should be.
+
+The running time for this package is approximately proportional to $\text{N}%
+^3$. To save time when developing new code using this package, one may run
+with N = 0 until one is satisfied that the function evaluation is as
+desired, and then increase N to activate the derivative computation.
+
+\subparagraph{Implicit functions and series reversion}
+
+Let $[x;t]$ denote a W-variable containing $x$ and all of its derivatives
+through order N with respect to $t$, evaluated at $t_0$. Let $x_0 = x(t_0)$.
+Suppose one would like to have $[t;x]$. This would represent the inverse
+function that is defined implicitly by $[x;t]$. When the components of these
+arrays are interpreted as scaled coefficients of Taylor series the
+transformation from $[x;t]$ to $[t;x]$ is known as series reversion.
+
+The subroutine SWRCHN can be used to produce $[t;x]$. Note, from the
+specifications in Section B.4, that given $[x;t]$ and $[f;t]$, SWRCHN
+transforms $[f;t]$ to $[f;x]$. Formally replacing the symbol $f$ by $t$, we
+see that given $[x;t]$ and $[t;t]$, SWRCHN transforms $[t;t]$ to $[t;x]$,
+thus producing the desired object. Note that the W-variable, $[t;t]$, needed
+as part of the input, is just $(t_0$, 1, 0, ..., 0).
+
+\subsection{Functional Description}
+
+The ``W" in the names of subroutines in this package refers to R.  E.
+Wengert, who, in \cite{Wengert:1964:ASA}, presented the ideas on which the
+package is based.  Subsequent authors have incorporated this approach into
+more automated systems \cite{Griewank:1991:ADA} that would probably be
+easier to use than the present package, but such systems present various
+hurdles regarding acquisition and installation.  The present
+implementation provides the basic capabilities in a highly portable form.
+
+The fundamental idea is simply to provide, for each basic mathematical
+operation, code that not only performs the operation but propagates
+derivative values up to the desired order. For example, to support the sine
+function with derivatives through second degree, we note that if
+
+\begin{tabbing}
+\hspace{.4in}\=$z = \sin y,$\\
+then\\
+\>$z'= y' \cos y,$\\
+and\\
+\>$z''= y'' cos y - {y'}^2 \sin y,$
+\end{tabbing}
+
+where the primes denote derivatives with respect to an independent variable,
+$t$. Clearly these formulas permit one to write a subroutine that can accept $%
+y$, $y^{\prime}$, and $y^{\prime \prime}$ as input, and
+produce $z$, $z^{\prime}$, and $z^{\prime \prime}$
+as output.
+
+This approach has been systematized for arbitrary N by appropriate use of
+the chain rule of differentiation. Our subroutine SWCHN implements the chain
+rule as
+
+\begin{tabbing}
+\hspace{.2in}\=do L = 0, N $-$ 1\\
+\>\ \ \ \ call SWPRO(L, F(N+1$-$L), X(2), F(N+1$-$L))\\
+\>enddo
+\end{tabbing}
+
+Since SWCHN is called by all of the elementary function subroutines, this
+loop essentially determines the dependence on N of the running time of the
+whole package. SWPRO is an $O(\text{N}^2)$ process and SWCHN is an $O(\text{N%
+}^3)$ process. To improve efficiency we have coded the cases of N = 0, 1, 2,
+3, and~4 as special cases in SWPRO. Multiplication counts in SWPRO and SWCHN
+are as follows:
+
+\begin{tabular}{@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }}
+N $\Rightarrow$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\
+SWPRO & 1 & 3 & 7 & 12 & 19 & 27 & 37 & 48 & 61 & 75 & 91\\
+SWCHN & 0 & 1 & 4 & 11 & 23 & 42 & 69 & 106 & 154 & 215 & 290
+\end{tabular}
+\nocite{Lawson:1971:CDU}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+\subsubsection{Upper limit on the derivative order, N}
+
+Subroutines SWATAN, SWSUM, and SWPRO in this package contain internal arrays
+whose dimensions depend on NMAX. NMAX is a PARAMETER in each of these
+subroutines, nominally set to~10. This limits the derivative order argument,
+N, in all of the subroutines to~10. The user would need to increase NMAX in
+these three subroutines if higher order derivatives are needed.
+
+\subsubsection{Invalid arguments for derivative computation}
+
+The user will likely be accustomed to avoiding sending invalid arguments to
+the elementary functions, such as a negative argument to the square root. In
+computing derivatives there are some additional singularities to avoid. Note
+that the derivative is infinite at zero for the square root, and at $\pm 1$
+for arcsin and arccosine.
+
+\subsubsection{Error handling}
+
+Following is a list of error conditions the package detects and for which
+error messages are issued. These errors are fatal in the sense that the
+requested operation cannot be done; however, the default action is to return
+after issuing an error message. The user can use the MATH77 library
+subroutine, ERMSET of Chapter~19.2, to alter this action to cause a STOP
+if desired. Error conditions not on this list, $e.g.$, negative argument
+in log, will be handled by the usual host system error handler.
+
+\begin{tabular}{@{}l@{\ \ }l}
+\bf Error No.\\
+\bf \& Program & \multicolumn{1}{c}{\bf Explanation}\\
+\bf 1 SWASIN & Infinite derivative when arg = $-$1 or +1\\
+\bf 1 SWACOS & Infinite derivative when arg = $-$1 or +1\\
+\bf 2 SWSQRT & Infinite derivative when arg = 0\\
+\bf 3 SWQUO1 & Zero divisor\\
+\bf 4 SWPWRI & Y**I is infinite when Y = 0 and I $< 0$\\
+\bf 5 SWPRO & Require dimension NMAX $\geq $ N\\
+\bf 6 SWQUO & Require dimension NMAX $\geq $ N\\
+\bf 7 SWQUO & Zero divisor.\\
+\bf 8 SPASCL & Require N $\geq 0$\\
+\bf 9 SWRCHN & Require X($2) \neq 0.$
+\end{tabular}
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+All of the double precision entry points require files:
+
+DWCOMP, ERFIN, ERMSG, IERM1, IERV1.
+
+For single precision, file SWCOMP is required in place of file DWCOMP.
+\vspace{-5pt}
+\begin{center}
+\begin{tabular}{llll}
+\multicolumn{4}{c}{\bf Entries} \\
+DPASCL & DWACOS & DWASIN & DWATAN\\
+DWATN2 & DWCHN & DWCOS & DWCOSH\\
+DWDIF & DWDIF1 & DWEXP & DWLOG\\
+DWPRO & DWPRO1 & DWPWRI & DWQUO\\
+DWQUO1 & DWRCHN & DWSET & DWSIN\\
+DWSINH & DWSQRT & DWSUM & DWSUM1\\
+DWTAN & DWTANH & SPASCL & SWACOS\\
+SWASIN & SWATAN & SWATN2 & SWCHN\\
+SWCOS & SWCOSH & SWDIF & SWDIF1\\
+SWEXP & SWLOG & SWPRO & SWPRO1\\
+SWPWRI & SWQUO & SWQUO1 & SWRCHN\\
+SWSET & SWSIN & SWSINH & SWSQRT\\
+SWSUM & SWSUM1 & SWTAN & SWTANH\\
+\end{tabular}
+\end{center}
+
+Designed by C. L. Lawson, JPL, 1971. Adapted to Fortran~77 for the JPL
+MATH77 library, Aug.~1987.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSWCOMP}\vspace{10pt}
+\lstinputlisting{\codeloc{swcomp}}
+
+\vspace{30pt}\centerline{\bf \large ODSWCOMP}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{swcomp}}
+\end{document}

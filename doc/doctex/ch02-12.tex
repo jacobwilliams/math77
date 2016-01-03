@@ -1,0 +1,131 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 2.12 Finite Laguerre Series
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine computes the value of a finite sum of Laguerre polynomials,%
+\begin{equation*}
+y=\sum_{j=0}^{\text{N}}a_jL_j(x)
+\end{equation*}
+for a specified summation limit, N, argument, $x$, and sequence of
+coefficients, $a_j$. The Laguerre polynomials are defined in
+\cite{ams55:or-poly}.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  \ {\bf X, Y, A}(0:$m\geq $ N)
+\end{description}
+
+Assign values to X, N, and A(0), A(1), ..., A(N).
+$$
+\fbox{{\bf CALL SLASUM (X, N, A, Y)}}
+$$
+The sum will be stored in Y.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument of the polynomials.
+
+\item[N]  \ [in] Highest degree of polynomials in sum.
+
+\item[A()]  \ [in] The coefficients must be given in A(J), J = 0, ..., N.
+
+\item[Y]  \ [out] Computed value of the sum.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage, change the REAL statement to DOUBLE PRECISION
+and change the subroutine name from SLASUM to DLASUM.
+
+\subsection{Examples and Remarks}
+
+See DRSLASUM and ODSLASUM for an example of the usage of SLASUM. DRSLASUM
+evaluates the following identity, the coefficients of which were obtained
+from Table~22.10, page~799, of \cite{ams55:or-poly}.
+\begin{equation*}
+z=y-w=0,
+\end{equation*}
+where
+\begin{multline*}
+y = 7.2L_0(x)-3.2L_1(x)+108L_2(x)-144L_3(x)\\
++108L_4(x)-43.2L_5(x)+7.2L_6(x),
+\end{multline*}
+and
+\begin{equation*}
+w=0.01x^6.
+\end{equation*}
+
+\subsection{Functional Description}
+
+The sum is evaluated by the following algorithm:%
+\begin{gather*}
+\hspace{-10pt}b_{N+2}=0,\quad b_{N+1}=0, \\
+\hspace{-10pt}b_k=\frac{2k+1-x}{k+1}b_{k+1}-\frac{k+1}{k+2}b_{k+2}+a_k,
+\quad k=\text{N},...,0,\\
+\hspace{-10pt}y=b_0.
+\end{gather*}
+For an error analysis applying to this algorithm see \cite{Ng:1968:DSS} and
+\cite{Ng:1971:RAC}. The first four Laguerre polynomials are
+\begin{gather*}
+L_0(x)=1,\quad L_1(x)=1-x,\\
+L_2(x)=1-2x+0.5x^2,\\
+L_3(x)=1-3x+1.5x^2-(1/6)x^3.
+\end{gather*}
+For $k \geq 2$ the Laguerre polynomials satisfy the recurrence
+\begin{equation*}
+kL_k(x)=(2k-1-x)L_{k-1}(x)-(k-1)L_{k-2}(x).
+\end{equation*}
+The Laguerre polynomials are orthogonal relative to integration with the
+weight function $e^{-x}$ over the interval [0, $\infty )$, thus%
+\begin{equation*}
+\int_0^\infty e^{-x}L_i(x)L_j(x)\,dx=0\quad \text{if }i\neq j.
+\end{equation*}
+Laguerre polynomials are normally used only with an argument $x$ satisfying $%
+x \geq 0.$
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error procedures and Restrictions}
+
+The subroutine will return Y = 0 if N $< 0$. It is recommended that X
+satisfy X $\geq 0.$
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.2in} {\bf Required Files}\vspace{2pt} \\
+DLASUM & \hspace{.35in} DLASUM\rule[-5pt]{0pt}{8pt}\\
+SLASUM & \hspace{.35in} SLASUM\\
+\end{tabular}
+
+Based on a 1974 program by E.W. Ng, JPL. Present version by C.L. Lawson and
+S. Y. Chiu, JPL, 1983.
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSLASUM}\vspace{10pt}
+\lstinputlisting{\codeloc{slasum}}
+
+\vspace{30pt}\centerline{\bf \large ODSLASUM}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{slasum}}
+
+\end{document}

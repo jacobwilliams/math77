@@ -1,0 +1,175 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-08}
+\begmath 2.8 Complete Elliptic Integrals K and E
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms compute values of the complete elliptic integrals of the
+first and second kinds which are defined respectively by%
+\begin{align*}
+\hspace{-15pt}K(m)&=\int_0^{\pi /2}\!\!\!\left( 1-m\sin ^2t\right)^{-1/2}
+\!dt,\ \ \text{for }0\leq m<1,\text{ and}\\
+\hspace{-15pt}E(m)&=\int_0^{\pi /2}\!\!\!\left( 1-m\sin ^2t\right)^{1/2}
+\!dt,\ \ \text{for }0\leq m\leq 1.
+\end{align*}
+\subsection{Usage}
+
+\subsubsection{Program Prototype}
+
+\begin{description}
+\item[REAL]  \ {\bf YK, YE, SCPLTK, SCPLTE, EM}
+\end{description}
+
+Assign a value to EM.
+
+To compute the K() function:
+$$
+\fbox{{\bf YK =SCPLTK(EM)}}
+$$
+To compute the E() function:
+$$
+\fbox{{\bf YE =SCPLTE(EM)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[EM]  \ [in] Value of the parameter, $m$. Require $0\leq m<1$ to
+compute K($m)$, and $0\leq m\leq 1$ to compute E($m$).
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage, change the REAL statement to DOUBLE PRECISION
+and change the subroutine names from SCPLTK and SCPLTE to DCPLTK and DCPLTE.
+
+\subsection{Examples and Remarks}
+
+{\bf Example}: Compute Legendre's relation
+
+\hspace{.25in}$z=\pi /2 -(KE^{\prime}+K^{\prime}E-KK^{\prime}) = 0,$
+\quad where
+
+\hspace{.25in}$K=K(m),$\quad $K^{\prime}=K(1-m)$
+
+\hspace{.25in}$E=E(m),$\quad $E^{\prime}=E(1-m).$
+
+See DRSCPLTK and ODSCPLTK for an example of the use of these subprograms to
+evaluate this identity.
+
+\subsection{Functional Description}
+
+\subsubsection{Properties of K and E}
+
+These functions are discussed in the references.
+\nocite{ams55:Ellip-Int}
+\nocite{Hart:1968:CA:Ellip-Int}
+
+The function K($m)$ increases from $\pi /2$ to infinity as $m$ varies from 0
+to~1, and is asymptotic to $0.5 \ln (16/(1-m))$\linebreak
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-08 }
+
+as $m \rightarrow 1.$ Although K($m) \rightarrow \infty $ as $m \rightarrow
+1,$ the values of K($m)$ for computer representable values of $m$ close
+to one are not extremely large. For example the value of K($m)$ at
+computer representable values of $m$ is bounded by 10.6 on a machine
+having $10^{-8}$ precision and by 22.1 on a machine having $10^{-18}$
+precision.
+
+The function E($m)$ decreases from $\pi /2$ to 1 as $m$ varies from 0 to~1.
+
+The variable $m$ used here is generally called the $parameter$ of the elliptic
+functions. Other common parameterizations make use of the $modulus$, $k =
+\sqrt m$, or the $modular\ angle$, $\alpha $, satisfying $k = \sin \ \alpha .$
+
+\subsubsection{Computation of K and E}
+
+These subprograms use Chebyshev polynomial approximators due to W. J. Cody,
+\cite{Cody:1965:CAC}. These are used in the form
+
+\hspace{.4in}$P_n(1-m) - \ln (1-m) Q_n(1-m)$
+
+where $P_n$ and $Q_n$ are different polynomials for K and E, and $n$ is the
+degree of the polynomials.
+
+The negative logarithm base ten of the maximum absolute error of these
+approximators is given for degrees 5,~9, and~10 as follows:
+\begin{center}
+\begin{tabular}{rrr}
+& \multicolumn{1}{c}{\bf Precision of} & \multicolumn{1}{c}{\bf Precision of}\\
+\multicolumn{1}{c}{\bf Degree $n$} & \multicolumn{1}{c}{\bf K approximator} &
+\multicolumn{1}{c}{\bf E approximator}\\
+5 \rule{.25in}{0pt} & 9.50 \rule{.35in}{0pt} & 9.44 \rule{.35in}{0pt}\\
+9 \rule{.25in}{0pt} & 15.87 \rule{.35in}{0pt} & 15.84 \rule{.35in}{0pt}\\
+10 \rule{.25in}{0pt} &  17.45 \rule{.35in}{0pt} & 17.42 \rule{.35in}{0pt}
+\end{tabular}
+\end{center}
+The subprograms use degree $n = 5$ on machines for which $%
+-\log _{10}(\text{R1MACH}(3)) < 8.2$, degree $n = 9$ on machines for
+which $-\log _{10}(\text{R1MACH}(3)) < 16.2$, and degree $n = 10$ on
+machines having more precision. The accuracy of these subprograms is
+limited to~17.4 decimal places even on machines having more precision.
+See Chapter~19.1 for a description of R1MACH.
+
+\subsubsection{Accuracy Tests}
+
+Subprograms SCPLTK and SCPLTE were each tested on an IBM compatible
+PC using IEEE arithmetic by
+comparison with DCPLTK and DCPLTE, respectively, at~10,000 points in the
+interval (0.0,~1.0). The relative precision of the IEEE single precision
+arithmetic is $\rho = 2^{-23} \approx 1.192 \times 10^{-7}$.
+
+For SCPLTK, 33\% of the test points gave relative errors less than $\rho $.
+The maximum relative error observed was $2.0\rho .$
+
+For SCPLTE, 68\% of the relative errors were less than $\rho $. The maximum
+relative error observed was $1.9\rho .$
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+The K subprograms issue an error message if $m < 0$ or $m \geq 1$. The E
+subprograms issue an error message if $m < 0$ or $m > 1$. On error
+conditions the value zero is returned.  Error messages are processed
+using the subroutines of Chapter~19.2 with an error level of zero.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCPLTE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCPLTE, DERM1, DERV1, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DCPLTK & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCPLTK, DERM1, DERV1, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\SCPLTE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SCPLTE, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\SCPLTK & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SCPLTK, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\\end{tabular}
+
+Designed and programmed by E. W. Ng, JPL, 1974. Modified by K. Stewart, JPL,
+1981, C. L. Lawson and S. Y. Chiu, JPL, 1983.
+
+
+\begcode
+
+\medskip
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSCPLTK}\vspace{10pt}
+\lstinputlisting{\codeloc{scpltk}}
+
+\vspace{30pt}\centerline{\bf \large ODSCPLTK}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{scpltk}}
+\closegraphsfile
+\end{document}

@@ -1,0 +1,211 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{DCKDER}
+\begmath 8.3 Check Code for Computing Derivatives
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Subroutine DCKDER checks the mutual consistency of code for computing values
+of a (possibly vector valued) function with code for computing first
+derivatives $(e.g.$, gradient vector or Jacobian matrix) of the function. In
+particular this is expected to be useful for persons using the software of
+Chapters 8.2, 9.2, and~9.3.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf MODE, M, N, LDFJAC, IMAX, JMAX}
+
+\item[DOUBLE PRECISION]  {\bf X}($\geq $N){\bf , FVEC}($\geq $M){\bf ,\\ FJAC%
+}(LDFJAC,$\geq $N){\bf , TSTMAX,\\ TEST}(LDFJAC,$\geq $N)
+\end{description}
+\begin{tabbing}
+\hspace{.2in}\=Assign values to M, N, and LDFJAC.\\
+
+\>Set X() to the value of the vector ${\bf x}$ at which\\
+\>\ \ \ \ \=consistency is to be tested.\\
+
+\>Compute FJAC(,) as the M $\times $ N Jacobian matrix\\
+\>\>of first partial derivatives of FVEC with respect\\
+\>\>to ${\bf x}$, evaluated at X().\\
+
+\>MODE = 1\\
+
+10\>continue
+\end{tabbing}\vspace{-8pt}
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DCKDER(MODE, M, N, X,\\
+FVEC, FJAC, LDFJAC, TEST,\\
+IMAX, JMAX,TSTMAX)\\
+\end{tabular}}
+\end{center}
+\begin{tabbing}
+\hspace{.2in}\=if(MODE .eq. 2) then\\
+
+\>\ \ \ \ \=Compute FVEC() as an M-vector of function\\
+\>\>\ \ \ \ \=values evaluated at X().\\
+
+\>\>go to 10\\
+
+\>end if\\
+
+\>Here the process is completed. Results are in\\
+\>TEST(,), IMAX, JMAX, and TSTMAX.
+\end{tabbing}
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[MODE]  \ [inout] On initial entry set MODE = 1. DCKDER will return a
+number of times with MODE = 2. The calling code should compute FVEC() as a
+function of X() and call DCKDER again, not altering MODE. When DCKDER is
+finished, it returns with MODE = 3.
+
+\item[M]  \ [in] Number of terms in FVEC() and number of rows of data in
+FJAC(,).
+
+\item[N]  \ [in] Number of terms in X() and number of columns of data in
+FJAC(,).
+
+\item[X()]  \ [inout] Initially must contain the vector ${\bf x}$ around
+which the testing will be done. Contains perturbed ${\bf x}$ on each return
+with MODE = 2. On final return with MODE = 3, contains the original ${\bf x}$
+exactly restored.
+
+\item[FVEC()]  \ [in] On entries with MODE = 2, the user stores function
+values in FVEC(), $i.e.$, FVEC($i$) $=f_i.$
+
+\item[FJAC(,)]  \ [in] On the initial entry with MODE = 1, the user stores
+the Jacobian matrix in FJAC(,), $i.e.$, FJAC$(i,j)=\partial f_i/\partial
+x_j.$
+
+\item[LDFJAC]  \ [in] Declared first dimension of the arrays FJAC(,) and
+TEST(,). Require LDFJAC $\geq $ M.
+
+\item[TEST(,)]  \ [inout] Array with the same dimensions as FJAC(). On final
+return with MODE = 3, TEST$(i,j)$ contains the consistency measure for FJAC$%
+(i,j)$ for all $i=1$, ..., M, and $j=1$, ..., N. This quantity is computed
+as the signed difference: FJAC$(i,j)$ minus a central finite difference
+approximation to $\partial f_i/\partial x_j$. The user does not need to
+store anything in TEST(,) before the initial entry with MODE = 1. On
+intermediate returns with MODE = 2, TEST(,) contains saved intermediate
+quantities, and thus the user must not alter the contents of TEST(,) on
+these returns.
+
+\item[IMAX, JMAX, TSTMAX]  \ [inout] On final return with MODE = 3, these
+quantities are set so that
+
+TSTMAX $=abs($TEST(IMAX, JMAX$))=\max \{abs(\text{TEST}(i,j)):i=1$, ..., M; $%
+j=1$, ..., N$\}$. The user does not need to store anything in these
+variables before the initial entry with MODE = 1. On intermediate returns
+with MODE = 2, these variables contain saved intermediate quantities, and
+thus the user must not alter their contents on these returns.
+\end{description}
+
+\subsubsection{Modifications for Single Precision}
+
+For single precision usage change the DOUBLE PRECISION statements to REAL
+and change the name DCKDER to SCKDER. It is recommended that one use the
+double precision rather than the single precision version of this package
+for better reliability, except possibly on computers such as the Cray Y/MP
+that have precision of about 14~decimal places in single precision.
+
+\subsection{Examples and Remarks}
+
+The program DRDCKDER illustrates the use of DCKDER. Results are shown in
+ODDCKDER. This example was run using double precision IEEE arithmetic which
+has precision of $\epsilon \approx 0.22 \times 10^{-15}$. If third derivatives
+have about the same magnitude as function values, and the relative error in
+function evaluations is about machine precision, then the magnitude of
+entries of TEST(,) should be about $\epsilon ^{2/3}$ times the magnitude
+of the function values. For example in our sample case we have $|f_1| =
+0.0646$ and so we would expect the magnitude of terms in the first row of
+TEST(,) to be about $(0.37 \times 10^{-10}) \times 0.0646 \approx 0.24 \times
+10^{-11}$, with the stated assumptions on the size of third derivatives and
+the error in function evaluations. If the relative error in the computation
+of function values is larger than the machine precision, or the magnitudes
+of third derivatives are larger than the magnitudes of the function values,
+the values in TEST(,) will be larger as discussed in Section D, even when
+the code being tested is correct.
+
+\subsection{Functional Description}
+
+Let ${\bf x}$ denote the vector given initially in X(). Assume FJAC(,)
+contains the $m \times n$ Jacobian matrix of $\partial f_i / \partial x_j$
+evaluated at ${\bf x}$. Let $\epsilon $ denote the
+machine precision and $\omega $ denote the underflow limit. These are given
+by D1MACH(4) and D1MACH(1) respectively (R1MACH() in single precision)
+(See Chapter~19.1).
+Define $\alpha = (3\epsilon )^{1/3}$ and $\sigma = \max (10^5\omega
+/\alpha $, $\epsilon ^2)$. For each value of $j$ from 1 to $n$, compute $%
+h_j = \alpha x_j$ if $|x_j| > \sigma $, or $h_j = \alpha \sigma $ if $0 <
+|x_j| \leq \sigma $, or $h_j = \alpha $ if $x_j = 0$. Let ${\bf e}_j$
+denote the $n$-vector that is all zeros except for the $j^{th}$ component
+which is one.
+
+For each $i$ and $j$ compute%
+\begin{equation*}
+\hspace{-12pt}\text{TEST}(i,j)=\text{FJAC}(i,j)-
+\frac{f_i({\bf x}+h_j{\bf e}_j)-f_i({\bf x}-h_j{\bf e}_j)}{2h_j}
+\end{equation*}
+The error in this central difference approximation to the derivative $%
+\partial f_i/\partial x_j$ is%
+\begin{equation*}
+h_j^2M_3/6+\delta /h_j
+\end{equation*}
+where $M_3$ denotes the magnitude of $\partial ^3f_i/\partial ^3x_j$
+evaluated at some point on the line segment from ${\bf x}-h_j{\bf e}_j$ to $%
+{\bf x}+h_j{\bf e}_j$, and $\delta $ is a bound on the error in computing $%
+f_i$. The optimal step length to minimize this error estimate is%
+\begin{equation*}
+(3\delta /M_3)^{1/3}
+\end{equation*}
+If we assume $M_3\approx |f_i|$ and $\delta \approx \epsilon |f_i|$, so $%
+\delta /M_3\approx \epsilon $, throughout the relevant interval, then the
+optimal step length is $(3\epsilon )^{1/3}$ and the error bound is $\frac
+12(3\epsilon )^{2/3}|f_i|\approx 1.04\epsilon ^{2/3}|f_i|$. These
+formulas, and useful insights into the computational use of finite
+differences, are given in Section~8.6 of \cite{Gill:1987:PO}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Require MODE = 1 or 2 on any entry to DCKDER. If not, DCKDER will call the
+error message processor of Chapter~19.2 with an error level of 0 and return
+with MODE unchanged.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCKDER & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCKDER, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SCKDER & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCKDER}\\
+\end{tabular}
+
+Designed and programmed by C. L. Lawson and F. T. Krogh, JPL, 1991.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDCKDER}\vspace{5pt}
+\lstinputlisting{\codeloc{dckder}}
+\newpage
+\vspace{20pt}\centerline{\bf \large ODDCKDER}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dckder}}
+\end{document}

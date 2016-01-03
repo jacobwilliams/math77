@@ -1,0 +1,40 @@
+CDFFTC&dcft  &dfft  &drft  &drft1 &dtcst \\
+CDILUP&dilup &dilupm\\
+CMESSC&dmess &mess  &smess \\
+CMESSI&dmess &mess  &smess \\
+CSFFTC&scft  &sfft  &srft  &srft1 &stcst \\
+CSILUP&silup &silupm\\
+DGAMIC&dgami \\
+DINTC &dint1 &dinta &dintdl&dintdu&dintm &dintma&dintns&dinto &dintop&dintsm\\
+DINTEC&dint1 &dinta &dintdl&dintdu&dintm &dintma&dintns&dinto &dintop&dintsm\\
+DINTNC&dint1 &dinta &dintdl&dintdu&dintm &dintma&dintns&dinto &dintop&dintsm\\
+DIVAEV&diva  &divadb&divag \\
+DIVAMC&diva  &divadb&divag \\
+DIVASC&diva  &divadb&divag \\
+DPLOTB&dplot \\
+DPLOTC&dplot \\
+DPLOTD&dplot \\
+DPSIC &dpsi  \\
+DTGCM1&dtgpd \\
+DWCOM &dwcomp\\
+M77ERR&derv1 &erfin &ermor &ermsg &ierv1 &serv1 \\
+RANCD1&drane &drang &dranr &dranu &idranp&ranpk1\\
+RANCD2&drane &drang &dranr &dranu &idranp\\
+RANCOM&ranpk2\\
+RANCS1&isranp&ranpk1&srane &srang &sranr &sranu \\
+RANCS2&isranp&srane &srang &sranr &sranu \\
+SGAMIC&sgami \\
+SINTC &sint1 &sinta &sintdl&sintdu&sintm &sintma&sintns&sinto &sintop&sintsm\\
+SINTEC&sint1 &sinta &sintdl&sintdu&sintm &sintma&sintns&sinto &sintop&sintsm\\
+SINTNC&sint1 &sinta &sintdl&sintdu&sintm &sintma&sintns&sinto &sintop&sintsm\\
+SIVAEV&siva  &sivadb&sivag \\
+SIVAMC&siva  &sivadb&sivag \\
+SIVASC&siva  &sivadb&sivag \\
+SPLOTB&splot \\
+SPLOTC&splot \\
+SPLOTD&splot \\
+SPSIC &spsi  \\
+STGCM1&stgpd \\
+SWCOM &swcomp\\
+UCOM1 &ducomp&durev &sucomp&surev \\
+UCOM2 &ducomp&sucomp\\

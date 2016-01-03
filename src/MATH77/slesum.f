@@ -1,0 +1,60 @@
+      SUBROUTINE SLESUM(X,N,A,SUM)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+C>> 1994-10-20 SLESUM Krogh  Changes to use M77CON
+C>> 1994-04-20 SLESUM CLL  Edited to make DP & SP files similar.
+C>> 1992-03-13 SLESUM FTK  Removed implicit statements.
+C>> 1985-08-02 SLESUM Lawson  Initial code.
+C
+C     THIS SUBROUTINE EVALUATES THE SUM OF
+C          A(J) * P(J) FOR J = 0,...,N,
+C     WHERE P(J)'S  ARE LEGENDRE POLYNOMIALS OF DEGREE J.
+C
+C     THE RECURSION FORMULA IS :
+C     B(K) = X+B(K+1)*(2*K+1)/(K+1)-B(K+2)*(K+1)/(K+2)+A(K)
+C
+C     C.L.LAWSON & S.CHAN, JPL, 1983 JUNE 9
+C
+C     -------------------------------------------------------------
+C     SUBROUTINE ARGUMENTS
+C     --------------------
+C     X     ARGUMENT OF LEG POLYS, X SHOULD BE NON-NEGATIVE.
+C     N     SUM IS TO INCLUDE LEGENDRE POLYS OF DEGREE ZERO
+C           THRU N.
+C     A()   A,...,A(N) CONTAIN COEFFS TO BE USED IN
+C           FORMING THE SUM.
+C     SUM   SUM OF COMBINATION
+C
+C     -------------------------------------------------------------
+c--S replaces "?": ?LESUM
+C     -------------------------------------------------------------
+      INTEGER K,N
+      REAL             A(0:N),B,B1,B2,C1,C2,C3
+      REAL             ONE,SUM,TWO,X,ZERO
+      DATA ZERO,ONE,TWO / 0.E0, 1.E0, 2.E0 /
+C     -------------------------------------------------------------
+      IF (N .lt. 0) then
+         SUM = ZERO
+         RETURN
+      endif
+C
+      C1 = REAL(N+1)
+      C3 = C1 + C1 - ONE
+      B1 = ZERO
+      B  = A(N)
+C
+      DO 10 K = N-1,0,-1
+C
+C     C1 = K + 1, C3 = 2K + 1
+C
+        C2 = C1
+        C1 = C1 - ONE
+        C3 = C3 - TWO
+        B2 = B1
+        B1 = B
+        B  = X * B1 * C3 / C1  -  B2 * C1 / C2  +  A(K)
+  10  CONTINUE
+      SUM = B
+      RETURN
+      END

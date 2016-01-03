@@ -1,0 +1,331 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 19.7 Checking and Output of Program Unit Interfaces
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The program, {\tt gloch1} checks a list of programs for Fortran syntax
+errors and writes two files, {\tt glsave} and {\tt gltemp}.  The program
+{\tt gloch2} reads these files, uses the data to check global interfaces,
+and prints various types of cross reference information.  In particular,
+it has been used to check the MATH77 library, and to obtain the data for
+Appendices A and B, and for the index.  It will give diagnostics when the
+declaration for and/or the calls to an entry have arguments that are
+inconsistent in type or number.  It does the same for common blocks, and
+in addition will flag variables in common blocks that are not both defined
+and referenced someplace in one of the program units declaring the common
+block.  Finally the program {\tt libchk} can be used to check a collection
+of codes for the entries in a library that are used in the collection.
+
+\subsection{Usage}
+\subsubsection{The first phase -- {\tt gloch1}}
+
+Input for {\tt gloch1} is from the file {\tt glnames} to specify the files
+to be examined and optionally to specify the kinds of diagnostics desired.
+The file names are given one per line and must not contain embedded
+blanks, but otherwise can be quite arbitrary.  For purposes of later
+output, the name reported for a file is the characters after the last
+``:'', ``/'', or ``$\backslash $'' (if none of these it starts at the
+start of the line), and before either a ``.'' or a blank.  If this name
+has more than 8 characters, it is truncated to 8.
+
+If the first character of the line is blank, the remaining characters
+specify actions desired as indicated below.  This line would ordinarily be
+the first line, and if it is not given, the program starts with defaults
+as if the first line contained `` Lfeip''.  A lower case letter turns off
+an action and an upper case letter turns it on.  The default is used if a
+letter is not present.
+
+\begin{description}
+\item[L] Local diagnostics (should be caught by your compiler).
+\item[F] Diagnose the use of Fortran 90 comments, and the Fortran 90
+``implicit none''.
+\item[I] Diagnose specific Intrinsic functions that could be replaced by
+a generic, intrinsics in type statements, and intrinsics with more than
+two arguments (to find those that cause minor problems in automated
+conversion to C).
+\item[P] Diagnose unreferenced Parameters.
+\item[E] Write source lines containing Entry information to the file {\tt
+glents} as they are encountered.
+\item[G] (No ``g'' option.) This initializes internal tables from the file
+{\tt glsave} generated from an earlier run of {\tt gloch1} and then
+modified by running {\tt gloch2}.  Thus for example the interfaces for
+programs using a collection of library codes can be checked by first
+analyzing the library codes and saving the file {\tt glsave}.  Then
+copying this file to {\tt glsave} when processing the programs in
+question.
+\end{description}
+
+\subsubsection{The second phase -- {\tt gloch2}}
+After running {\tt gloch1} one runs {\tt gloch2} to complete the
+processing of the global data, thus getting the final version of the file
+{\tt glsave}.  One then has other options available by providing input
+as described below.
+
+In the description below, the punctuation ``\{\}$[\,]$()$|$'' is used to
+describe the input, and is not meant to be typed by the user. The case
+of letters is not significant.  To define the commands read from the
+standard input, let:
+
+\begin{description}
+\item[$\{xyz\}$] Denotes any combination of the letters ``$x$'',
+``$y$'', and ``$z$'', with no letter used more than once.
+\item[{$[\cdots ]$}] Whatever is inside the square brackets is
+optional.
+\item[($x|y$)] Indicates that either what is given as $x$ or what is
+given as $y$ can be used.
+\item[{\em file}] The name of a file (no
+embedded blanks).
+\item[{\em int}]  An integer.
+\item[{\em lead}] Text of the form
+  [{\em int}\,L][{\em int}\,I][{\em file}]''.  No blanks are allowed in
+this string.  The integer before the ``L'' is used to specify the line
+width (default is 79), the integer before the ``I'' is used to specify the
+amount of indentation when indentation is used in the output (default is
+3), and {\em file} is used to specify the file to which the output is
+written until the next time {\em file} is used. (The default initially is
+to use {\tt gldiagg} for output if global diagnostics are requested, and
+if no global diagnostics are requested to use {\tt glstuff}.)
+\item[!] A ``!'' anywhere on the line, will cause everything from that
+point to the end of the line to be treated as a comment.  If the ``!'' is
+in column one, the rest of the line is written to the current output file.
+\end{description}\vspace{5pt}
+
+The commands that may be read from the standard input are:\vspace{-10pt}
+\begin{description}
+\item[?] Gives general help.  ``?x'' gives summary help on command x.
+\item[{[{\em lead}]} D] [A]\\
+This is used to generate diagnostics on the global interfaces.  If the A
+is present, interface information is output for all entries and common
+blocks, otherwise only those with suspected errors are output.
+
+\item[{[{\em lead}]} E] [[$-$]F][([$-$]L$|$[$-$]R)][[$-$]N]\\
+Specifies how entry names are to be sorted. The ``$-$'' is used to
+indicate that the order for the key following is to be reversed from the
+usual order.  If a sort is not uniquely determined by the keys specified,
+the sort uses an alphabetic sort on the name of the last key. The keys,
+which must not be separated by blanks, are interpreted as follows.
+\begin{description}
+\item[F] use the order of the File containing the entry.  Then sort
+entries by their position in the file.
+\item[L] sort those with smallest maximum distance to a Leaf first.
+(A leaf is an entry that calls no other entry.)
+\item[R] sort those with smallest maximum distance to a Root first.
+(A root is an entry that is called by no other entry.)
+\item[N] sort on the Name of the entry.
+\end{description}
+
+\item[{[{\em lead}]} F] [([$-$]L$|$[$-$]R)][[$-$]N]\\
+Specifies how file names are to be sorted.  Works similarly to the entry
+sort, except there is no F key, the N key is used to indicate the name of
+the file, a leaf is defined as a file with no calls to entries that are
+not in the file, and a root as a file that contains no entries called from
+other files.
+\item[{[{\em lead}]} L] \{CEFU\}\\
+  List names in the order given by the letters present. Letters are
+interpreted as follows.
+\begin{description}
+\item[C]  Common block names
+\item[E]  Entry names
+\item[F]  File names
+\item[U]  Undefined entries, i.e. those entries referenced, but which are
+not contained in the files named in {\tt glnames}.
+
+\end{description}
+
+\item[{[{\em lead}]} C] (e$|$f) (c$|$e$|$f)\,[{\em tag}]\\
+Gives a cross reference,  The ``c, e, and f'' are used for common blocks,
+entries, and files respectively.  For every entry (or file) as indicated
+in the first argument, every common block, entry, or file (as indicated
+by the second argument), directly referenced is listed.  The optional tag
+consists of [$(\ .\ |+|-|\ *\ )$][\#], which alters the output as follows.
+\begin{description}
+\item[$.$] Minimal list. Only use for C e f.\, or C f e.\; the former
+lists the file containing each entry, the latter lists all of the entries
+in each file.
+\item[$+$] Recur with a list.  Thus for C e f$+$, the list for each entry
+includes not just the files containing the entries called directly by the
+entry, but also includes any files that these entries in turn require,
+etc.
+\item[$-$] As for ``$+$'', but each item goes on a separate line.
+\item[$*$] As for ``$-$'', but repeat the full list every time.
+\item[\#] Only for ``C E E'' or ``C F F'', include numbers with names
+listed in the form number.name where the numbers start with 1 for the
+first item listed.
+\end{description}
+\item[{[{\em lead}]} W] (c$|$e$|$f) (e$|$f)\,[{\em tag}]\\
+Gives a ``who calls''.  As for the C command, but for each item specified
+by the first argument, list those indicated by the second argument that
+use it.
+\item[Q] Quits the program.
+\end{description}
+
+\subsubsection{Checking the use of entries in a library -- {\tt libchk}}
+
+If one has a collection of programs that use a library of routines, {\em
+e.g.}\ MATH77, the program {\tt libchk} can be used to create a report of
+how the collection of programs uses the library.  This is done as follows.
+
+Using the file {\tt glsave} generated from running {\tt gloch1} on the
+library in the current directory:
+\begin{tabbing}
+\hspace{.5in}\=gloch2\\
+\>liblst C e f.\\
+\>q
+\end{tabbing}
+(Note the ``.'' at the end of the second line.) Then using the file {\tt
+glsave} generated from running {\tt gloch1} on the collection of programs
+of interest in the current directory:
+\begin{tabbing}
+\hspace{.5in}\=gloch2\\
+\>uselst C f e\\
+\>q
+\end{tabbing}
+
+Then run the program {\tt libchk} with both the file {\tt liblst} and {\tt
+uselst} generated above in the current directory.  The output in the file
+{\tt uselib} contains the name of files in lower case starting in column 1
+that reference entries in {\tt liblst}.  The following columns, in upper
+case, contain the entries in {\tt liblst} that are referenced.  Following
+this is a list of library entries that are used, with the entry given
+first, then the file the entry is in, and then a count of the number of
+times this entry is referenced in {\tt uselst}.
+
+\subsection{Examples and Remarks}
+The following three lines input to {\tt gloch2}
+
+C e f+\\
+L e\\
+W c f
+
+give Appendix A, the first part of Appendix B, and the last part of
+Appendix B.
+
+The file {\tt gldiagg} generated by running the subprograms in MATH77
+through {\tt gloch1} and {\tt gloch2} is given at the end of this chapter.
+None of these diagnostics represent errors; most of the common block items
+flagged are due to the use of equivalence of arrays with scalars of the
+same type.
+
+\subsection{Functional Description}
+
+The table at the beginning of the output given at the end of this chapter
+gives a good idea of the kind of reporting provided by this software.
+
+An argument list or common block is represented by a string of the letters
+given in this table, with each letter in the string representing the type
+of the corresponding argument or common block entry.  The first letter for
+an argument list indicates the type of external reference or declaration.
+
+Any common variable that uses a letter other than those in columns 4 and
+8 is flagged in the output as possibly the source of a problem.  A letter
+from column 1 or 4 is flagged as a potential problem in the case of
+declarations, {\em i.e.}\ the formal arguments that are part of an entry
+declaration.  Arguments for references are flagged, if they are
+incompatible with the declaration, or if there is no declaration, if they
+are incompatible with the first reference.
+
+The program uses an {\em ad hoc} lexer and parser (if you can call it
+that) to analyze just as much of the code as necessary to check argument
+types and the use of common variables.  It assumes that any variable
+mentioned in an equivalence statement is both referenced and defined.  It
+also assumes that the user has intended to declare all common blocks in
+the same way wherever they appear.  It makes no attempt to track the size
+or the number of dimensions of arrays.  Dummy (formal) arguments which are
+not defined, but are used as actual arguments, are traced down the call
+tree, and if a routine required in order to know what happens to that
+argument is not available it is flagged as unknown, i.e.  columns 4 and 8.
+
+As long as there is a legal way to combine argument types, an additional
+argument list specification is not constructed.  Thus, for example, if one
+call passes a variable, and another passes a literal (a constant or
+expression) of the same type in the same position, this position will be
+tagged as a reference with a literal.  In the same way an array element
+actual argument may get combined with a scalar and called a scalar
+argument, or combined with an array and called an array argument.
+
+Some MATH77 routines equivalence an array to a scalar in common to
+simplify the setting of options or printing of output.  The implied
+equivalence between the variables in common with the array is not
+recognized by {\tt gloch2}, and thus it may flag such variables as
+potential problems.  If an actual argument is in common and is passed to a
+routine containing the same common block a warning is given.
+
+Files used by this software are listed below.\vspace{-5pt}
+\begin{description}
+\item[{\tt glnames}] Contains list of files to process, and perhaps
+options.
+\item[{\tt gldiagl}] Local diagnostics are written to this file.
+\item[{\tt glents}] If requested, lines containing the source text
+associated with entries are written to this file.
+\item[{\tt glsave}] Generated by {\tt gloch1} and modified by {\tt
+gloch2}, this contains all the information about the global interfaces
+and is required by either of these programs if access to this previously
+generated information is desired.
+\item[{\tt gltemp}] Generated by {\tt gloch1}, read and then deleted
+by {\tt gloch2}.  This contains information about calls that contain a
+dummy or common block variable.
+\item[{\tt gldiagg}] Global diagnostics are written to this file
+by {\tt gloch2} unless some other file has been requested in the input.
+\item[{\tt glstuff}] Other output is written to this file by {\tt gloch2}
+unless some other file has been requested in the input.
+\item[\tt liblst] Used by {\tt libchk} as the definition of entries and
+associated file names for the library.
+\item[\tt uselst] Used by {\tt libchk} as the definition of entries
+associated with the files contained in a collection.
+\item[\tt libuse] The file containing the data generated by {\tt libchk}
+\end{description}
+
+In addition, {\tt gloch2} may use one or two scratch files while
+processing the global information.
+
+\subsection{Error Procedures and Restrictions}
+
+There are numerous {\tt STOP} statements in the programs, all of which
+print a message.  Some of these indicate that more table space is
+required, and print the name of a parameter in the program which needs a
+larger value.  One can change the parameter everywhere it appears,
+recompile and try again.  Other cases are probably the result of bugs, and
+would require changes to correct the problem.
+
+Except for character tokens, an end of line is assumed to end a token, and
+the type of a statement must be defined by the first line of a statement.
+Any name with more than 8 characters is truncated to a name with 8
+characters.
+
+The user is cautioned that this code has not been used extensively.  The
+only claim made is that it has done the proper thing when checking the
+MATH77 library.  In particular, no effort has been made to support
+extensions to Fortran 77 that are popular in some computing environments.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Design and code due to F. T. Krogh, April 1996.  The {\tt libchk} program
+added and miscellaneous corrections to {\tt gloch1}, April 1997.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Program & \hspace{.35in} {\bf Required to Link}\vspace{2pt}\\
+GLOCH1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \hspace{.25in}
+GLOCH1 \rule[-5pt]{0pt}{8pt}}\\
+GLOCH2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \hspace{.25in}
+GLOCH2, ISORT, INSORT \rule[-5pt]{0pt}{8pt}}\\
+LIBCHK & \parbox[t]{2.7in}{\hyphenpenalty10000 \hspace{.25in}
+LIBCHK \rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+
+\begcode
+\vspace{20pt}
+
+\centerline{\bf \large The Output File {\tt gldiagg} from Processing
+MATH77}\vspace{10pt}
+\lstset{xleftmargin=.8in}
+\lstset{language={}}
+\lstinputlisting{\extrasloc{gldiagg.fl}}
+\end{document}

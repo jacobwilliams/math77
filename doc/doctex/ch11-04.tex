@@ -1,0 +1,238 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{YPKNOT}
+\begmath 11.4 Least-Squares Cubic Spline Fit
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+A cubic spline function with NB $-$ 1 segments is a function consisting of
+NB $-$ 1 pieces, each of which is a cubic polynomial. At the abscissae,
+called knots, at which adjacent segments meet, the function has $C^2$
+continuity, $i.e$. continuity in value, first derivative, and second
+derivative.
+
+Subroutine SC2FIT or DC2FIT will determine the (NB $-$ 1)-segment cubic spline
+function, with user specified knots, that best fits a set of discrete data
+in the sense of weighted least-squares, and return the values of the fitted
+spline curve and its first derivative at the knots. The user can then
+evaluate the curve, or its first or second derivative, at any argument using
+the Hermite interpolation subroutine, SHINT or DHINT, of Chapter~12.3.
+
+This software can be used for interpolation by setting the number of knots,
+NB, to be two less than the number of data points, NXY. Setting NB $<$
+NXY $-$ 2 gives least-squares approximation.
+
+For spline fitting with more generality, see Chapter~11.5.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NXY, NB, LDW, IERR1}
+
+\item[REAL]  \ {\bf X}($\geq $NXY){\bf , Y}($\geq $NXY){\bf , SD}($\geq $NXY)%
+{\bf , \nolinebreak B}($\geq $NB){\bf , W}(LDW,~5){\bf , YKNOT}($\geq $NB)%
+{\bf , YPKNOT}($\geq $NB){\bf , SIGFAC}
+\end{description}
+Assign values to X(), Y(), SD(), NXY, B(), NB, and LDW.\vspace{-15pt}
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SC2FIT(X, Y, SD, NXY, B, NB, W,\\
+LDW, YKNOT, YPKNOT, SIGFAC, IERR1)\\
+\end{tabular}}
+\end{center}
+Computed quantities are returned in YKNOT(), YPKNOT(), SIGFAC, and IERR1.
+
+Following the use of SC2FIT the user may use SHINT of Chapter~12.3 to compute
+values of the fitted curve.
+
+\subsubsection{Argument Definitions}
+\begin{description}
+\item[X(), Y()]  \ [in] Data pairs (X(I), Y(I), I = 1, ..., NXY). The
+contents of X() must satisfy X($1)\leq $ X(2) $\leq $ ... $\leq $ X(NXY).
+
+\item[SD()]  \ [in] If SD($1)>0.$, each SD(I) must be positive and must be
+the user's a priori estimate of the standard deviation of the uncertainty $%
+(e.g.$, observational error) in the corresponding data value Y(I).
+
+If SD($1)<0.$, $|$SD(1)$|$ will be used as the a priori standard deviation
+of each data value Y(I). In this case the array SD() may be dimensioned as
+SD(1).
+
+\item[NXY]  \ [in] Number of data points. Require NXY $\geq 4.$
+
+\item[B()]  \ [in] Set by the user to specify the knot abscissae and
+endpoints for the spline curve. Must satisfy B(1) $<$ B(2)
+$<$ ... $<$ B(NB).  Also require B(1) $\leq $
+X(1), B(NB) $\geq $ X(NXY).
+
+\item[NB]  \ [in] Number of knots, including endpoints. The number of
+segments in the spline curve will be NB $-$ 1. The number of degrees of freedom
+for the fit will be NB + 2. Require $2\leq \text{NB}\leq \text{NXY}-2.$
+
+\item[W(\ ,\ )]  \ [scratch] Working space, dimensioned W(LDW,~5).
+
+\item[LDW]  \ [in] Leading dimension for the work array W(,). LDW must be at
+least NB + 4, but the execution time is less for larger values of LDW, up to
+NB$+3+k$, where $k$ is the largest number of data points lying between any
+adjacent pair of knots.
+
+\item[YKNOT(), YPKNOT()]  \ [out] Arrays, each of length at least NB, in
+which the subroutine will store a definition of the fitted spline curve as a
+sequence of values of the curve and its first derivative at the knot
+abscissae B(i). Letting $f$ denote the fitted curve, the elements of these
+arrays will be set to
+
+YKNOT$(i)=f(\text{B}(i))$, $i=1$, ..., NB
+
+YPKNOT$(i)=f^{\prime }(\text{B}(i))$, $i=1$, ..., NB
+
+\item[SIGFAC]  \ [out] Set by the subroutine as a measure of the residual
+error of the fit. See Section D.
+
+\item[IERR1]  \ [out] Error status indicator. Set on the basis of tests done
+in SC2FIT as well as error indicators IERR2 set by SBACC and IERR3 set by
+SBSOL. Zero indicates no errors detected. See Section E for the meaning of
+nonzero values.
+\end{description}
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change the REAL statement to DOUBLE PRECISION and
+change the subroutine name SC2FIT to DC2FIT.
+
+\subsection{Examples and Remarks}
+
+{\bf Example:} Given a set of 12~data pairs $(x_i,y_i)$ compute the
+uniformly weighted least-squares cubic spline fit to these data using six
+uniformly spaced breakpoints, including endpoints. After determining the
+spline function $f(x)$, compute and tabulate the quantities $x_i$, $y_i$, $%
+f(x_i)$, and $r_i = y_i - f(x_i).$
+
+This computation is illustrated by the program DRDC2FIT and the output
+ODDC2FIT. The fitted curve is determined using DC2FIT, and is evaluated
+using DHINT of Chapter~12.3.
+
+{\bf Interpolation:} If all of the data abscissae are distinct, and one wants
+interpolation, rather than the smoothing effect of least-squares
+approximation, one can choose interpolation by setting NB = NXY $-$ 2. The
+NB knot abscissae can be assigned in various ways, but one reasonable way is
+to set B(1) = X(1), B(i) = X$(i+1)$, for $i = 2$, ..., NB $-$ 1, and B(NB) =
+X(NXY).
+
+\subsection{Functional Description}
+
+Let knot abscissae $b_1 < b_2 < ..$.  $< b_{NB}$ be given.  A cubic spline
+function defined over the interval $[b_1$, $b_{NB}]$ is a cubic polynomial
+in each subinterval $[b_i$, $b_{i+1}]$, $i = 1$, ..., NB $-$ 1, with
+continuity of the value, first derivative, and second derivative at each
+internal knot, $b_2$, ..., $b_{NB-1}$.  The set of all cubic spline
+functions defined relative to this knot set is a linear space of dimension
+$d =$ NB $+$ 2.  If the knot spacing does not depart severely from
+uniformity a well conditioned set of basis functions for this space is
+provided by a particular set of cubic spline functions called B-splines,
+$p_i(x)$, $i = 1$, ..., $d$, each of which is nonzero over at most four
+adjacent subintervals, \cite{deBoor:1972:OCB}.
+
+The problem data are $\{(x_i$, $y_i$, $s_i)$, $i=1$, ..., NXY$\}$, where $s_i$
+is the a priori standard deviation of the error in the value $y_i$. The
+weighted least-squares curve fitting problem then becomes one of determining
+coefficients $c_j$ to minimize%
+\begin{equation*}
+\rho ^2({\bf c})=\sum_{i=1}^{\text{NXY}}\left[ \frac{
+y_i-\sum_{j=1}^dc_jp_j(x_i)}{s_i}\right] ^2
+\end{equation*}
+The matrix formulation of this least-squares problem involves a matrix
+having a banded form in which at most four elements are nonzero in each row.
+This least-squares problem is solved using the subroutines of Chapter~4.5.
+
+This problem will have a unique set of solution coefficients, $c_j$, if NB
+$\leq \text{NXY}-2$ and the positioning of the knots is such that there
+exists an indexing of some set of NB + 2 of the distinct data abscissae,
+$x_i$ (not necessarily the indexing used in the subprogram) such that
+$b_{i-3} < x_i < b_{i+1}$ for $i = 1$, ..., NB$+2$.  Here $b_{-2}$,
+$b_{-1}$, and $b_0$ denote fictitious knots to the left of $b_1$, and
+$b_{NB+1}$, $b_{NB+2}$, and $b_{NB+3}$ denote fictitious knots to the
+right of $b_{NB}$, see \cite{Rice:COC:1967}.  If the solution is not
+unique, no solution will be given and an error code will be returned as
+described in Section E.
+
+After determining coefficients, $c_j$, SC2FIT uses subroutine STRC2C to
+evaluate the value and first derivative of the fitted curve at the knots.
+These quantities are returned to the user in the arrays YKNOT() and YPKNOT()
+as the defining parameters of the fitted curve.
+
+Subroutine SC2BAS is called by both SC2FIT and STRC2C to evaluate B-spline
+basis functions.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+SC2FIT sets IERR1 and issues error messages based on internal tests as well
+as propagating error information set in IERR2 by SBACC and in IERR3 by
+SBSOL. See Chapter~4.5 for the meaning of IERR2 and IERR3. In all cases in
+which IERR1 is set nonzero, no solution will be computed.
+
+\begin{tabular}{ll}
+{\bf IERR1} & {\bf \quad \quad Meaning}\\
+
+\phantom{100}0 & No errors detected.\\
+
+\phantom{1}100 & NB $< 2$ or NXY $<$ NB + 2.\\
+
+\phantom{1}200 & B(I$) \geq $ B(I+1) for some I.\\
+
+\phantom{1}300 & LDW $<$ NB + 4.\\
+
+\phantom{1}400 & X(I $- 1) > $ X(I) for some I.\\
+
+\phantom{1}500 & B($1) > $ X(1) or B(NB) $<$ X(NXY).\\
+
+\phantom{1}600 & Need larger dimension LDW.\\
+
+\phantom{1}700+IERR2 & SBACC set IERR2 $\neq 0$.\\
+
+\phantom{1}800+IERR2 & SBACC set IERR2 $\neq 0$.\\
+
+\phantom{1}900+IERR2 & SBACC set IERR2 $\neq 0$.\\
+
+ 1000+IERR3 & SBSOL set IERR3 $\neq 0$. Indicates\\
+ & singularity.\\
+
+ 1100 & SD(1) = 0.0.\\
+
+ 1200 & SD(1) $>$ 0.0, and SD($i) \leq 0.0$ for\\
+ & some $i \in $ {[2, NXY]}.
+\end{tabular}
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DC2FIT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, DBACC, DBSOL, DC2BAS, DC2FIT, DERM1, DERV1, DHTCC,
+ DNRM2, DTRC2C, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SC2FIT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, ERFIN, ERMSG, IERM1, IERV1, SBACC, SBSOL, SC2BAS, SC2FIT,
+ SERM1, SERV1, SHTCC, SNRM2, STRC2C}\\\end{tabular}
+
+Original code designed by C. L. Lawson and R. J. Hanson, JPL, 1968.
+Programmed and modified by Lawson, Hanson, T. Lang, and D. Campbell, JPL,
+1968--1974. Adapted to Fortran~77 by Lawson and S. Y. Chiu, July~1987.
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDC2FIT}\vspace{10pt}
+\lstinputlisting{\codeloc{dc2fit}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODDC2FIT}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dc2fit}}
+\end{document}

@@ -1,0 +1,195 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 6.1  Vector and Matrix Output
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Subroutines are provided to print a vector or a matrix in a standard format
+that clearly displays the component positions of the vector or matrix. An
+optional descriptive header can also be printed. For similar subroutines
+that provide more choices for the appearance of the output, see Chapter~6.2.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Vector Output, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ N
+
+\item[REAL] \ {\bf V}($\geq $ N)
+
+\item[CHARACTER$*(1 \leq k \leq 132)$] {\bf TEXT}
+
+\end{description}
+
+Assign values to V(), N, and TEXT.
+$$
+\fbox{\bf CALL SVECP (V, N, TEXT)}
+$$
+The N-vector stored in V() will be printed.
+
+\paragraph{Argument Definitions, Single Precision}
+
+\begin{description}
+\item[V()] \ [in] An array containing N numbers to be printed.
+
+\item[N] \ [in] Number of components of V() to be printed. Require N $\geq 0.$
+
+\item[TEXT] \ [in] A character string to be printed as a header preceding the vector.
+The length of TEXT should be at least 1 and not more than~132. The first
+character will be used as a printer line spacing control character. It is
+generally most convenient to place this character string in the CALL
+statement as a character literal. Thus, for example:
+
+\centerline{{\bf CALL SVECP (V, N, $^\prime $0 V=$^\prime)$}}
+
+Here the zero following the first apostrophe causes an extra line feed
+before the header.
+\end{description}
+
+\subsubsection{Program Prototype, Matrix Output, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, M, N}
+
+\item[REAL] \ {\bf A}(LDA, $\geq $ N)\quad [LDA  $\geq $ M]
+
+{\bf CHARACTER$*(1 \leq k \leq 132)$} {\bf TEXT}
+
+\end{description}
+
+Assign values to all subroutine arguments.
+$$
+\fbox{\bf CALL SMATP (A, LDA, M, N, TEXT)}
+$$
+The M$\times\text{N}$ matrix stored in A(,) will be printed.
+
+\paragraph{Argument Definitions, Single Precision}
+\begin{description}
+\item[A(,)]  [in] An array containing an M$\times\text{N}$ matrix to be printed.
+
+\item[LDA]  [in] First dimensioning parameter of the array A(,). Require LDA $\geq
+\text{M}.$
+
+\item[M]  [in] Number of rows of A(,) to be printed.
+
+\item[N]  [in] Number of columns of A(,) to be printed.
+
+\item[TEXT]  [in] Same specification as for the argument TEXT of subroutine SVECP
+above.
+\end{description}
+
+\subsubsection{Modifications for Double Precision or Integer Data}
+
+For double precision usage, change the REAL statements to DOUBLE PRECISION
+and change the initial letter of the subroutine names from ``S" to ``D".
+For integer usage, change the REAL type statements to INTEGER and change the
+initial letter of the subroutine names from ``S" to ``I".
+
+\subsection{Examples and Remarks}
+
+See the program DRVECP and the output ODVECP for an example of the use of
+SVECP, DVECP, and IVECP. See the program DRMATP and the output ODMATP for an
+example of the use of SMATP, DMATP, and IMATP.
+
+\subsection{Functional Description}
+
+The character string, TEXT, will always be printed. The user can set TEXT to
+blanks if no visible header is desired.
+
+For the first character in TEXT the Fortran 77 standard assigns a line spacing
+control interpretation to '0', '1', '+', or a blank.  In some operating
+environments this interpretation is not honored, and the character simply
+appear in the output.  For greatest portability, and particularly when using
+the C versions of these codes, we recommend not using '1' or '+', but only
+'0' or blank.  The codes are designed so that a blank produces no extra
+blank line and '0' produces one extra blank line before printing TEXT(2:).
+
+\subsubsection{Vector Output}
+
+If N $> 0$ the subroutine will print the first N components of the array V().
+
+The subroutines SVECP and DVECP print eight components per line with a
+G15.7 format for each component if the round-off level is $> 5 \times
+10^{-13}$, or six components per line with a G20.12 format otherwise.
+The subroutine IVECP prints eight components
+per line with an I15 format for each component.
+
+At the left of each printed line the indices of the first and last
+components in that line will be printed.  The output is written using
+PRINT or WRITE($*$,...).
+
+\subsubsection{Matrix Output}
+
+If M $> 0$ and N $> 0$ the subroutine will print the leading M $\times $ N
+matrix contained in the array A(,).
+
+Subroutines SMATP and DMATP print the matrix
+in M $\times $ 8 blocks using G15.7 format for each element if the
+round-off level is $> 5 \times 10^{-13}$, and in M $\times $ 6 blocks
+using G20.12 format for each element otherwise.  Subroutine IMATP prints the matrix in M $\times $ 8 blocks using I15
+format for each element.
+
+Each column will be
+headed with its column number and each row will have its row number
+printed along the left margin. Output is written using PRINT or WRITE($*$,...).
+
+\subsection{Error Procedures and Restrictions}
+
+For vector output, if N $ \leq  0$, no vector components will be
+printed. For matrix output, if M $ \leq  0$ or N $ \leq  0$%
+, no matrix elements will be printed.
+
+The built-in format was designed for a line printer having 132~columns. The
+results are less satisfactory, due to wraparound, on an output device having
+fewer print columns. See Chapter~6.2 for similar subroutines giving more
+flexibility.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.2in} {\bf Required Files}\vspace{2pt} \\
+DMATP & \hspace{.35in} DMATP\\
+DVECP & \hspace{.35in} DVECP\\
+IMATP & \hspace{.35in} IMATP\\
+IVECP & \hspace{.35in} IVECP\\
+SMATP & \hspace{.35in} SMATP\\
+SVECP & \hspace{.35in} SVECP\\
+\end{tabular}
+
+Based on 1969 code by C.L. Lawson, JPL. Altered by Lawson and S.
+Chiu, JPL, 1983; Lawson, 1994.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.2in}
+
+\centerline{\bf \large DRVECP\hspace{1in}}\vspace{10pt}
+\lstinputlisting{\codeloc{vecp}}
+
+\vspace{20pt}\centerline{\bf \large ODVECP\hspace{1in}}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{vecp}}
+
+\newpage
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRMATP}\vspace{10pt}
+\lstinputlisting{\codeloc{matp}}
+
+\vspace{20pt}\centerline{\bf \large ODMATP}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{matp}}
+\end{document}

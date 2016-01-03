@@ -1,0 +1,198 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-18}
+\begmath 2.18 Digamma or $\psi $ Function
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The procedures described here compute the digamma or $\psi $ function
+defined by $\psi (z) = d[\ln \Gamma (z)]/dz = \Gamma ^{\prime}(z)/\Gamma (z)$%
+. Additional procedures, not necessary for simplest usage, are provided to
+specify unusual options or retrieve error estimates.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf U , X, SPSI}
+
+\item[EXTERNAL]  \ {\bf SPSI}
+\end{description}
+
+Assign a value $x$ to X, and obtain U $= \psi (x)$ by using
+$$
+\fbox{{\bf U = SPSI(X)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] The argument of the function, $x$ above.
+\end{description}
+
+\subsubsection{Program Prototype, Single Precision, Specify Unusual Options}
+
+\begin{description}
+\item[REAL]  \ {\bf TOL, XERR}
+
+\item[INTEGER]  \ {\bf MSGOFF}
+\end{description}
+
+Assign values to TOL, XERR and MSGOFF, and specify options for SPSI by using
+$$
+\fbox{{\bf CALL SPSIK (TOL, XERR, MSGOFF)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[TOL]  \ [in] Relative error tolerance for $\psi (x)$. When positive,
+it indicates relative error tolerance. When negative or zero, it indicates
+the default, equal to the square root of the round-off level, $\sqrt{\rho }$%
+, should be used. $\rho $ is the smallest number such that the floating
+point representation of $1.0+\rho \neq 1.0$. TOL only affects the threshold
+for producing error messages; it does not affect the accuracy of computation.
+
+\item[XERR]  \ [in] If non-negative, XERR provides the estimated relative
+error in X. If negative, XERR indicates the default error estimate for X,
+the round-off level, $\rho $, should be used.
+
+\item[MSGOFF]  \ [in] MSGOFF is added onto the error message level before an
+error message is produced by using the error message processor described in
+Chapter~19.2.
+\end{description}
+
+If SPSIK is not called, the effect is as though CALL SPSIK~(0.0, $-$1.0,~0)
+had been executed.
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-18 }
+
+\subsubsection{Program Prototype, Single Precision, Determine Error Estimate}
+
+\begin{description}
+\item[REAL]  \ {\bf ERR, IERFLG}
+\end{description}
+
+Retrieve the relative error committed by the last call to SPSI, and the
+internal error indicator, by using
+$$
+\fbox{{\bf CALL SPSIE (ERR,IERFLG)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[ERR]  \ [out] reports the relative error committed by the last call to
+SPSI. If SPSI has not been called, ERR is returned with the value $-$1.
+
+\item[IERFLG]  \ [out] reports the value of the internal error flag. If SPSI
+has not been called, or if computation on the last call to SPSI was
+completely successful, IERFLG is returned with the value zero. See Section
+E below for discussion of non-zero values of IERFLG.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change the REAL statements to DOUBLE PRECISION and change the first letter
+of the procedure names from S to D. One must declare DPSI to be DOUBLE
+PRECISION, as its default type would be REAL.
+
+\subsection{Examples and Remarks}
+
+See DRDPSI and ODDPSI for an example of the usage of DPSIK, DPSI and
+DPSIE.
+
+For $x \geq 0$, $\psi (x)$ is a monotone increasing function of $x$. $\psi
+(x)$ has singularities for $x = 0$ or $x$ a negative integer. See
+\cite{ams55} for a discussion of other properties of $\psi (x).$
+
+\subsection{Functional Description}
+
+The computational methods used in SPSI were developed by L. Wayne Fullerton
+of Los Alamos National Scientific Laboratory. The methods include rational
+Chebyshev expansions, recurrences, and a reflection formula.
+
+When X $>$ 0 SPSI estimates the relative error in $\psi ($X) is the
+round-off level.  Otherwise, SPSI computes an estimate for the
+relative error in $\psi ($X$) = ($relative error in X$) \times |\text{X}|
+\times |d\psi /d\text{X}|\ /\ |\psi (\text{X})|$, with $d\psi /d\text{X}$
+approximated by $\pi ^2 \cot ^2 \pi \text{X}$.  When X $<$ 0 and X is
+approximately an integer, or $\psi ($X) is approximately zero, the
+error will be large.   When X $< < $ 0 and $2\text{X}$ is not approximately an
+integer, SPSI may underestimate the error it committed.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If SPSI estimates the specified error tolerance is not satisfied (because $x$
+is too near a negative integer), $\psi (x)$ is computed, but an error
+message is issued by using the error message processor described in Chapter
+19.2, with LEVEL = 1 + MSGOFF, where MSGOFF is zero unless specified by a
+call to SPSIK at some time before calling SPSI. The IERFLG output from SPSIE
+will be $-$3.
+
+If SPSI is called with X zero or a negative integer, $\psi (x)$ is not
+defined, and an error message is issued by using the error message processor
+described in Chapter~19.2, with LEVEL = 2 + MSGOFF. If error termination is
+suppressed by calling SPSIK with a negative value of MSGOFF, or by calling
+the ERMSET procedure described in Chapter~19.2, the function value will be
+zero, and the IERFLG output from SPSIE will be~1 if X is zero, or~2 if X is
+a negative integer.
+
+\subsection{Supporting Information}
+
+All code is written in ANSI Standard Fortran~77.
+
+The program units SPSI, SPSIB, SPSIE and SPSIK communicate by way of a
+common block /SPSIC/. The program units DPSI, DPSIB, DPSIE and DPSIK
+communicate by way of a common block /DPSIC/.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DPSI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERM1, DERV1, DINITS, DPSI, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}\rule[-5pt]{0pt}{8pt}}\\
+DPSIE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERM1, DERV1, DINITS, DPSI, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}\rule[-5pt]{0pt}{8pt}}\\
+DPSIK & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERM1, DERV1, DINITS, DPSI, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}\rule[-5pt]{0pt}{8pt}}\\
+SPSI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERM1, SERV1,
+SINITS, SPSI\rule[-5pt]{0pt}{8pt}\rule[-5pt]{0pt}{8pt}}\\
+SPSIE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERM1, SERV1,
+SINITS, SPSI\rule[-5pt]{0pt}{8pt}\rule[-5pt]{0pt}{8pt}}\\
+SPSIK & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERM1, SERV1,
+SINITS, SPSI}\\
+\end{tabular}
+
+Designed and programmed by L. Wayne Fullerton, Los Alamos National
+Scientific Laboratory, 1977. Revised and adapted to MATH77 by W. V. Snyder,
+1993, 1994.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDPSI}\vspace{10pt}
+\lstinputlisting{\codeloc{dpsi}}
+
+\vspace{30pt}\centerline{\bf \large ODDPSI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dpsi}}
+
+\closegraphsfile
+\end{document}

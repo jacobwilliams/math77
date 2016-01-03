@@ -1,0 +1,600 @@
+CAXPY  &caxpy \\
+CCOEF  &ccoef \\
+CCOPY  &ccopy \\
+CDOTC  &cdotc \\
+CDOTU  &cdotu \\
+CGAM   &amach &cgam  &erfin &ermsg &serm1 &serv1 \\
+CGECO  &caxpy &cdotc &cgeco &cgefa &cscal &csscal&icamax&scasum\\
+CGED   &amach &cged  \\
+CGEFA  &caxpy &cgefa &cscal &icamax\\
+CGEFS  &caxpy &cgefa &cgefs &cgesld&cscal &erfin &ermsg &icamax\\
+CGEFSC &caxpy &cdotc &cgeco &cgefa &cgefsc&cgesld&cscal &csscal&erfin &ermsg &icamax\\
+&scasum\\
+CGEI   &caxpy &cgei  &cscal &cswap &erfin &ermsg \\
+CGESLD &caxpy &cgesld&erfin &ermsg \\
+CGESLT &cdotc &cgeslt&erfin &ermsg \\
+CPOLZ  &amach &cpolz &erfin &ermsg &scomqr\\
+CSCAL  &cscal \\
+CSORT  &csort \\
+CSORTP &csortp\\
+CSORTQ &csortp\\
+CSSCAL &csscal\\
+CSWAP  &cswap \\
+CWOFZ  &amach &cwofz &erfin &ermor &ermsg &serv1 \\
+D1MACH &amach \\
+DACCUM &amach &daccum&dhtcc &dnrm2 &drotg &erfin &ermsg &ierm1 &ierv1 \\
+DACOSH &amach &dasinh&derm1 &derv1 &erfin &ermsg \\
+DACSCH &amach &dasinh&derm1 &derv1 &erfin &ermsg \\
+DACTNH &amach &dasinh&derm1 &derv1 &erfin &ermsg \\
+DASECH &amach &dasinh&derm1 &derv1 &erfin &ermsg \\
+DASINH &amach &dasinh&derm1 &derv1 &erfin &ermsg \\
+DASUM  &dasum \\
+DATANH &amach &dasinh&derm1 &derv1 &erfin &ermsg \\
+DAXPY  &daxpy \\
+DBACC  &amach &dbacc &dhtcc &dnrm2 &erfin &ermsg &ierm1 &ierv1 \\
+DBESJ0 &amach &dbesj0&dbmp0 &dcsevl&derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DBESJ1 &amach &dbesj1&dbmp1 &dcsevl&derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DBESJN &amach &dbesjn&dbespq&derm1 &derv1 &dgamma&erfin &ermsg &ierv1 \\
+DBESY0 &amach &dbesj0&dbesy0&dbmp0 &dcsevl&derm1 &derv1 &dinits&erfin &ermsg &ierm1 \\
+&ierv1 \\
+DBESY1 &amach &dbesj1&dbesy1&dbmp1 &dcsevl&derm1 &derv1 &dinits&erfin &ermsg &ierm1 \\
+&ierv1 \\
+DBESYN &amach &dbespq&dbesyn&derm1 &derv1 &dgamma&dlgama&erfin &ermor &ermsg &ierv1 \\
+DBI0K0 &amach &dbi0k0&dcsevl&derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DBI1K1 &amach &dbi1k1&dcsevl&derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DBINOM &amach &dbinom&derm1 &derv1 &dgamma&dlgama&erfin &ermsg &ierm1 &ierv1 \\
+DBSOL  &dbsol &erfin &ermsg &ierm1 &ierv1 \\
+DC2FIT &amach &dbacc &dbsol &dc2bas&dc2fit&derm1 &derv1 &dhtcc &dnrm2 &dtrc2c&erfin \\
+&ermsg &ierm1 &ierv1 \\
+DCDCHI &amach &dcdchi&dcsevl&derf  &derm1 &derv1 &dgam1 &dgami &dgamma&dgr17 &dgr29 \\
+&dinits&drcomp&drexp &drlog &dxparg&erfin &ermsg &ierm1 &ierv1 \\
+DCDNML &amach &dcdnml&dcsevl&derf  &derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DCDPOI &amach &dcdpoi&dcsevl&derf  &derm1 &derv1 &dgam1 &dgami &dgamma&dgr17 &dgr29 \\
+&dinits&drcomp&drexp &drlog &dxparg&erfin &ermsg &ierm1 &ierv1 \\
+DCFT   &dcft  &dfft  &erfin &ermsg &ierm1 &ierv1 \\
+DCHOL  &amach &dchol &ddot  \\
+DCI    &dci   &dcpval&derm1 &derv1 &erfin &ermsg \\
+DCIN   &dci   &dcpval&derm1 &derv1 &erfin &ermsg \\
+DCKDER &amach &dckder&erfin &ermsg &ierm1 &ierv1 \\
+DCONCM &dconcm\\
+DCONMC &dconmc\\
+DCOPY  &dcopy \\
+DCOS1  &dcos1 \\
+DCOSHM &dcoshm\\
+DCOSPX &amach &dcospx&derm1 &derv1 &erfin &ermsg \\
+DCOV2  &dcov2 &ddot  &dswap &erfin &ermsg &ierm1 &ierv1 \\
+DCOV3  &dcopy &dcov3 &ddot  &dscal &erfin &ermsg &ierm1 &ierv1 \\
+DCPDRV &dcpdrv&erfin &ermsg &ierm1 &ierv1 \\
+DCPINT &dcpint&erfin &ermsg &ierm1 &ierv1 \\
+DCPLTE &amach &dcplte&derm1 &derv1 &erfin &ermsg \\
+DCPLTK &amach &dcpltk&derm1 &derv1 &erfin &ermsg \\
+DCPVAL &dcpval\\
+DCSHMM &dcshmm\\
+DDASDB &amach &ddasdb&dmess &mess  \\
+DDASLS &amach &dasum &daxpy &dcopy &ddasf &ddasls&ddot  &dgbfa &dgbsl &dgefa &dgemv \\
+&dgesl &dscal &dswap &idamax&lsame &mess  &xerbla\\
+DDASLX &amach &daxpy &dcopy &ddas1 &ddasco&ddasdb&ddasf &ddasgh&ddasin&ddasj &ddaslv\\
+&ddaslx&ddasnm&ddastp&ddaswt&ddot  &dgbfa &dgbsl &dgefa &dgesl &dmess &dnrm2 &drot  \\
+&drotg &dscal &dswap &idamax&mess  \\
+DDOT   &ddot  \\
+DE1    &amach &dcsevl&dei   &derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DEI    &amach &dcsevl&dei   &derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DELEFI &amach &delefi&derm1 &derv1 &dlnrel&erfin &ermsg \\
+DELPII &amach &delpii&derm1 &derv1 &drcval&drfval&drjval&erfin &ermsg \\
+DERF   &amach &dcsevl&derf  &derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DERFC  &amach &dcsevl&derf  &derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DERFCE &amach &dcsevl&derf  &derm1 &derv1 &dinits&erfin &ermsg &ierm1 &ierv1 \\
+DERFCI &amach &derfi &derm1 &derv1 &erfin &ermsg \\
+DERFI  &amach &derfi &derm1 &derv1 &erfin &ermsg \\
+DERM1  &derm1 &derv1 &erfin &ermsg \\
+DERV1  &derv1 &erfin \\
+DEVUN  &amach &devbh &devun &erfin &ermsg \\
+DEVVUN &amach &devbh &devvun&dnrm2 &dscal &erfin &ermsg \\
+DFFT   &dfft  \\
+DFMIN  &amach &dfmin &erfin &ermsg &ierm1 &ierv1 \\
+DFRENC &amach &dcospx&dcspxx&derm1 &derv1 &dfrenl&dsinpx&dsnpxx&erfin &ermsg \\
+DFRENF &amach &dcospx&dcspxx&derm1 &derv1 &dfrenl&dsinpx&dsnpxx&erfin &ermsg \\
+DFRENG &amach &dcospx&dcspxx&derm1 &derv1 &dfrenl&dsinpx&dsnpxx&erfin &ermsg \\
+DFRENS &amach &dcospx&dcspxx&derm1 &derv1 &dfrenl&dsinpx&dsnpxx&erfin &ermsg \\
+DGAM1  &amach &derm1 &derv1 &dgam1 &dgamma&erfin &ermsg \\
+DGAMI  &amach &dcsevl&derf  &derm1 &derv1 &dgam1 &dgami &dgamma&dgr17 &dgr29 &dinits\\
+&drcomp&drexp &drlog &dxparg&erfin &ermsg &ierm1 &ierv1 \\
+DGAMIE &amach &dcsevl&derf  &derm1 &derv1 &dgam1 &dgami &dgamma&dgr17 &dgr29 &dinits\\
+&drcomp&drexp &drlog &dxparg&erfin &ermsg &ierm1 &ierv1 \\
+DGAMIK &amach &dcsevl&derf  &derm1 &derv1 &dgam1 &dgami &dgamma&dgr17 &dgr29 &dinits\\
+&drcomp&drexp &drlog &dxparg&erfin &ermsg &ierm1 &ierv1 \\
+DGAMMA &amach &derm1 &derv1 &dgamma&erfin &ermsg \\
+DGECO  &dasum &daxpy &ddot  &dgeco &dgefa &dscal &idamax\\
+DGED   &amach &dged  \\
+DGEFA  &daxpy &dgefa &dscal &idamax\\
+DGEFS  &daxpy &dgefa &dgefs &dgesld&dscal &erfin &ermsg &idamax\\
+DGEFSC &dasum &daxpy &ddot  &dgeco &dgefa &dgefsc&dgesld&dscal &erfin &ermsg &idamax\\
+DGEI   &daxpy &dgei  &dscal &dswap &erfin &ermsg \\
+DGESLD &daxpy &dgesld&erfin &ermsg \\
+DGESLT &ddot  &dgeslt&erfin &ermsg \\
+DHERQL &dherql&dimql &erfin &ermsg &ierm1 &ierv1 \\
+DHFTI  &amach &daxpy &ddot  &dhfti &dhtcc &dhtgen&dnrm2 &erfin &ermor &ermsg &ierm1 \\
+&ierv1 \\
+DHINT  &dhint \\
+DHTCC  &amach &dhtcc &dnrm2 \\
+DHTGEN &amach &daxpy &ddot  &dhtgen&dnrm2 \\
+DILUP  &amach &dilup &dmess &mess  \\
+DILUPM &amach &dilup &dilupm&dmess &mess  &optchk\\
+DILUPM &amach &dilupm&dmess &mess  \\
+DINT1  &amach &dint1 &dinta &dintdl&dintdu&dintf &dintns&dinto &dintop&dintsm&dmess \\
+&mess  \\
+DINTA  &amach &dinta &dintdl&dintdu&dintf &dintns&dinto &dintsm&dmess &mess  \\
+DINTM  &amach &dcopy &dinta &dintdl&dintdu&dintf &dintm &dintma&dintns&dinto &dintop\\
+&dintsm&dmess &mess  \\
+DINTMA &amach &dcopy &dinta &dintdl&dintdu&dintf &dintma&dintns&dinto &dintsm&dmess \\
+&mess  \\
+DINTOP &amach &dintop&mess  \\
+DIVA   &amach &diva  &dmess &mess  &optchk&DIVAF &DIVAO \\
+DIVAA  &amach &diva  &dmess &mess  &optchk&DIVAF &DIVAO \\
+DIVACO &amach &diva  &dmess &mess  &optchk&DIVAF &DIVAO \\
+DIVADB &amach &divadb&dmess &mess  \\
+DIVAG  &amach &diva  &divag &dmess &dzero &mess  &optchk\\
+DIVAIN &amach &diva  &dmess &mess  &optchk&DIVAF &DIVAO \\
+DIVAOP &amach &diva  &dmess &mess  &optchk&DIVAF &DIVAO \\
+DIVSET &amach &divset\\
+DJACG  &amach &djacg \\
+DLASUM &dlasum\\
+DLESUM &dlesum\\
+DLGAMA &amach &derm1 &derv1 &dgamma&dlgama&erfin &ermsg \\
+DLNREL &dlnrel\\
+DMATP  &amach &dmatp \\
+DMATPR &amach &dmatpr&dmess &mess  \\
+DMESS  &amach &dmess &mess  \\
+DMLC01 &amach &derv1 &dmlc  &erfin &ermor &ermsg &ierm1 &ierv1 &DMLCFG\\
+DMPDRV &dmpdrv&erfin &ermsg &ierm1 &ierv1 \\
+DMPINT &dmpint&erfin &ermsg &ierm1 &ierv1 \\
+DMPVAL &dmpval\\
+DNLAFB &amach &divset&dnlafb&drn2gb&i7copy&DCALCR\\
+DNLAFU &amach &divset&dnlafu&drn2g &DCALCR\\
+DNLAGB &amach &divset&dnlagb&drn2gb&i7copy&DCALCR&DCALCJ\\
+DNLAGU &amach &divset&dnlagu&drn2g &DCALCR&DCALCJ\\
+DNLSFB &amach &divset&dnlsfb&dq7rfh&drn2gb&drnsgb&i7copy&idsm  &DCALCA\\
+DNLSFU &amach &divset&dnlsfu&dq7rfh&drn2g &drnsg &idsm  \\
+DNLSGB &amach &divset&dnlsgb&dq7rfh&drn2gb&drnsgb&i7copy\\
+DNLSGU &amach &divset&dnlsgu&dq7rfh&drn2g &drnsg &DCALCA\\
+DNQSOL &amach &derv1 &dnqsol&dnrm2 &erfin &ermsg &ierm1 &ierv1 &DNQFJ \\
+DNRM2  &amach &dnrm2 \\
+DPASCL &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DPFIT  &amach &derm1 &derv1 &dpfit &drotm &drotmg&erfin &ermsg &ierm1 &ierv1 \\
+DPLOT  &amach &dmess &dplot &mess  \\
+DPOLZ  &amach &dpolz &erfin &ermsg \\
+DPOLZ2 &amach &dpolz2&erfin &ermsg \\
+DPPNML &amach &derfi &derm1 &derv1 &dppnml&erfin &ermsg \\
+DPQUAD &derv1 &dpquad&dsfind&erfin &ermsg &ierm1 &ierv1 \\
+DPRPL  &dprpl \\
+DPRPL1 &dprpl1&dprpl3&erfin &ermsg &ierm1 &ierv1 \\
+DPRPL2 &dprpl2&dprpl3&erfin &ermsg &ierm1 &ierv1 \\
+DPSI   &amach &dcsevl&derm1 &derv1 &dinits&dpsi  &erfin &ermor &ermsg &ierm1 &ierv1 \\
+DPSIE  &amach &dcsevl&derm1 &derv1 &dinits&dpsi  &erfin &ermor &ermsg &ierm1 &ierv1 \\
+DPSIK  &amach &dcsevl&derm1 &derv1 &dinits&dpsi  &erfin &ermor &ermsg &ierm1 &ierv1 \\
+DPVAL  &derv1 &dpval &dsfind&erfin &ermsg &ierm1 &ierv1 \\
+DRANE  &drane &erfin &ermsg &ranpk1&ranpk2\\
+DRANG  &drang &erfin &ermsg &ranpk1&ranpk2\\
+DRANGV &drang &drangv&erfin &ermsg &ranpk1&ranpk2\\
+DRANR  &dranr &erfin &ermsg &ranpk1&ranpk2\\
+DRANU  &dranu &erfin &ermsg &ranpk1&ranpk2\\
+DRANUA &erfin &ermsg &ranpk2\\
+DRANUS &erfin &ermsg &ranpk2\\
+DRCVAL &amach &derm1 &derv1 &drcval&erfin &ermsg \\
+DRDVAL &amach &derm1 &derv1 &drdval&erfin &ermsg \\
+DREXP  &amach &drexp \\
+DRFT   &dfft  &drft  &erfin &ermsg &ierm1 &ierv1 \\
+DRFT1  &dfft  &drft1 &erfin &ermsg &ierm1 &ierv1 \\
+DRFVAL &amach &derm1 &derv1 &drfval&erfin &ermsg \\
+DRJVAL &amach &derm1 &derv1 &drcval&drfval&drjval&erfin &ermsg \\
+DRLOG  &amach &drlog \\
+DRLOG1 &amach &drlog \\
+DROT   &drot  \\
+DROTG  &drotg \\
+DROTM  &drotm \\
+DROTMG &drotmg\\
+DSBASD &dsbasd&erfin &ermsg &ierm1 &ierv1 \\
+DSBASI &derv1 &dsbasd&dsbasi&dsfind&erfin &ermsg &ierm1 &ierv1 \\
+DSCAL  &dscal \\
+DSDIF  &dsdif \\
+DSDOT  &dsdot \\
+DSFIND &derv1 &dsfind&erfin &ermsg &ierm1 &ierv1 \\
+DSFIT  &amach &dbacc &dbsol &derv1 &dhtcc &dnrm2 &dsbasd&dsfit &erfin &ermsg &ierm1 \\
+&ierv1 \\
+DSFITC &amach &daxpy &dblse &dcopy &ddot  &derv1 &dhtcc &dnrm2 &dranu &drotg &dsbasd\\
+&dsbasi&dsfind&dsfitc&dswap &erfin &ermor &ermsg &ierm1 &ierv1 &ranpk1&ranpk2\\
+DSI    &dcpval&dsi   \\
+DSIN1  &amach &dsin1 \\
+DSINHM &amach &dsinhm\\
+DSINPX &amach &derm1 &derv1 &dsinpx&erfin &ermsg \\
+DSORT  &dsort \\
+DSORTP &dsortp\\
+DSORTQ &dsortp\\
+DSPGE  &amach &dmess &dspge &mess  \\
+DSQUAD &derv1 &dsfind&dsquad&dsval &erfin &ermsg &ierm1 &ierv1 \\
+DSTAT1 &dstat1\\
+DSTAT2 &dprpl &dstat2\\
+DSTOP  &derv1 &dsdif &dsfind&dstop &dsvala&erfin &ermsg &ierm1 &ierv1 \\
+DSVA   &amach &daxpy &dcopy &ddot  &dhtcc &dhtgen&dnrm2 &dprtsv&dqrbd &drot  &drotg \\
+&dsva  &dsvdrs&dswap &erfin &ermor &ermsg &ierv1 \\
+DSVAL  &derv1 &dsfind&dsval &erfin &ermsg &ierm1 &ierv1 \\
+DSVALA &derv1 &dsfind&dsvala&erfin &ermsg &ierm1 &ierv1 \\
+DSVDRS &amach &daxpy &dcopy &ddot  &dhtcc &dhtgen&dnrm2 &dqrbd &drot  &drotg &dsvdrs\\
+&dswap &erfin &ermor &ermsg &ierv1 \\
+DSWAP  &dswap \\
+DSYMQL &dimql &dsymql&erfin &ermsg &ierm1 &ierv1 \\
+DTCST  &dfft  &dtcst &erfin &ermsg &ierm1 &ierv1 \\
+DTGFI  &dtgc0 &dtgc1 &dtgext&dtgfi &dtgfnd&dtgset&erfin &ermsg &ierm1 &ierv1 \\
+DTGGRD &dsortp&dtggrd&dtgset\\
+DTGPD  &drot  &drotg &dtgpd &dtgset\\
+DTGPRG &dtgprg&dtgset\\
+DTGREC &dtgc0 &dtgc1 &dtgext&dtgfi &dtgfnd&dtgrec&dtgset&erfin &ermsg &ierm1 &ierv1 \\
+DUACOS &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUASIN &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUATAN &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUATN2 &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUCOS  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUCOSH &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUDIF  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUDIF1 &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUEXP  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUGETN &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DULOG  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUPRO  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUPRO1 &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUPWRI &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUQUO  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUQUO1 &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUREV  &dasum &daxpy &ddot  &dgeco &dgefa &dgei  &dscal &dswap &durev &erfin &ermsg \\
+&idamax\\
+DUSET  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUSETN &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUSIN  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUSINH &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUSQRT &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUSUM  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUSUM1 &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUTAN  &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DUTANH &ducomp&erfin &ermsg &ierm1 &ierv1 \\
+DVECP  &amach &dvecp \\
+DVECPR &amach &dmess &dvecpr&mess  \\
+DWACOS &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWASIN &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWATAN &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWATN2 &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWCHN  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWCOS  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWCOSH &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWDIF  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWDIF1 &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWEXP  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWLOG  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWPRO  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWPRO1 &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWPWRI &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWQUO  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWQUO1 &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWRCHN &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWSET  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWSIN  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWSINH &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWSQRT &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWSUM  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWSUM1 &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWTAN  &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DWTANH &dwcomp&erfin &ermsg &ierm1 &ierv1 \\
+DXRK8  &amach &dmess &dxrk8 &dxrk8f&dxrk8o&mess  \\
+DXRK8A &amach &dmess &dxrk8 &dxrk8f&dxrk8o&mess  \\
+DXRK8G &amach &dmess &dxrk8 &dxrk8f&dxrk8g&dxrk8o&dzero &mess  \\
+DZABS  &dzabs \\
+DZERO  &amach &dmess &dzero &mess  \\
+ERFIN  &erfin \\
+ERMOR  &erfin &ermor \\
+ERMSET &erfin &ermsg \\
+ERMSG  &erfin &ermsg \\
+EXSORT &exsort&insrtx&pvec  &DATAOP&COMPAR\\
+GSORTP &gsortp&COMPAR\\
+I1MACH &amach \\
+ICAMAX &icamax\\
+IDAMAX &idamax\\
+IDRANP &amach &derm1 &derv1 &erfin &ermsg &idranp&ranpk1&ranpk2\\
+IDSTA1 &idsta1\\
+IDSTA2 &dprpl &idsta2\\
+IERM1  &erfin &ermsg &ierm1 &ierv1 \\
+IERV1  &erfin &ierv1 \\
+IMATP  &imatp \\
+IMATPR &imatpr&mess  \\
+INSORT &insort&COMPAR\\
+ISAMAX &isamax\\
+ISORT  &isort \\
+ISORTP &isortp\\
+ISORTQ &isortp\\
+ISRANP &amach &erfin &ermsg &isranp&ranpk1&ranpk2&serm1 &serv1 \\
+ISSTA1 &issta1\\
+ISSTA2 &issta2&sprpl \\
+IVECP  &ivecp \\
+IVECPR &ivecpr&mess  \\
+MESS   &mess  \\
+PVEC   &pvec  \\
+R1MACH &amach \\
+RAN1   &erfin &ermsg &ranpk1&ranpk2\\
+RANGET &erfin &ermsg &ranpk2\\
+RANPUT &erfin &ermsg &ranpk1&ranpk2\\
+RANSIZ &erfin &ermsg &ranpk2\\
+RN2    &erfin &ermsg &ranpk2\\
+SACCUM &amach &erfin &ermsg &ierm1 &ierv1 &saccum&shtcc &snrm2 &srotg \\
+SACOSH &amach &erfin &ermsg &sasinh&serm1 &serv1 \\
+SACSCH &amach &erfin &ermsg &sasinh&serm1 &serv1 \\
+SACTNH &amach &erfin &ermsg &sasinh&serm1 &serv1 \\
+SASECH &amach &erfin &ermsg &sasinh&serm1 &serv1 \\
+SASINH &amach &erfin &ermsg &sasinh&serm1 &serv1 \\
+SASUM  &sasum \\
+SATANH &amach &erfin &ermsg &sasinh&serm1 &serv1 \\
+SAXPY  &saxpy \\
+SBACC  &amach &erfin &ermsg &ierm1 &ierv1 &sbacc &shtcc &snrm2 \\
+SBESJ0 &amach &erfin &ermsg &ierm1 &ierv1 &sbesj0&sbmp0 &scsevl&serm1 &serv1 &sinits\\
+SBESJ1 &amach &erfin &ermsg &ierm1 &ierv1 &sbesj1&sbmp1 &scsevl&serm1 &serv1 &sinits\\
+SBESJN &amach &erfin &ermsg &ierv1 &sbesjn&sbespq&serm1 &serv1 &sgamma\\
+SBESY0 &amach &erfin &ermsg &ierm1 &ierv1 &sbesj0&sbesy0&sbmp0 &scsevl&serm1 &serv1 \\
+&sinits\\
+SBESY1 &amach &erfin &ermsg &ierm1 &ierv1 &sbesj1&sbesy1&sbmp1 &scsevl&serm1 &serv1 \\
+&sinits\\
+SBESYN &amach &erfin &ermor &ermsg &ierv1 &sbespq&sbesyn&serm1 &serv1 &sgamma&slgama\\
+SBI0K0 &amach &erfin &ermsg &ierm1 &ierv1 &sbi0k0&scsevl&serm1 &serv1 &sinits\\
+SBI1K1 &amach &erfin &ermsg &ierm1 &ierv1 &sbi1k1&scsevl&serm1 &serv1 &sinits\\
+SBINOM &amach &erfin &ermsg &ierm1 &ierv1 &sbinom&serm1 &serv1 &sgamma&slgama\\
+SBSOL  &erfin &ermsg &ierm1 &ierv1 &sbsol \\
+SC2FIT &amach &erfin &ermsg &ierm1 &ierv1 &sbacc &sbsol &sc2bas&sc2fit&serm1 &serv1 \\
+&shtcc &snrm2 &strc2c\\
+SCASUM &scasum\\
+SCDCHI &amach &erfin &ermsg &ierm1 &ierv1 &scdchi&scsevl&serf  &serm1 &serv1 &sgam1 \\
+&sgami &sgamma&sgr17 &sgr29 &sinits&srcomp&srexp &srlog &sxparg\\
+SCDNML &amach &erfin &ermsg &ierm1 &ierv1 &scdnml&scsevl&serf  &serm1 &serv1 &sinits\\
+SCDPOI &amach &erfin &ermsg &ierm1 &ierv1 &scdpoi&scsevl&serf  &serm1 &serv1 &sgam1 \\
+&sgami &sgamma&sgr17 &sgr29 &sinits&srcomp&srexp &srlog &sxparg\\
+SCFT   &erfin &ermsg &ierm1 &ierv1 &scft  &sfft  \\
+SCHOL  &amach &schol &sdot  \\
+SCI    &erfin &ermsg &sci   &scpval&serm1 &serv1 \\
+SCIN   &erfin &ermsg &sci   &scpval&serm1 &serv1 \\
+SCKDER &amach &erfin &ermsg &ierm1 &ierv1 &sckder\\
+SCNRM2 &amach &scnrm2\\
+SCONCM &sconcm\\
+SCONMC &sconmc\\
+SCOPY  &scopy \\
+SCOS1  &scos1 \\
+SCOSHM &scoshm\\
+SCOSPX &amach &erfin &ermsg &scospx&serm1 &serv1 \\
+SCOV2  &erfin &ermsg &ierm1 &ierv1 &scov2 &sdot  &sswap \\
+SCOV3  &erfin &ermsg &ierm1 &ierv1 &scopy &scov3 &sdot  &sscal \\
+SCPDRV &erfin &ermsg &ierm1 &ierv1 &scpdrv\\
+SCPINT &erfin &ermsg &ierm1 &ierv1 &scpint\\
+SCPLTE &amach &erfin &ermsg &scplte&serm1 &serv1 \\
+SCPLTK &amach &erfin &ermsg &scpltk&serm1 &serv1 \\
+SCPVAL &scpval\\
+SCSHMM &scshmm\\
+SDASDB &amach &mess  &sdasdb&smess \\
+SDASLS &amach &isamax&lsame &mess  &sasum &saxpy &scopy &sdasf &sdasls&sdot  &sgbfa \\
+&sgbsl &sgefa &sgemv &sgesl &sscal &sswap &xerbla\\
+SDASLX &amach &isamax&mess  &saxpy &scopy &sdas1 &sdasco&sdasdb&sdasf &sdasgh&sdasin\\
+&sdasj &sdaslv&sdaslx&sdasnm&sdastp&sdaswt&sdot  &sgbfa &sgbsl &sgefa &sgesl &smess \\
+&snrm2 &srot  &srotg &sscal &sswap \\
+SDOT   &sdot  \\
+SDSDOT &sdsdot\\
+SE1    &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&sei   &serm1 &serv1 &sinits\\
+SEI    &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&sei   &serm1 &serv1 &sinits\\
+SELEFI &amach &erfin &ermsg &selefi&serm1 &serv1 &slnrel\\
+SELPII &amach &erfin &ermsg &selpii&serm1 &serv1 &srcval&srfval&srjval\\
+SERF   &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&serf  &serm1 &serv1 &sinits\\
+SERFC  &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&serf  &serm1 &serv1 &sinits\\
+SERFCE &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&serf  &serm1 &serv1 &sinits\\
+SERFCI &amach &erfin &ermsg &serfi &serm1 &serv1 \\
+SERFI  &amach &erfin &ermsg &serfi &serm1 &serv1 \\
+SERM1  &erfin &ermsg &serm1 &serv1 \\
+SERV1  &erfin &serv1 \\
+SEVUN  &amach &erfin &ermsg &sevbh &sevun \\
+SEVVUN &amach &erfin &ermsg &sevbh &sevvun&snrm2 &sscal \\
+SFFT   &sfft  \\
+SFMIN  &amach &erfin &ermsg &ierm1 &ierv1 &sfmin \\
+SFRENC &amach &erfin &ermsg &scospx&scspxx&serm1 &serv1 &sfrenl&ssinpx&ssnpxx\\
+SFRENF &amach &erfin &ermsg &scospx&scspxx&serm1 &serv1 &sfrenl&ssinpx&ssnpxx\\
+SFRENG &amach &erfin &ermsg &scospx&scspxx&serm1 &serv1 &sfrenl&ssinpx&ssnpxx\\
+SFRENS &amach &erfin &ermsg &scospx&scspxx&serm1 &serv1 &sfrenl&ssinpx&ssnpxx\\
+SGAM1  &amach &erfin &ermsg &serm1 &serv1 &sgam1 &sgamma\\
+SGAMI  &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&serf  &serm1 &serv1 &sgam1 &sgami \\
+&sgamma&sgr17 &sgr29 &sinits&srcomp&srexp &srlog &sxparg\\
+SGAMIE &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&serf  &serm1 &serv1 &sgam1 &sgami \\
+&sgamma&sgr17 &sgr29 &sinits&srcomp&srexp &srlog &sxparg\\
+SGAMIK &amach &erfin &ermsg &ierm1 &ierv1 &scsevl&serf  &serm1 &serv1 &sgam1 &sgami \\
+&sgamma&sgr17 &sgr29 &sinits&srcomp&srexp &srlog &sxparg\\
+SGAMMA &amach &erfin &ermsg &serm1 &serv1 &sgamma\\
+SGECO  &isamax&sasum &saxpy &sdot  &sgeco &sgefa &sscal \\
+SGED   &amach &sged  \\
+SGEFA  &isamax&saxpy &sgefa &sscal \\
+SGEFS  &erfin &ermsg &isamax&saxpy &sgefa &sgefs &sgesld&sscal \\
+SGEFSC &erfin &ermsg &isamax&sasum &saxpy &sdot  &sgeco &sgefa &sgefsc&sgesld&sscal \\
+SGEI   &erfin &ermsg &saxpy &sgei  &sscal &sswap \\
+SGESLD &erfin &ermsg &saxpy &sgesld\\
+SGESLT &erfin &ermsg &sdot  &sgeslt\\
+SHERQL &erfin &ermsg &ierm1 &ierv1 &sherql&simql \\
+SHFTI  &amach &erfin &ermor &ermsg &ierm1 &ierv1 &saxpy &sdot  &shfti &shtcc &shtgen\\
+&snrm2 \\
+SHINT  &shint \\
+SHTCC  &amach &shtcc &snrm2 \\
+SHTGEN &amach &saxpy &sdot  &shtgen&snrm2 \\
+SILUP  &amach &mess  &silup &smess \\
+SILUPM &amach &mess  &optchk&silup &silupm&smess \\
+SILUPM &amach &mess  &silupm&smess \\
+SINT1  &amach &mess  &sint1 &sinta &sintdl&sintdu&sintf &sintns&sinto &sintop&sintsm\\
+&smess \\
+SINTA  &amach &mess  &sinta &sintdl&sintdu&sintf &sintns&sinto &sintsm&smess \\
+SINTM  &amach &mess  &scopy &sinta &sintdl&sintdu&sintf &sintm &sintma&sintns&sinto \\
+&sintop&sintsm&smess \\
+SINTMA &amach &mess  &scopy &sinta &sintdl&sintdu&sintf &sintma&sintns&sinto &sintsm\\
+&smess \\
+SINTOP &amach &mess  &sintop\\
+SIVA   &amach &mess  &optchk&siva  &smess &SIVAF &SIVAO \\
+SIVAA  &amach &mess  &optchk&siva  &smess &SIVAF &SIVAO \\
+SIVACO &amach &mess  &optchk&siva  &smess &SIVAF &SIVAO \\
+SIVADB &amach &mess  &sivadb&smess \\
+SIVAG  &amach &mess  &optchk&siva  &sivag &smess &szero \\
+SIVAIN &amach &mess  &optchk&siva  &smess &SIVAF &SIVAO \\
+SIVAOP &amach &mess  &optchk&siva  &smess &SIVAF &SIVAO \\
+SIVSET &amach &sivset\\
+SJACG  &amach &sjacg \\
+SLASUM &slasum\\
+SLESUM &slesum\\
+SLGAMA &amach &erfin &ermsg &serm1 &serv1 &sgamma&slgama\\
+SLNREL &slnrel\\
+SMATP  &amach &smatp \\
+SMATPR &amach &mess  &smatpr&smess \\
+SMESS  &amach &mess  &smess \\
+SMLC01 &amach &erfin &ermor &ermsg &ierm1 &ierv1 &serv1 &smlc  &SMLCFG\\
+SMPDRV &erfin &ermsg &ierm1 &ierv1 &smpdrv\\
+SMPINT &erfin &ermsg &ierm1 &ierv1 &smpint\\
+SMPVAL &smpval\\
+SNLAFB &amach &i7copy&sivset&snlafb&srn2gb&SCALCR\\
+SNLAFU &amach &sivset&snlafu&srn2g &SCALCR\\
+SNLAGB &amach &i7copy&sivset&snlagb&srn2gb&SCALCR&SCALCJ\\
+SNLAGU &amach &sivset&snlagu&srn2g &SCALCR&SCALCJ\\
+SNLSFB &amach &i7copy&idsm  &sivset&snlsfb&sq7rfh&srn2gb&srnsgb&SCALCA\\
+SNLSFU &amach &idsm  &sivset&snlsfu&sq7rfh&srn2g &srnsg \\
+SNLSGB &amach &i7copy&sivset&snlsgb&sq7rfh&srn2gb&srnsgb\\
+SNLSGU &amach &sivset&snlsgu&sq7rfh&srn2g &srnsg &SCALCA\\
+SNQSOL &amach &erfin &ermsg &ierm1 &ierv1 &serv1 &snqsol&snrm2 &SNQFJ \\
+SNRM2  &amach &snrm2 \\
+SPASCL &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SPFIT  &amach &erfin &ermsg &ierm1 &ierv1 &serm1 &serv1 &spfit &srotm &srotmg\\
+SPLOT  &amach &mess  &smess &splot \\
+SPOLZ  &amach &erfin &ermsg &spolz \\
+SPOLZ2 &amach &erfin &ermsg &spolz2\\
+SPPNML &amach &erfin &ermsg &serfi &serm1 &serv1 &sppnml\\
+SPQUAD &erfin &ermsg &ierm1 &ierv1 &serv1 &spquad&ssfind\\
+SPRPL  &sprpl \\
+SPRPL1 &erfin &ermsg &ierm1 &ierv1 &sprpl1&sprpl3\\
+SPRPL2 &erfin &ermsg &ierm1 &ierv1 &sprpl2&sprpl3\\
+SPSI   &amach &erfin &ermor &ermsg &ierm1 &ierv1 &scsevl&serm1 &serv1 &sinits&spsi  \\
+SPSIE  &amach &erfin &ermor &ermsg &ierm1 &ierv1 &scsevl&serm1 &serv1 &sinits&spsi  \\
+SPSIK  &amach &erfin &ermor &ermsg &ierm1 &ierv1 &scsevl&serm1 &serv1 &sinits&spsi  \\
+SPVAL  &erfin &ermsg &ierm1 &ierv1 &serv1 &spval &ssfind\\
+SRANE  &erfin &ermsg &ranpk1&ranpk2&srane \\
+SRANG  &erfin &ermsg &ranpk1&ranpk2&srang \\
+SRANGV &erfin &ermsg &ranpk1&ranpk2&srang &srangv\\
+SRANR  &erfin &ermsg &ranpk1&ranpk2&sranr \\
+SRANU  &erfin &ermsg &ranpk1&ranpk2&sranu \\
+SRANUA &erfin &ermsg &ranpk2\\
+SRANUS &erfin &ermsg &ranpk2\\
+SRCVAL &amach &erfin &ermsg &serm1 &serv1 &srcval\\
+SRDVAL &amach &erfin &ermsg &serm1 &serv1 &srdval\\
+SREXP  &amach &srexp \\
+SRFT   &erfin &ermsg &ierm1 &ierv1 &sfft  &srft  \\
+SRFT1  &erfin &ermsg &ierm1 &ierv1 &sfft  &srft1 \\
+SRFVAL &amach &erfin &ermsg &serm1 &serv1 &srfval\\
+SRJVAL &amach &erfin &ermsg &serm1 &serv1 &srcval&srfval&srjval\\
+SRLOG  &amach &srlog \\
+SRLOG1 &amach &srlog \\
+SROT   &srot  \\
+SROTG  &srotg \\
+SROTM  &srotm \\
+SROTMG &srotmg\\
+SSBASD &erfin &ermsg &ierm1 &ierv1 &ssbasd\\
+SSBASI &erfin &ermsg &ierm1 &ierv1 &serv1 &ssbasd&ssbasi&ssfind\\
+SSCAL  &sscal \\
+SSDIF  &ssdif \\
+SSFIND &erfin &ermsg &ierm1 &ierv1 &serv1 &ssfind\\
+SSFIT  &amach &erfin &ermsg &ierm1 &ierv1 &sbacc &sbsol &serv1 &shtcc &snrm2 &ssbasd\\
+&ssfit \\
+SSFITC &amach &erfin &ermor &ermsg &ierm1 &ierv1 &ranpk1&ranpk2&saxpy &sblse &scopy \\
+&sdot  &serv1 &shtcc &snrm2 &sranu &srotg &ssbasd&ssbasi&ssfind&ssfitc&sswap \\
+SSI    &scpval&ssi   \\
+SSIN1  &amach &ssin1 \\
+SSINHM &amach &ssinhm\\
+SSINPX &amach &erfin &ermsg &serm1 &serv1 &ssinpx\\
+SSORT  &ssort \\
+SSORTP &ssortp\\
+SSORTQ &ssortp\\
+SSPGE  &amach &mess  &smess &sspge \\
+SSQUAD &erfin &ermsg &ierm1 &ierv1 &serv1 &ssfind&ssquad&ssval \\
+SSTAT1 &sstat1\\
+SSTAT2 &sprpl &sstat2\\
+SSTOP  &erfin &ermsg &ierm1 &ierv1 &serv1 &ssdif &ssfind&sstop &ssvala\\
+SSVA   &amach &erfin &ermor &ermsg &ierv1 &saxpy &scopy &sdot  &shtcc &shtgen&snrm2 \\
+&sprtsv&sqrbd &srot  &srotg &ssva  &ssvdrs&sswap \\
+SSVAL  &erfin &ermsg &ierm1 &ierv1 &serv1 &ssfind&ssval \\
+SSVALA &erfin &ermsg &ierm1 &ierv1 &serv1 &ssfind&ssvala\\
+SSVDRS &amach &erfin &ermor &ermsg &ierv1 &saxpy &scopy &sdot  &shtcc &shtgen&snrm2 \\
+&sqrbd &srot  &srotg &ssvdrs&sswap \\
+SSWAP  &sswap \\
+SSYMQL &erfin &ermsg &ierm1 &ierv1 &simql &ssymql\\
+STCST  &erfin &ermsg &ierm1 &ierv1 &sfft  &stcst \\
+STGFI  &erfin &ermsg &ierm1 &ierv1 &stgc0 &stgc1 &stgext&stgfi &stgfnd&stgset\\
+STGGRD &ssortp&stggrd&stgset\\
+STGPD  &srot  &srotg &stgpd &stgset\\
+STGPRG &stgprg&stgset\\
+STGREC &erfin &ermsg &ierm1 &ierv1 &stgc0 &stgc1 &stgext&stgfi &stgfnd&stgrec&stgset\\
+SUACOS &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUASIN &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUATAN &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUATN2 &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUCOS  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUCOSH &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUDIF  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUDIF1 &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUEXP  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUGETN &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SULOG  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUPRO  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUPRO1 &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUPWRI &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUQUO  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUQUO1 &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUREV  &erfin &ermsg &isamax&sasum &saxpy &sdot  &sgeco &sgefa &sgei  &sscal &sswap \\
+&surev \\
+SUSET  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUSETN &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUSIN  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUSINH &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUSQRT &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUSUM  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUSUM1 &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUTAN  &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SUTANH &erfin &ermsg &ierm1 &ierv1 &sucomp\\
+SVECP  &amach &svecp \\
+SVECPR &amach &mess  &smess &svecpr\\
+SWACOS &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWASIN &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWATAN &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWATN2 &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWCHN  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWCOS  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWCOSH &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWDIF  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWDIF1 &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWEXP  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWLOG  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWPRO  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWPRO1 &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWPWRI &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWQUO  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWQUO1 &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWRCHN &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWSET  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWSIN  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWSINH &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWSQRT &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWSUM  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWSUM1 &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWTAN  &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SWTANH &erfin &ermsg &ierm1 &ierv1 &swcomp\\
+SXRK8  &amach &mess  &smess &sxrk8 &sxrk8f&sxrk8o\\
+SXRK8A &amach &mess  &smess &sxrk8 &sxrk8f&sxrk8o\\
+SXRK8G &amach &mess  &smess &sxrk8 &sxrk8f&sxrk8g&sxrk8o&szero \\
+SZERO  &amach &mess  &smess &szero \\
+ZCOEF  &zcoef \\
+ZDIF   &zdif  \\
+ZGAM   &amach &derm1 &derv1 &erfin &ermsg &zgam  \\
+ZPOLZ  &amach &dcomqr&dzabs &erfin &ermsg &zpolz &zquo  &zsqrtx\\
+ZPRO   &zpro  \\
+ZQUO   &zquo  \\
+ZSQRTX &zsqrtx\\
+ZSUM   &zsum  \\
+ZWOFZ  &amach &derv1 &erfin &ermor &ermsg &zwofz \\

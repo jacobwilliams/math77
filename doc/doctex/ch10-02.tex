@@ -1,0 +1,438 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 10.2 Trigonometric, Cosine, and Sine Fourier Transforms
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine computes discrete trigonometric, cosine, and sine transforms
+in up to six dimensions using the FFT. In the one dimensional case, the
+values $y$ and the Fourier coefficients $\alpha $ and $\beta $ are related
+by:
+\begin{multline}
+y_j=\frac 12\alpha _0+\,\sum_{k=1}^{(N/2)-1}\left[ \alpha _k\cos \frac{2\pi
+jk}N+\beta _k\sin \frac{2\pi jk}N\right]\\
++\frac 12\alpha _{N/2}(-1)^j,\quad j=0,1,...,N-1\tag{1S}
+\end{multline}\vspace{-10pt}
+\renewcommand{\theequation}{\arabic{equation}A}
+\begin{equation}
+\begin{split}
+\alpha _k&=\frac 2N\sum_{j=0}^{N-1}y_j\cos \frac{2\pi jk}N,\quad
+k=0,1,...,\frac N2\\
+\beta _k&=\frac 2N\sum_{j=0}^{N-1}y_j\sin \frac{2\pi jk}N,\quad
+k=1,2,...,\frac N2-1
+\end{split}
+\end{equation}\vspace{-10pt}
+\begin{multline}
+y_j=\frac 12\alpha _0+\sum_{k=1}^{N-1}\alpha _k\cos \frac{\pi jk}N+\frac
+12\alpha _N(-1)^j,\\
+j=0,1,...,N\tag{2S}
+\end{multline}\vspace{-20pt}
+\begin{multline}
+\alpha _k=\frac 2N\left[ \frac 12y_0+\sum_{j=1}^{N-1}y_j\cos \frac{\pi jk}%
+N+\frac 12y_N(-1)^k\right] ,\\
+k=0,1,...,N
+\end{multline}\vspace{-20pt}
+\begin{equation}
+\hspace{-5pt}y_j=\sum_{k=1}^{N-1}\beta _k\sin \frac{\pi jk}N,\quad j=1,2,...,N-1%
+\tag{3S}
+\end{equation}\vspace{-10pt}
+\begin{equation}
+\hspace{-5pt}\beta _k=\frac 2N\sum_{j=1}^{N-1}y_j\sin
+\frac{\pi jk}N,\quad k=1,2,...,N-1
+\end{equation}
+where $N =2^{\text{M}(1)}$, ($N_i=2^{\text{M}(i)}$, $i=1$, ..., ND in the
+multi-dimensional case.) In the equation labels above, the numeral 1, 2,
+or~3 denotes the Trigonometric, Cosine, or Sine transform, respectively,
+while the letter S or A denotes Synthesis or Analysis.
+\renewcommand{\theequation}{\arabic{equation}}
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision, One-Dimensional Transform}
+
+\begin{description}
+\item[\bf INTEGER]  \ {\bf M}(1){\bf , ND, MS}
+\item[\bf REAL]  \ {\bf A}$(\geq \mu $)\quad $[\mu =2^{\text{M}(1)}+1$
+for a Cosine transform, and $=2^{\text{M}(1)}$ for a Trigonometric transform or
+Sine transform.]
+\item[\bf REAL]  \ {\bf S}$(\geq \nu {-}1$)\quad $[\nu =2^{\text{M}(1)-2}$ for
+a Trigonometric transform and $=2^{\text{M}(1)-1}$ for a Cosine or Sine
+transform.]
+\item[\bf CHARACTER TCS, MODE]  \
+\end{description}
+
+On the initial call set MS to~0 to indicate the array S() does not yet
+contain a sine table. Assign values to A(), TCS, MODE, M(), and ND = 1
+for a one-dimensional transform.
+$$
+\fbox{{\bf CALL STCST(A, TCS, MODE, M, ND, MS, S)}}
+$$
+On return A() will contain computed values. S() will contain the sine
+table used in computing the Fourier transform. MS may have been changed.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A()]  [inout] If MODE selects analysis, A() contains $y$ on input and $%
+\alpha $\ and/or\ $\beta $ on output. If MODE selects synthesis, A()
+contains $\alpha $\ and/or\ $\beta $ on input and $y$ on output. Let $N
+=2^{\text{M}(1)}.$
+
+When A() contains $y$'s, the element $y_j$ is stored in A($j+1)$.
+The range of $j$ is $[0, N-1]$ for the Trigonometric transform, $%
+[0, N]$ for the Cosine transform, and $[1, N-1]$ for
+the Sine transform.
+
+For the Trigonometric transform, the $\alpha $'s and $\beta $'s
+are stored as A($1)=\alpha _0$, A($2)=\alpha _{N/2}$, and ${%
+\textstyle A}(2k+1)=\alpha _k$, A($2k+2)=\beta _k$, $k=1$, 2, ..., ($N/2)-1.$
+
+For the Cosine transform, the $\alpha $'s are stored as A($k+1)=\alpha _k$,
+$k=0$, 1, ..., $N$.
+
+For the Sine transform, the $\beta $'s are stored as A($k+1)=\beta
+_k$, $k=1$, 2, ..., $N-1$. Although the value contained in A(1) is
+irrelevant for the Sine transform, the subroutine does access this location,
+so A(1) must contain a valid floating-point number on entry and its value
+will generally be changed on return.
+
+\item[TCS]  [in] The character variable TCS selects the type of transform to
+be done.
+
+$^{\prime }\text{T}^{\prime }$ or $^{\prime }\text{t}^{\prime }$ selects the Trigonometric
+transform (Formula 1A or~1S).
+
+$^{\prime }\text{C}^{\prime }$ or $^{\prime }\text{c}^{\prime }$ selects the Cosine
+transform (Formula 2A or~2S).
+
+$^{\prime }\text{S}^{\prime }$ or $^{\prime }\text{s}^{\prime }$ selects the Sine
+transform (Formula 3A or~3S).
+
+\item[MODE]  [in] The character variable MODE selects Analysis or Synthesis.
+
+$^{\prime }\text{A}^{\prime }$ or $^{\prime }\text{a}^{\prime }$ selects Analysis (Formula
+1A, 2A, or~3A).
+
+$^{\prime }\text{S}^{\prime }$ or $^{\prime }\text{s}^{\prime }$ selects Synthesis
+(Formula 1S, 2S, or~3S).
+
+\item[M()] [in] Defines $N=2^{\text{M}(1)}$.  The number of real data
+points is $N$+1, $N$, and $N{-}$1, for the Cosine, Trigonometric, and Sine
+transforms respectively.  Require 0~$\leq \text{M(1)} \leq 31\ (\leq 30$
+for the cosine or sine transform).  If M(1) is~0, no action is taken.
+
+\item[ND]  [in] Number of dimensions, =1 for one-dimensional transforms.
+
+\item[MS]  [inout] Gives the state of the sine table in S().  Let
+$\text{MS}_{in}\text{ and MS}_{out}$ denote the values of MS on entry
+and return respectively. If the sine table has not previously been
+computed, set $\text{MS}_{in} = 0$ or $-$1 before the call. Otherwise
+the value of $\text{MS}_{out}$ from the previous call using the same
+S() array can be used as $\text{MS}_{in}$ for the current call.
+
+Certain error conditions described in Section E cause the subroutine
+to set $\text{MS}_{out} = -2$ and return.  Otherwise, with M(1) $>$ 0, the
+subroutine sets $\text{MS}_{out} = \max (\text{M}(1), \text{MS}_{in})$
+for the Trigonometric transforms and to $\text{MS}_{out} = \max
+(\text{M}(1)+1, \text{MS}_{in})$ for the Cosine or Sine transforms.
+
+If $\text{MS}_{out} > \max (2, \text{MS}_{in}),$ the subroutine sets
+NT = $2^{\text{MS}_{out}-2}$ and fills S() with NT $-$ 1 sine values.
+
+If $\text{MS}_{in}=-1$, the subroutine returns after the above
+actions, not transforming the data in A().  This is intended to allow
+the use of the sine table for data alteration before a subsequent Fourier
+transform, as discussed in Section G of Chapter~16.0.
+
+\item[S()]  [inout] When the sine table has been computed, S($j)=\sin \pi
+j/(2\times \text{NT})$, $j=1$, 2, ..., NT $-$ 1, see MS above.
+\end{description}
+
+\subsubsection{Program Prototype, Multi-dimensional Transforms}
+
+{\bf INTEGER} \ {\bf M}($\geq $ ND){\bf , ND, MS}
+
+{\bf REAL} \ {\bf A}($\mu _1$, $\mu _2$, ..., $\geq \mu _{ND})$\quad $[\mu
+_k=2^{\text{M}(k)}+1$ for a Cosine transform and $=2^{\text{M}(k)}$ for a
+Trigonometric or Sine transform.]
+
+{\bf REAL} \ {\bf S}($\geq \max (\nu _1$, $\nu _2$, ..., $\nu _{ND})-1)$%
+\quad $[\nu _k=2^{\text{M}(k)-2}$ for a Trigonometric transform
+and $=2^{\text{M}(k)-1}$
+for a Cosine or Sine transform.]
+
+{\bf CHARACTER TCS*($\geq $ ND), MODE*($\geq $ ND)}
+
+On the initial call set MS to~0 to indicate the array S() does not yet
+contain a sine table. Assign values to A(), TCS, MODE, M(), and ND.
+$$
+\fbox{{\bf CALL STCST(A, TCS, MODE, M, ND, MS, S)}}
+$$
+On return A() contains the transformed data and S() contains the sine table
+used in computing the Fourier transform. The value of MS may have been
+changed.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A()]  [inout] Array used for input and output data, see Functional
+Description below for specification of the storage of items in A().
+
+\item[TCS]  [in] The character TCS$(k$:$k)$ selects the type of transform to
+be done in the $k^{th}$ dimension.
+
+$^{\prime }\text{T}^{\prime }$ or $^{\prime }\text{t}^{\prime }$ selects the Trigonometric
+transform (Formula 1A or~1S).
+
+$^{\prime }\text{C}^{\prime }$ or $^{\prime }\text{c}^{\prime }$ selects the Cosine
+transform (Formula 2A or~2S).
+
+$^{\prime }\text{S}^{\prime }$ or $^{\prime }\text{s}^{\prime }$ selects the Sine
+transform (Formula 3A or~3S).
+
+\item[MODE]  [in] The character MODE$(k$:$k)$ selects Analysis or Synthesis
+in the $k^{th}$ dimension.
+
+$^{\prime }\text{A}^{\prime }$ or $^{\prime }\text{a}^{\prime }$ selects Analysis (Formula
+1A, 2A, or~3A).
+
+$^{\prime }\text{S}^{\prime }$ or $^{\prime }\text{s}^{\prime }$ selects Synthesis
+(Formula 1S, 2S, or~3S).
+
+\item[M()]  [in] In the $k^{th}$ dimension, $k=1$, ..., ND, define $%
+N_k=2^{\text{M}(k)}$. The index range for the values $y_j$ in the $k^{th}$
+dimension is $[0,N_k-1]$ for the Trigonometric transform, $[0,N_k]$ for the
+Cosine transform, and $[1,N_k-1]$ for the Sine transform. Require $0 \leq
+\text{M}(k)\leq 31\ (\leq 30$ for the cosine or sine transform).  If
+M($k)=0$, no action is taken with respect to dimension $k$.
+
+\item[ND]  [in] Number of dimensions, 1 $\leq $ ND $\leq $ 6.
+
+\item[MS]  [inout]  As for MS in the one dimensional case above, except,
+if there is no error and  M($k) >$ 0 for some $k$, the
+subroutine sets $\text{MS}_{out} = \max
+(\mu _1$, $\mu _2$, ..., $\mu_{ND})$, $\text{MS}_{in}$), where $\mu _k=
+\text{M}(k)$ for the Trigonometric transform,
+and $=\text{M}(k)+1$ for the Cosine or Sine transform.  NT is defined
+in terms of $\text{MS}_{out}$ as described in Section~B.2 above.
+
+\item[S()]  [inout] When the sine table has been computed, S($j)=\sin \pi
+j/(2\times \text{NT})$, $j=1$, 2, ..., NT $-$ 1, see MS above.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change STCST to DTCST, and the REAL type statements to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+Given%
+\begin{equation*}
+f(t)=\frac{2\sinh t}{\sinh \pi t}
+\end{equation*}
+obtain an estimate of $\varphi (\omega )=\int_0^Tf(t)\cos \omega t\,dt$ and
+compare it with $\varphi (\omega )=\sin (1)/(\cosh \omega +\cos (1))$, the true
+solution. Let $T$ and $\Omega $ denote the largest values of $t$ and $\omega $
+to be used in the computation. As was done below Eq.\,(18) in Chapter~16.0,
+we introduce the approximations%
+\begin{multline*}
+\varphi (\omega ) = \int_0^Tf(t)\cos \omega t\,dt\\
+\approx \frac TN\!\left[ \frac 12f(t_0)+\!\sum_{j=1}^{N-1}f(t_j)\cos
+\omega t_j+\frac 12f(t_N)\cos \omega t_N\right]
+\end{multline*}
+where $t_j=j{T}/N$. With $\omega _k=k\pi /{T}$, we get%
+\begin{equation*}\hspace{-15pt}
+\varphi (\omega _k)\!\approx \!\frac T2\frac 2N\!\left[ \frac
+12f(t_0)\!+\!\!\sum_{j=1}^{N-1}\!f(t_j)\cos \frac{\pi jk}N\!+\!\frac
+12f(t_N)(-1)^k\!\right]
+\end{equation*}
+which except for the factor $T/2$ has the form of Eq.\,(2A) above. Good
+results are obtained by balancing the error due to a finite $T$ with the
+error due to aliasing $(i.e$. use of a finite $\Omega )$. Thus we want to
+select $T$ and $\Omega $ so that%
+\begin{equation}
+\int_T^\infty |f(t)|\,dt\approx \frac 2{\pi -1}e^{-(\pi -1)T}\text{,
+and}
+\end{equation}\vspace{-10pt}
+\begin{equation}
+\int_\Omega^\infty |\varphi (\omega )|\,d\omega \approx 2\sin (1)e^{-\Omega}
+\end{equation}
+are of the same order of magnitude. Since%
+\begin{equation*}
+\int_T^\infty |f(t)|\,dt<10^{-4}\int_0^T|f(t)|\,dt\quad \text{for }T\geq 10.
+\end{equation*}
+there is no point in choosing $T>10$. With $T=10$, $N=64$ gives $\Omega =(%
+N \pi /{T})=6.4\pi $. The right hand sides of Equations (4) and (5) are
+then $\approx 4.7\times 10^{-10}$ and $3.1\times 10^{-9}$ respectively.
+
+The program at the end of this chapter carries out the above calculations,
+but prints results only for every $10^{th}$ value of $k$ to save space.
+
+\subsection{Functional Description}
+
+The one-dimensional transforms computed by this subroutine are given by
+equations (1S), (1A), ..., (3S), (3A). The multi-dimensional transform is
+accomplished by applying the appropriate one-dimensional transforms in each
+dimension. To define the relation between input and output contents of the
+A() array in the multi-dimensional case we introduce a 4-argument function,
+T(*,*,*,*), in which the first argument can take the values $%
+^{\prime }\text{T}^{\prime }$,$^{\prime }\text{C}^{\prime }$,
+or $^{\prime }\text{S}^{\prime }$
+to denote Trigonometric, Cosine, or Sine, and the second argument can take
+the values $^{\prime }\text{A}^{\prime }$ or $^{\prime }\text{S}^{\prime }$
+to denote Analysis or Synthesis. The third and fourth arguments are integers.
+There is also an implied argument, M, which together with the first
+argument contributes to the definition of $N$ and $\mu $.
+\begin{equation*}
+\hspace{-15pt}N=2^M
+\end{equation*}\vspace{-30pt}
+\begin{equation*}
+\hspace{-15pt}\text{T(}^{\prime }\text{T}^{\prime }{,}^{\prime }
+\text{S}^{\prime },j,k)=\begin{cases}
+1/2 & k=0\\
+\cos (\pi jk/N)& k=2,4,...,N\!-\!2\\
+\sin (\pi j(k-1)/N)& k=3,5,...,N\!-\!1\\
+(1/2)(-1)^j& k=1
+\end{cases}
+\end{equation*}\vspace{-10pt}
+\begin{equation*}
+\hspace{-15pt}\text{T(}^{\prime }\text{T}^{\prime }{,}^{\prime }
+\text{A}^{\prime },j,k)\!=\!\frac 2N
+\begin{cases}
+\cos (\pi jk/N)&\!\!j\!=\!0,2,...,N\!-\!2 \\
+\sin (\pi (j\!-\!1)k/N)&\!\!j\!=\!3,5,...,N\!-\!1 \\
+(-1)^k,&\!\!j\!=\!1
+\end{cases}
+\end{equation*}\vspace{-15pt}
+\begin{equation*}
+\hspace{-15pt}\text{T(}^{\prime }\text{C}^{\prime }{,}^{\prime }
+\text{S}^{\prime },j,k)=
+\begin{cases}
+1/2& k=0 \\
+\cos (\pi jk/N)& k=1,2,...,N-1 \\
+(1/2)(-1)^j& k=N
+\end{cases}
+\end{equation*}\vspace{-15pt}
+\begin{equation*}
+\hspace{-15pt}\text{T(}^{\prime }\text{C}^{\prime }{,}^{\prime }%
+\text{A}^{\prime },j,k)=\frac 2N\text{T(}%
+^{\prime }\text{C}^{\prime },^{\prime }\text{S}^{\prime },j,k)
+\end{equation*}\vspace{-15pt}
+\begin{equation*}
+\hspace{-15pt}\text{T(}^{\prime }\text{S}^{\prime }{,}^{\prime }%
+\text{S}^{\prime },j,k)=\sin \frac{\pi jk}N
+\end{equation*}\vspace{-15pt}
+\begin{equation*}
+\hspace{-15pt}\text{T(}^{\prime }\text{S}^{\prime }{,}^{\prime }%
+\text{A}^{\prime },j,k)=\frac 2N\text{T(}^{\prime }\text{S}^{\prime},%
+^{\prime }\text{S}^{\prime },j,k)
+\end{equation*}\vspace{-15pt}
+\begin{equation*}
+\hspace{-15pt}\mu _i=
+\begin{cases}
+2^{\text{M}(i)}& \text{for a Trigonometric or Sine transform} \\
+2^{\text{M}(i)}+\!1& \text{for a Cosine transform}
+\end{cases}
+\end{equation*}
+
+The array A has its contents replaced according to the formula%
+\begin{multline*}
+\hspace{-5pt}A(j_1,j_2,...,j_{ND})=\sum_{k_1=1}^{\mu _1}\cdots
+\sum_{k_{ND}=1}^{\mu_{ND}}A(k_1,k_2,...,k_{ND})\\\hspace{-15pt}
+\times \text{T(TCS(1:1), MODE(1:1), }j_1-1,k_1-1)\times \cdots\\
+\hspace{-15pt}\times \text{T(TCS(ND:ND), MODE(ND:ND), }j_{ND}-1,k_{ND}-1),
+\end{multline*}
+where $j_i=1,2,...,\mu _i$ and storage conventions with respect to each
+dimension are defined as for the one dimensional transforms.
+
+The computational procedure for the trigonometric transform in the
+one-dimensional case is almost identical to the procedure used in SRFT1.
+(See the second paragraph below Eq.\,10 in Chapter~16.0 to see why this is
+so.)
+
+The procedure for the cosine transform uses the trigonometric transform and
+the identity%
+\begin{equation*}
+\hspace{-0pt}\cos \frac{\pi j(2k+1)}N=\frac{\sin (2\pi j(k+1)/N)-\sin
+(2\pi jk/N)}{2\sin (\pi j/N)}.
+\end{equation*}
+This is used to transform%
+\begin{equation*}
+y_j=\frac 12\eta _0+\frac 12\eta _N(-1)^j+\sum_{k=1}^{N-1}\eta _k\cos \frac{%
+\pi jk}N
+\end{equation*}
+to%
+\begin{multline*}
+y_j=\frac 12\eta _0+\frac 12\eta _N(-1)^j+\sum_{k=1}^{(N/2)-1}\eta _{2k}\cos
+\frac{2\pi jk}N\\
++\frac 1{2\sin (\pi j/N)}\sum_{k=1}^{(N/2)-1}(\eta
+_{2k-1}-\eta _{2k+1})\sin \frac{2\pi jk}N.
+\end{multline*}
+Let $Y_j$ be the result from the trigonometric transform with $\alpha
+_k=\eta _{2k}$, $k=0$, 1, ..., $N/2$ and $\beta _k=\eta _{2k-1}-\eta _{2k+1}$%
+, $k=1,2,...,(N/2)-1$. It follows that%
+\begin{eqnarray*}
+   y_j+y_{N-j}   & = & Y_j+Y_{N-j} \\
+   y_j-y_{N-j}  & = & \frac{Y_j-Y_{N-j}}{2\sin (\pi j/N)}
+\end{eqnarray*}
+and thus one can compute $y_j$ from $Y_j$. The computational
+procedure is to compute the $\alpha $'s and $\beta $'s
+from the $\eta $'s (the $\alpha $'s require no
+computation), use the trigonometric transform to get the $Y$'s, and
+the $Y$'s to compute the $y$'s. The inverse transform is
+exactly the same except for a factor of 2/$N$ as is clear from
+Eqs.\,(2S) and (2A).
+
+The sine transform is obtained in a very similar way to the cosine
+transform. Details can be found in \cite{Krogh:1970:SCT}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Require 1 $\leq $ ND $\leq $ 6, and $0 \leq \text{M}(k)\leq 31$ for the
+Trigonometric transform, $0 \leq \text{M}(k)\leq 30$ for the Cosine and
+Sine transforms.  Require that TCS and MODE have only the allowed values.
+On violation of any of these conditions the subroutine issues an error
+message using the error processing procedures of Chapter~19.2 with
+severity level $=2$ to cause execution to stop.  A return will be made
+with MS $=-2$ instead of stopping if the statement ``CALL\ ERMSET($-1$)''
+is executed before calling this subroutine.
+
+If the sine table does not appear to have valid data, an error message is
+printed, and the sine table and then the transform are computed.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DTCST & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ DFFT, DTCST, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+STCST & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ ERFIN, ERMSG, IERM1, IERV1, SFFT, STCST}\\
+\end{tabular}
+
+Subroutine designed and written by: Fred T. Krogh, JPL, August~1969, revised
+January~1988.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSTCST}\vspace{10pt}
+\lstinputlisting{\codeloc{stcst}}
+
+\vspace{30pt}\centerline{\bf \large ODSTCST}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{stcst}}
+\end{document}

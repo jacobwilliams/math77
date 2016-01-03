@@ -1,0 +1,208 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 10.1 One-Dimensional Real Fourier Transform
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine computes discrete Fourier transforms for real data using the
+fast Fourier transform. The relations between the real values $x$ and the
+complex Fourier coefficients $\xi $ are as follows:
+
+For Fourier analysis:
+\begin{equation}\label{fa}
+\xi _k=\frac 1N\sum_{j=0}^{N-1}x_jW^{-jk},\quad k=0,1...,N-1,
+\end{equation}
+For Fourier synthesis:
+\begin{equation}
+\label{fs}x_j=\sum_{k=0}^{N-1}\xi _kW^{jk},\quad j=0,1,...,N-1,
+\end{equation}
+where $N=2^{\text{M}}$ and $W=e^{2\pi i/N}=\cos (2\pi /N)+i\ \sin (2\pi /N)$, and $%
+i^2=-1$. Note that the sign on the exponent of $W$ is negative for analysis
+and positive for synthesis.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[\bf INTEGER]  \ {\bf M, MS}
+\item[\bf REAL]  \ {\bf A}($\geq 2^{\text{M}}$)\bf
+ {, S}($\geq 2^{\text{M}-2}-1$)
+\item[\bf CHARACTER]  \ {\bf MODE}
+\end{description}
+On the initial call set MS = 0 to indicate the array S() does not yet
+contain a sine table. Assign values to A(), MODE, and M.%
+$$
+\fbox{{\bf CALL SRFT1(A, MODE, M, MS, S)}}
+$$
+On return A() will contain the computed results. S() will contain the sine
+table used in computing the Fourier transform. MS may have been changed.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A()]  [inout] If the argument MODE selects Analysis, A() must contain $%
+x$ on input and will contain $\xi $ on output. If MODE selects Synthesis,
+A() must contain $\xi $ on input and will contain $x$ on output. When A()
+contains $x$'s, $A(k+1)$ contains $x_k$, $k=0$, 1, ..., $N-1$. When
+A() contains $\xi $'s, the real coefficients $\xi _0$ and $\xi
+_{N/2}$ are in A(1) and A(2), respectively and the complex coefficients, $%
+\xi _k$, for $k=1$, ..., $(N/2)-1$, are in the paired locations $(A(2k+1)$, $%
+A(2k+2))$. The remaining complex coefficients satisfy $\xi _{N-k} =
+\overline{\xi}_k$, for $k$ = 1, ..., $\frac N2-1$.
+
+\item[MODE]  [in] MODE\ =\ $^{\prime }\text{A}^{\prime }$
+or $^{\prime }\text{a}^{\prime }$ selects Analysis.
+MODE\ =\ $^{\prime }\text{S}^{\prime }$ or $^{\prime }\text{s}^{\prime }$
+selects Synthesis.
+
+\item[M]  [in] The number of data points is $N=2^{\text{M}}$. If $\text{M}=0$,
+the subroutine returns taking no action. Require $0\leq \text{M}\leq 31.$
+
+\item[MS]  [inout] Gives the state of the sine table in S().  Let
+$\text{MS}_{in}\text{ and MS}_{out}$ denote the values of MS on entry
+and return respectively. If the sine table has not previously been
+computed, set $\text{MS}_{in} = 0$ or $-$1 before the call. Otherwise
+the value of $\text{MS}_{out}$ from the previous call using the same
+S() array can be used as $\text{MS}_{in}$ for the current call.
+
+Certain error conditions described in Section E cause the subroutine
+to set $\text{MS}_{out} = -2$ and return.  Otherwise, with M $>$ 0, the
+subroutine sets $\text{MS}_{out} = \max (\text{M}, \text{MS}_{in}).$
+
+If $\text{MS}_{out} > \max (2, \text{MS}_{in}),$ the subroutine sets
+NT = $2^{\text{MS}_{out}-2}$ and fills S() with NT $-$ 1 sine values.
+
+If $\text{MS}_{in}=-1$, the subroutine returns after the above
+actions, not transforming the data in A().  This is intended to allow
+the use of the sine table for data alteration before a subsequent Fourier
+transform, as discussed in Section~G of Chapter~16.0, and as
+illustrated in the example of Section~C.
+
+\item[S()]  [inout] When the sine table has been computed, $\text{S}(j)=
+\sin \pi j/(2\times NT)$, $j=1,2,...,NT-1$, see MS above.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change SRFT1 to DRFT1, and the REAL type statement to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+Program DRSRFT1 computes an estimate of the spectral composition of
+\begin{equation}
+\label{e1}f(t)=[\sin 2\pi (t+.01)+4\cos 2\pi (\sqrt{2}\,t+.3)]
+\end{equation}
+with output in ODSRFT1. It is assumed $t$ has units of seconds, $f$ has
+discrete frequencies with mutual separation of at least 0.4~cycles/second,
+and that there is no interest in frequencies $>2$ cycles/second. To resolve
+different frequencies we select $\Delta \omega =0.4/10=.04$ cycles/second,
+which according to Eq.~(20) of Chapter~16.0 implies a sampling period of $%
+T=1/\Delta \omega =25$ seconds. According to Eq.~(24) of Chapter~16.0, $\Delta
+t\leq \frac 12\omega _{N/2}=\frac 14$~second, if any information about the
+highest frequency is to be obtained. Thus, $N=T/\Delta t\geq 100$. Since
+modest accuracy is sufficient, we give results for $N=128$ in the program
+below. Lanczos sigma factors are used as described in Section G of
+Chapter~16.0. The complex transform has peaks for $k=26$ and for $k=36$.
+These values of $k$ correspond to frequencies of 1 and~1.4~cycles/second.
+Results for this problem, but without the use of Sigma factors are
+given in Chapter~16.3.
+
+\subsection{Functional Description}
+
+From Eq.~(\ref{fa}), the fact that $x_j$ is real, and $W^N=e^{2\pi i}=1$, it
+follows that $\xi _{N-k}=\overline{\xi }_k$. Thus $\xi _{N/2}$ is real, and
+clearly $\xi _0$ is also real. Thus only half the $\xi $'s need be
+stored if $\xi _0$ and $\xi _{N/2}$ are counted as one. The $\xi $'s
+are stored in the same space used for the $x$'s by taking advantage
+of this symmetry.
+
+The primitive FFT routine SFFT (or DFFT) is used to compute $\zeta $ from $x$%
+, or $x$ from $\zeta $ where $\zeta $ is defined by
+\begin{equation}\label{e4}
+\zeta _k=\frac 2N\sum_{j=0}^{\frac
+N2-1}(x_{2j}+ix_{2j+1})W^{-2jk},k=0,1,...,\frac N2-1.
+\end{equation}
+Using Eq.\ (\ref{e4}), one finds that $\zeta _k+\overline{\zeta }_{(N/2)-k}$
+depends only on $x_{2j}$ and $\zeta _k-\overline{\zeta }_{(N/2)-k}$ only on $%
+x_{2j+1}$. From this and Eq.\ (\ref{fa}) there follows immediately%
+\begin{equation}\label{e5}
+\begin{split}
+\xi_k  &=\frac 14 \left[(\zeta _k+\overline{\zeta }_{(N/2)-k})\right.\\
+ -i&\left.W^{-k}(\zeta_k-\overline{\zeta}_{(N/2)-k})\right] ,
+ \ \ 0<k<N/4\\
+ \overline{\xi}_{(N/2)-k} &= \frac 14 \left[(\zeta _k+\overline{\zeta }_{(N/2)
+ -k})\right.\\
+ +i&\left.W^{-k}(\zeta _k-\overline{\zeta }_{(N/2)-k})\right] ,
+ \ \ 0<k<N/4\\
+  \xi_0 &=\frac 12 [\Re\zeta _0+\Im\zeta _0]\\
+  \xi_{N/2} &=\frac 12 [\Re\zeta _0-\Im\zeta _0]\\
+  \xi _{N/4} &=\frac 12 \overline {\zeta}_{N/4}
+\end{split}
+\end{equation}
+%\begin{eqnarray}
+%    \nonumber \xi_k  & = &  \frac 14
+%        \left[(\zeta _k+\overline{\zeta }_{(N/2)-k}) \hspace{1in}\right. \\
+% \nonumber &  &  \left. \hspace{-.35in} \mbox{}-iW^{-k}
+%                        (\zeta _k-\overline{\zeta }_{(N/2)-k})\right] ,\  0<k<N/4\\
+% \nonumber \overline{\xi}_{(N/2)-k} & = &
+%                     \frac 14 \left[(\zeta _k+\overline{\zeta }_{(N/2)-k})\right. \\
+%   & & \left. \hspace{-.35in} \mbox{}+iW^{-k}(\zeta _k-\overline{\zeta }_{(N/2)-k})\right] ,
+%     \  0<k<N/4\ \ \ \ \\
+%  \nonumber \xi_0 & = & \frac 12 [\Re\zeta _0+\Im\zeta _0] \\
+%   \nonumber \xi_{N/2} & = & \frac 12 [\Re\zeta _0-\Im\zeta _0] \\
+%  \nonumber      \xi _{N/4} & = & \frac 12 \overline {\zeta}_{N/4} \\
+%  \nonumber
+%\end{eqnarray}
+Thus to compute $\xi $ given $x$, $\zeta /4$ is computed
+using Eq.~(\ref{e4}) (divided by~4) and the $\xi $'s are computed
+from Eq.~(\ref{e5}). To compute $x$ given $\xi $, the above process is reversed.
+More details can be found in \cite{Krogh:1970:RF1}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+M must satisfy 0 $\leq \text{M} \leq 31$ and MODE must have one of its
+allowed values.  If these conditions are violated an error message will be
+issued using the error processing procedures of Chapter~19.2 with a
+severity level of~2 to stop execution.  A return will be made with $%
+\text{MS}=-2$ instead of stopping if the statement ``CALL ERMSET($-1$)''
+is executed before calling this subroutine.
+
+If the sine table does not appear to have valid data, an error message is
+printed, and the sine table and then the transform are computed.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DRFT1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ DFFT, DRFT1, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SRFT1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ ERFIN, ERMSG, IERM1, IERV1, SFFT, SRFT1}\\
+\end{tabular}
+
+Subroutine designed and written by: Fred T. Krogh, JPL Section~373, August
+1969; Revised January~1988.
+
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSRFT1}\vspace{10pt}
+\lstinputlisting{\codeloc{srft1}}
+
+\vspace{30pt}\centerline{\bf \large ODSRFT1}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{srft1}}
+\end{document}

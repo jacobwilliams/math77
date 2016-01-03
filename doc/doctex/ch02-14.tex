@@ -1,0 +1,136 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-14}
+\begmath 2.14 Sine and Cosine Integrals
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Given $x$, these subprograms compute the Sine Integral, Si$(x)$, the Cosine
+Integral, Ci$(x)$, and an entire function, Cin$(x)$ related to the cosine
+integral. These functions are defined as%
+\begin{align*}
+\text{Si}(x)&=\phantom{-}\int_0^x\frac{\sin (s)}s\,ds,\\
+\text{Ci}(x)&=-\int_x^\infty \frac{\cos (s)}s\,ds,\quad \text{and}\\
+\text{Cin}(x)&=\phantom{-}\int_0^x\frac{1-\cos (s)}s\,ds,
+\end{align*}
+
+Ci$(x)$ and Cin$(x)$ satisfy the relation Ci$(x)+\text{Cin}(x)=\ln x+\gamma $%
+, where $\gamma $ is Euler's constant, approximately 0.57721~56649. To
+calculate the related sine integral defined by si$(x)=-\int_x^\infty \frac{%
+\sin (s)}s\,ds$ use the identity si$(x)=\text{Si}(x)-\pi /2.$
+
+Reference [1] provides further discussion of the properties of the Sine and
+Cosine integrals.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf X, SSI, SCI, SCIN, T}
+\end{description}
+
+Assign a value to X and use one of the following function references.
+
+To compute the Sine Integral Si$(x):$
+$$
+\fbox{{\bf T = SSI(X)}}
+$$
+To compute the Cosine Integral Ci$(x)$ for $x > 0:$
+$$
+\fbox{{\bf T = SCI(X)}}
+$$
+To compute the entire function Cin$(x)$ related to the Cosine Integral:
+$$
+\fbox{{\bf T = SCIN(X)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument of function.
+\end{description}
+
+\subsubsection{Modification for Double Precision}
+
+For double precision usage change the REAL type statement to DOUBLE
+PRECISION and change the function names to DSI, DCI or DCIN respectively.
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-14 }
+
+\subsection{Examples and Remarks}
+
+See DRSSI and ODSSI for an example of the usage of these subprograms.
+
+Si$(x)$ is an odd function and Cin$(x)$ is an even function. Ci$(x)$ is not
+defined for $x \leq 0.$
+
+The notations for these functions vary. We use the notation of
+\cite{ams55:sin-int}.
+
+\subsection{Functional Description}
+
+The computer approximations for these functions use Chebyshev polynomial
+expansions.
+
+These subprograms were tested on the IBM PC/AT by comparing the results to
+tables in \cite{ams55:sin-int}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+The subprograms SSI and SCIN detect no error conditions. The subprogram SCI
+issues an error message if $x \leq 0$. The error message is issued by way of
+the error message processor at level~0, and the returned function value is
+0.0. See Chapter~19.2 for further description of the error message processor.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Subprograms designed and developed by E. W. Ng, JPL, 1970. Modified by W. V.
+Snyder, JPL, 1989.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCI, DCPVAL, DERM1, DERV1, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+DCIN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCI, DCPVAL, DERM1, DERV1, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+DSI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCPVAL, DSI\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+SCI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, SCI, SCPVAL, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\
+SCIN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, SCI, SCPVAL, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\
+SSI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SCPVAL, SSI}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSSI}\vspace{10pt}
+\lstinputlisting{\codeloc{ssi}}
+
+\vspace{30pt}\centerline{\bf \large ODSSI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{ssi}}
+
+\closegraphsfile
+\end{document}

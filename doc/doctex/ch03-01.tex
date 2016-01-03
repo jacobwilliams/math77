@@ -1,0 +1,546 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 3.1 Uniform Random Numbers
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Generate pseudorandom numbers from the uniform distribution. Capabilities
+are also provided for optionally setting and fetching the ``seed" of the
+generator.
+
+\subsection{Usage}
+
+\subsubsection{Generating uniform pseudorandom numbers}
+
+Three subprograms are provided for generation of single precision uniform
+random numbers:
+
+\begin{description}
+\item[X = SRANU()]  \ Returns one random number in [0,~1].
+
+\item[call SRANUA(XTAB, N)]  \ Returns an array of N random numbers in
+[0,~1].
+
+\item[call SRANUS(XTAB, N, A, B)]  \ Returns an array of N numbers scaled
+as A + B $\times $ U where U is random in [0,~1].
+\end{description}
+
+Corresponding double precision subprograms are also provided.
+
+\paragraph{Program Prototype, A Single Random Number, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf SRANU, X}
+\end{description}
+$$
+\fbox{{\bf X = SRANU()}}
+$$
+\subparagraph{Argument Definitions}
+
+\begin{description}
+\item[SRANU]  \ [out] The function returns a pseudorandom number from the
+uniform distribution on [0.0,~1.0].
+\end{description}
+
+\paragraph{Program Prototype, An Array of Random Numbers, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \  N
+
+\item[REAL]  \ {\bf XTAB}($\geq $N)
+\end{description}
+
+Assign a value to N.
+$$
+\fbox{{\bf CALL SRANUA(XTAB, N)}}
+$$
+Computed values will be returned in XTAB().
+
+\subparagraph{Argument Definitions}
+
+\begin{description}
+\item[XTAB()]  \ [out] Array into which the subroutine will store N
+pseudorandom samples from the uniform distribution on [0.0,~1.0].
+
+\item[N]  \ [in] Number of pseudorandom numbers requested. The subroutine
+returns immediately if N $\leq 0.$
+\end{description}
+
+\paragraph{Program Prototype, An Array of Scaled Random Numbers, Single
+Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf N}
+
+\item[REAL]  \ {\bf XTAB}($\geq $N){\bf , A, B}
+\end{description}
+
+Assign values to N, A, and B.
+$$
+\fbox{{\bf CALL SRANUS(XTAB, N, A, B)}}
+$$
+Computed values will be returned in XTAB().
+
+\subparagraph{Argument Definitions}
+
+\begin{description}
+\item[XTAB()]  \ [out] Array into which the subroutine will store N numbers
+computed as A + B $\times $ U, where for each number, U is a pseudorandom
+sample from a uniform distribution on [0.0,~1.0].
+
+\item[N]  \ [in] Number of pseudorandom numbers requested. The subroutine
+returns immediately if N $\leq 0.$
+
+\item[A, B] \ [in] Numbers defining the linear transformation (A + B
+  $\times$ U) to be applied to the random numbers.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change the REAL type statements above to DOUBLE
+PRECISION and change the initial ``S" of the function and subroutine names
+to ``D." Note particularly that if the function name, DRANU, is used it must
+be typed DOUBLE PRECISION either explicitly or via an IMPLICIT statement.
+
+\subsubsection{Operations relating to the seed}
+
+The handling of the seed is modeled on the function RANDOM\_SEED which is a
+new intrinsic function introduced in Fortran~90. Random number generation
+does not require any initialization calls by the user, but initialization
+capabilities are provided in case they are wanted.
+
+The seed for random number generation is a set of KSIZE numbers of type
+INTEGER. The value of KSIZE depends on the algorithm and implementation used
+for generating uniform random numbers.
+\begin{description}
+\item[call RANSIZ(KSIZE)] \ Returns the value of KSIZE for the current library
+implementation.
+
+\item[call RAN1] \ Sets the seed to its default initial value.
+
+\item[call RANPUT(KSEED)] \ Sets the seed to the array of KSIZE values given in
+KSEED().
+
+\item[call RANGET(KSEED)] \ Fetches the current seed into the array KSEED().
+\end{description}
+
+Besides resetting the seed, RAN1 and RANGET set values in common that have
+the effect of reinitializing all of the pseudorandom number generators of
+Chapters~3.1, 3.2 and~3.3.
+
+If one needs to produce the same sequence of pseudorandom numbers more than
+once within the same run, a suggested approach is to initialize the package
+at each point in the computation where the sequence is to be started or
+restarted. One could either use RAN1 to initialize the package to its
+standard starting seed or use RANPUT to initialize the package to a seed
+selected by the user.
+
+The seed returned by RANGET may be the seed associated with the next uniform
+number that will be returned by the package, but generally this will not be
+the case. Due to buffering within the package this seed may be associated
+with a uniform number that will be returned some tens of requests later.
+
+A potential use for the RANGET function would be to assure a different set
+of random numbers on a subsequent run. Thus one could use RANGET at the end
+of a run and write to a file the seed value returned by RANGET. Then on a
+subsequent run one could read this seed from the file and use RANPUT to
+initialize the package to this seed value. This would assure a new sequence
+of numbers.
+
+\paragraph{Program Prototype, Get the value of KSIZE}
+
+\begin{description}
+\item[INTEGER]  \ {\bf KSIZE}
+\end{description}
+$$
+\fbox{{\bf CALL RANSIZ(KSIZE)}}
+$$
+A value will be returned in KSIZE.
+
+\subparagraph{Argument Definitions}
+
+\begin{description}
+\item[KSIZE]  \ [out] The subroutine sets KSIZE to the number of integers
+needed to constitute a seed for the current library implementation of a
+random number generation algorithm. The user should use this information to
+verify that the dimension of the array KSEED() is adequate before calling
+RANPUT or RANGET. The preferred algorithm in the MATH77 library has KSIZE =
+2. If this is replaced by a different algorithm KSIZE could change.
+\end{description}
+
+\paragraph{Program Prototype, Set seed to default value}\vspace{-10pt}
+$$
+\fbox{{\bf CALL RAN1}}
+$$
+\subparagraph{Argument Definitions}
+
+This subroutine has no arguments. It causes the seed stored in the random
+number generation code to be reset to its default initial value. It also
+sets values in common that have the effect of reinitializing all of the
+pseudorandom number generators of Chapters~3.1, 3.2, and~3.3.
+
+\paragraph{Program Prototype, Set the seed}
+
+{\bf INTEGER} {\bf KSEED}($\geq $KSIZE)
+
+Assign values to KSEED().
+$$
+\fbox{{\bf CALL RANPUT(KSEED)}}
+$$
+\subparagraph{Argument Definitions}
+
+\begin{description}
+\item[KSEED()] \ [in] Array of KSIZE integers to be used to set a new seed value. Any
+integer values are acceptable. If the given values do not conform to
+internal requirements the subroutine will derive usable values from the
+given values.
+\end{description}
+
+In the preferred MATH77 implementation the internal integer sequence
+consists of numbers in the range from~1 to~68719476502. For example, to set
+the seed to the value 10987654321 one should set KSEED(1) = 109876 and
+KSEED(2) = 54321. In general RANPUT will compute KSEED(1$) \times 10^5 +
+\text{KSEED}(2)$ using either single precision or double precision
+arithmetic, depending on the ``mode"
+described in Section D, and then alter the result, if necessary, to obtain a
+seed in the range from~1 to~68719476502.
+
+This subroutine also sets values in common that have the effect of
+reinitializing all of the pseudorandom number generators of Chapters~3.1,
+3.2, and~3.3.
+
+\paragraph{Program Prototype, Get the seed}
+
+{\bf INTEGER} {\bf KSEED}($\geq $KSIZE)
+$$
+\fbox{{\bf CALL RANGET(KSEED)}}
+$$
+Values will be returned in KSEED(). See the discussion at the beginning of
+Section B.2 for information on the applicability of this subprogram.
+
+\subparagraph{Argument Definitions}
+
+KSEED() [out] Array into which the subroutine will store the KSIZE integers
+constituting the current seed.
+
+\subsection{Examples and Remarks}
+
+DRSRANU demonstrates the use of SRANU to compute uniform random numbers and
+uses SSTAT1 and SSTAT2 to compute and print statistics and a histogram based
+on a sample of~10000 numbers delivered by SRANU.
+
+The uniform distribution on [0,~1] has mean 0.5 and standard deviation $%
+\sqrt{1/12} \approx 0.288675.$
+
+The smallest number that can be produced by SRANU, DRANU, SRANUA, or DRANUA
+is approximately $0.15 \times 10^{-10}$. The largest value that can be
+produced is approximately $1.0 - 0.15 \times 10^{-10}$. The single precision
+subprograms SRANU and SRANUA will return this largest value as exactly 1.0
+on many computer systems.
+
+DRDRAN provides a critical test of the correct performance of the
+core integer sequence generator on whatever host system it is run.
+The seed values are set to cause the generation of the largest and
+smallest numbers possible in the underlying integer sequence. This
+program is expected to generate exactly the same values in the column
+headed ``Integer sequence" on all compiler/computer systems. DRDRAN
+also calls RN2 to show the value of MODE (described below in Section
+D) being used on the host system. See the output listing, ODDRAN, for
+results.
+
+To compute random numbers, uniform in [C, D], one can use the statement
+
+\hspace{.2in}X =C + (D $-$ C) * SRANU()
+
+or to put N such numbers into an array XTAB() one can write
+
+\hspace{.2in}call SRANUS(XTAB, N, C, D $-$ C)
+
+To compute random INTEGER's in the range from I1 through I2, (I1 $<$ I2),
+with equal probability, one can write
+\begin{tabbing}
+\hspace{.2in}\=FAC = real(I2 $-$ I1 + 1)\\
+\>K = min(I2, I1 + int(FAC * SRANU() ) )
+\end{tabbing}
+The min function is used in the above statement because SRANU will, with
+very low probability, return the exact value~1.0.
+
+If one needs to compute many random numbers and execution time is critical,
+one should note that one call to SRANUA with a sizeable value of N will take
+less execution time than N references to SRANU. For even greater efficiency
+one could write the random number generation in line, since it only requires
+a few declarations and a few executable statements. When and if Fortran~90
+compilers come into widespread usage it will probably be more efficient to
+use the new intrinsic subroutine RANDOM\_NUMBER, although this subroutine is
+not specified to generate the same sequence on different computers.
+
+\subsection{Functional Description}
+
+\subsubsection{The core algorithm for generation of uniform pseudorandom
+numbers}
+
+A sequence of integer values, $k_i$, is generated by the equation
+\begin{equation}
+\label{O1}k_i = ak_{i-1}\text{ mod }\ m
+\end{equation}
+The rational number, $k_i/m$, is returned as a pseudorandom number from the
+uniform distribution on [0,~1].
+
+When $m$ is prime and $a$ is a primitive root of $m$, this integer
+sequence has period $m-1$, attaining all integer values in the range [1,
+$m-1]$.  According to \cite{Knuth:1981:ACP}, this sequence will have good
+equidistribution properties, at least in dimensions up to $d$, if the
+numbers $\nu _i$ and $\mu _i$, $i = 2$, ..., $d$, that are functions of
+$m$ and $a$, are not exceptionally small.  Finding satisfactory values of
+$\nu _i$ and $\mu _i$ is simplified by having $m$ large and $a$ not too
+small.  The size of $m$ and $a$ is limited however by the requirement of
+computing Eq.\,(1) exactly at a reasonable cost.
+
+We have determined a pair of integers $m$ and $a$ that satisfy all these
+requirements.  The values of $\nu _i$ and $\mu _i$, $i = 2$, ..., 6,
+attained are excellent compared with any of the 30 $(m, a)$ pairs listed
+in Table~1, pp.~102--103 of \cite{Knuth:1981:ACP}, which includes pairs
+used in a number of widely distributed random number generation
+subprograms.  We use the values $$ \text{MDIV} = m = 6\_87194\_76503 =
+2^{36} - 233 $$ and $$ \text{AFAC} = a = 612\_662 \approx 0.58 \times
+2^{20} $$ The number $m-1$ is the product of three primes, $p(i)$, listed
+here with other relevant number-theoretic values.
+
+\begin{tabular}{rrrr}
+$i$ & $p(i)$ & $q(i) = (m-1)/p(i)$ & $a^{q(i)}$ mod $m$\\
+1 & 2 & 3\_43597\_38251 & $m-1$\\
+2 & 43801 & 15\_68902 & 2\_49653\_21011\\
+3 & 784451 & 87602 & 1\_44431\_31136
+\end{tabular}
+
+The fact that values in the last column above are not~1 verifies that $a$ is a
+primitive root of $m.$
+
+The values of $\mu _i$ and log~base~2 of $\nu _i$ are
+
+\begin{tabular}{r@{\ }c@{\ }r@{\ \ }r@{\ \ }r@{\ \ }r@{\ \ }r}
+$(Log_2 \nu _i,\ i=2,6)$ & = & 18.00, & 12.00, & 8.60, & 7.30, & 6.00\\
+$(\mu _i$, $i=2,6)$ &      = &  3.00, &  3.05, & 3.39, & 4.55, & 6.01
+\end{tabular}
+
+These values may be compared with Table~1, pp.~102--103,
+\cite{Knuth:1981:ACP}, that lists the same measures for a number of other
+random number generators.
+
+This package contains both a short and a long algorithm to implement Eq.\,(1).
+Let XCUR be the program variable containing the current value of $k_i$ of
+Eq.\,(1). The short algorithm for advancing XCUR is
+
+\hspace{.2in}XCUR = mod(AFAC * XCUR, MDIV).
+
+The long algorithm, using ideas from \cite{Wichmann:1982:AEP}, is
+
+\begin{tabbing}
+\hspace{.2in}\=Q = aint(XCUR/B)\\
+\>R = XCUR $-$ Q * B\\
+\>XCUR = AFAC * R $-$ C * Q\\
+\>do while(XCUR .lt. 0.0)\\
+\>\ \ \ \ XCUR = XCUR + MDIV\\
+\>end do
+\end{tabbing}
+
+where B and C are constants related to MDIV and AFAC by MDIV = B $\times $
+AFAC + C. We use B = 112165 and C = 243273. The average number of executions
+of the statement XCUR = XCUR + MDIV is 1.09 and the maximum number of
+executions is~3.
+
+The largest number that must be handled in the short algorithm is the
+product of AFAC with the maximum value of XCUR, $i.e., 612\_662 \times
+6\_87194\_76502 = 42\_10181\_19126\_68324 \approx 0.58 \times 2^{56}$. Thus,
+the short algorithm requires arithmetic exact to at least 56~bits.
+
+The largest number that must be handled in the long algorithm is the product
+of C with the maximum value of aint(XCUR/B), $i.e., 243273 \times 612664 \approx
+0.14904 \times 10^{12} \approx 0.54 \times 2^{38}$. Thus the long algorithm requires
+arithmetic exact to at least 38~bits.
+
+To accommodate different compiler/computer systems this program unit
+contains code for~3 different ways of computing the new XCUR from the old
+XCUR, each producing the same sequence of values. Initially we have MODE $=
+1 $. When MODE $= 1$ the code does tests to see which of the three
+implementation methods will be used, and sets MODE $= 2$, 3, or~4 to
+indicate the choice.
+
+Mode~2 will be used in machines such as the Cray that have at least a 38~bit
+significand in single precision arithmetic. XCUR will be advanced using the long algorithm
+in single precision arithmetic.
+
+Mode~3 will be used on machines that don't meet the Mode~2 test, but can
+maintain at least 56~bits exactly in computing mod(AFAC $\times $ XCUR,
+MDIV) in double precision arithmetic. This includes VAX, UNISYS, IBM~30xx, and some IEEE
+machines that have clever compilers that keep an extended precision
+representation of the product AFAC $\times $ XCUR within the math processor
+for use in the division by MDIV. XCUR will be advanced using the short
+algorithm in double precision arithmetic.
+
+Mode~4 will be used on machines that don't meet the Mode~2 or~3 tests, but
+have at least a 38~bit significand in double precision arithmetic. This includes IEEE
+machines that have not-so-clever compilers. XCUR is advanced using the long
+algorithm in double precision arithmetic.
+
+If a user wishes to know which mode has been selected, the statement
+$$
+\fbox{{\bf CALL RN2( MODE )}}
+$$
+can be used after at least one access has been made to one of the random
+number generators or to RANPUT or RANGET. This call will set the integer
+variable MODE to the mode value of~2, 3, or~4 that the package is using.
+
+\subsubsection{Remarks on alternative algorithms}
+
+From \cite{Learmonth:1973:STS} and \cite{Learmonth:1976:ETM} it appears
+that a multiplicative congruential generator of the form of Eq.\,(1) using
+the values MDIV $= 2147483647 = (2^{31}) - 1$ and AFAC $= 16807 = 7^5
+\approx 0.513 \times 2^{15}$ has been widely used, and is quite
+satisfactory.  However, the associated values of $\mu _i$ and $\nu _i$ are
+smaller than those associated with the MDIV and AFAC we are using.  With
+these values, XCUR would take all integer values in [1,\ MDIV $-$ 1].  The
+maximum value of the product, AFAC $\times $ XCUR would be approximately
+$0.361 \times 10^{14} \approx 0.51 \times 2^{46}$, so at least 46-bit
+arithmetic would be needed.
+
+The method of \cite{Wichmann:1982:AEP} is interesting in that it
+illustrates techniques for getting a very long period generator
+$(0.36\times 10^{14} \approx 0.51 \times 2^{46})$ using relatively
+low-precision arithmetic.  This method uses at least three integer mod
+operations, three integer multiplications, three floating divisions, two
+floating additions, and a floating mod; there does not appear to be any
+theoretical measure of the quality of the sequence, such as the $\mu _i$
+and $\nu _i$ described in \cite{Knuth:1981:ACP}.
+
+\subsubsection{Organization of the package}
+
+The basic uniform pseudorandom number generation algorithm for the MATH77
+library is contained in the program unit RANPK2 that returns an array of N
+numbers when called at any one of the entry points, SRANUA, SRANUS, DRANUA,
+or DRANUS. A single sequence of pseudorandom integers is managed within this
+program unit. Calling any of these four entry points will cause updating of
+this single pseudorandom integer sequence. The other random number
+subprograms in Chapters~3.2 and~3.3 depend on uniform pseudorandom numbers
+obtained by calling SRANUA or DRANUA.
+
+The function SRANU is a separate program unit. SRANU references common
+blocks that contain a REAL buffer array of length~97, and an index into the
+array. If the value of the index indicates the buffer contains unused random
+numbers, SRANU simply decrements the index and returns the next number from
+the buffer. If the index indicates the buffer is empty, SRANU calls SRANUA
+to fill the buffer with uniform random numbers and then reinitializes the
+index and returns one random number.
+
+The common blocks are also referenced and used in this way by other random
+number subprograms needing single-precision uniform random numbers: SRANE,
+SRANG, SRANR, and IRANP.
+
+The double-precision subprograms, DRANU, DRANE, DRANG, and DRANR share
+reference to a different common block that is used similarly to buffer an
+array of double-precision uniform pseudorandom numbers.
+
+RAN1 and RANPUT are entries in a program unit RANPK1. When either of these
+entries is called, the pointers in common will be set to indicate the empty
+state and a call will be made to the appropriate one of two private entry
+points in program unit RANPK2 to make the requested change in the seed.
+
+RANSIZ and RANGET are entries in RANPK2 that simply return stored values, a
+constant in the case of RANSIZ, and a variable integer array in the case of
+RANGET.
+
+\subsubsection{Accuracy tests}
+
+We have run tests of equidistribution in~1, 2, and~3 dimensions, as well
+as the run test and gap test described in \cite{Knuth:1981:ACP}.  Results
+were satisfactory.  The main basis for confidence in this algorithm is the
+number-theoretic properties of the pair $(m,a)$ described above.
+
+Values returned as double-precision random numbers will have random bits
+throughout the word, however the quality of randomness should not be
+expected to be as good in a low-order segment of the word as in a high-order
+part.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If the argument N in SRANUA, SRANUS, DRANUA, or DRANUS is nonpositive the
+subroutine will return immediately and make no reference to the array XTAB().
+
+When using RANPUT or RANGET, the user must assure that the array, KSEED(),
+has an adequate dimension. Violation of this condition will have
+unpredictable effects. The user can call RANSIZ to determine the required
+dimension.
+
+If none of the three modes of computation (See MODE $= 2$, 3, or~4 in
+Section~D.) succeeds, the program unit RANPK2 will write an error message
+directly to the system output unit and stop. This is unlikely, as it would
+only happen if the host system cannot at least do exact 38-bit arithmetic in
+double precision.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DRANU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DRANU, ERFIN, ERMSG, RANPK1, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+DRANUA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+DRANUS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+RAN1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK1, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+RANGET & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+RANPUT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK1, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+RANSIZ & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+RN2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+SRANU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK1, RANPK2, SRANU\rule[-5pt]{0pt}{8pt}}\\
+SRANUA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+SRANUS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK2}\\\end{tabular}
+
+Designed by C. L. Lawson and F. T. Krogh, JPL, April~1987. Programmed by C.
+L. Lawson and S. Y. Chiu, JPL, April, 1987. November~1991: Lawson redesigned
+RANPK2 to have MODES~2, 3, and~4 for better portability. Also reorganized
+and renamed common blocks.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSRANU}\vspace{10pt}
+\lstinputlisting{\codeloc{sranu}}
+\newpage
+\vspace{30pt}\centerline{\bf \large ODSRANU}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sranu}}
+
+
+\newpage
+\enlargethispage*{30pt}
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDRAN}\vspace{10pt}
+\lstinputlisting{\codeloc{dran}}
+\newpage
+\vspace{30pt}\centerline{\bf \large ODDRAN}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dran}}
+
+\end{document}

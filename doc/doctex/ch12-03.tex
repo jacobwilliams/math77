@@ -1,0 +1,188 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 12.3 Table Look-up With Hermite Cubic Interpolation
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Given a table of values of a function and its first derivative, this
+subroutine does table look-up and Hermite cubic interpolation to compute an
+interpolated value of the function for an arbitrary argument. Optionally the
+subroutine can compute values of the first, second, or third derivative of
+the interpolation function.  All features here are also available,
+with more generality, in Chapter~12.1.
+
+The interpolated function will match the given data at the tabular points,
+and thus will have a continuous value and first derivative. In general the
+second and third derivatives will have jump discontinuities at the tabular
+points. It is possible, of course, for the data to satisfy relations that
+give rise to continuity of second or third derivatives in the interpolated
+function. In particular, data from the cubic spline fitting programs, DC2FIT
+or SC2FIT of Chapter~11.4, will produce continuous second derivatives.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf NDERIV, NTAB}
+
+\item[REAL]  \ {\bf SHINT, X, XTAB}($\geq $NTAB){\bf ,\newline
+YTAB}($\geq $ NTAB){\bf , YPTAB}($\geq $NTAB){\bf , YVAL}
+\end{description}
+
+Assign values to X, NDERIV, NTAB, XTAB(), YTAB(), and YPTAB(). In
+particular, NTAB, XTAB(), YTAB(), and YPTAB() may have the same values as on
+return from a previous call to SC2FIT.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+YVAL = SHINT(X, NDERIV, NTAB,\\
+XTAB, YTAB, YPTAB)\\
+\end{tabular}}
+\end{center}
+
+This reference will set YVAL to the value (or a derivative value as selected
+by NDERIV) of the curve defined by NTAB, XTAB(), YTAB(), and YPTAB().
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Abscissa at which interpolation is to be done. If X is
+outside the domain of the table given in XTAB(), extrapolation will be done
+using the two tabular points at the nearest end of the table.
+
+\item[NDERIV]  \ [in] Set by the user to 0, 1, 2, or~3 to select computation
+of the value, or the first, second, or third derivative of the interpolation
+function.
+
+\item[NTAB]  \ [in] Number of values in each of the arrays, XTAB(), YTAB(),
+and YPTAB(). Require NTAB\ $\geq 2.$
+
+\item[XTAB()]  \ [in] Abscissae of the given data. These values must be
+either strictly increasing or strictly decreasing.
+
+\item[YTAB(), YPTAB()]  \ [in] Values and first derivatives associated with
+the abscissae given in XTAB().\vspace{-4pt}%
+\begin{gather*}
+\text{YTAB}(i)=f(\text{XTAB}(i)),\ i=1,...,\text{NTAB}\\
+\text{YPTAB}(i)=f^{\prime }(\text{XTAB}(i)),\ i=1,...,\text{NTAB}
+\end{gather*}
+\item[SHINT]  \ [out] Returns the value or selected derivative value
+computed by interpolation.
+\end{description}
+
+\subsubsection{Modifications for double precision}
+
+For double-precision usage change the REAL type statements to DOUBLE
+PRECISION and change the function name from SHINT to DHINT. Note
+particularly that since this is a function subprogram the name DHINT
+must be typed either explicitly or via an IMPLICIT statement if it is used.
+
+\subsection{Examples and Remarks}
+
+The program DRSHINT illustrates the use of SHINT. This program first builds
+a table of values of the exponential function and its first derivative at
+three points, XTAB$()=0$, 0.5, and 0.75. The program DRSHINT then uses SHINT
+to interpolate for the value and first derivative at a set of 21~points, $x=0
+$ to 1.0 in steps of~0.05. Output is shown in ODSHINT. The first two columns
+show $x$ and $\exp (x)$. Columns headed YINT and YPINT contain the
+interpolated value and the interpolated first derivative, respectively. The
+exponential function was chosen for convenience in this demonstration since
+at any point the true function value and all derivatives have the same
+value. Note that the function values are approximated more accurately than
+are the derivative values. Also note that the approximations are better on
+the interval from~0.5 to~0.75 than on the longer interval from~0 to~0.5. For
+$x>0.75$ extrapolation is taking place, leading to much larger errors.
+
+Interpolation error bounds are given in Section D. Applying these bounds to
+this example, ignoring the O($h^4)$ term in the bound for the first
+derivative error, the error bounds are:
+\begin{tabbing}
+ for $f$ in [0, $0.5] = (0.00260)(1.65)(0.5)^4 = 0.000268$\\
+ for $f$ in [0.5, $0.75] = (0.00260)(2.12)(0.25)^4 = 0.000022$\\
+ for $f^{\prime}$ in [0, $0.5] = (0.00802)(1.65)(0.5)^3 = 0.00165$\\
+ for $f^{\prime}$ in [0.5, $0.75] = (0.00802)(2.12)(0.25)^3 = 0.000266$
+\end{tabbing}
+Note that these bounds are consistent with the results shown in ODSHINT.
+
+\subsection{Functional Description}
+
+Hermite interpolation together with the error in such interpolation is
+described in \cite[pp.~314--317]{Hildebrand:1956:INA}.
+
+SHINT maintains a saved variable, LOOK, with an initial value of~1. The
+look-up procedure always starts with the tabular interval indexed by the
+saved value of\pagebreak[2] LOOK, unless the saved value is not in
+{[1, $\text{NTAB} - 1$]}.
+The look-up procedure is a linear search, either forward or backward, from the
+starting value of LOOK. This is efficient for cases in which a succession of
+look-ups are done for successive arguments that are not far apart relative
+to the tabular spacing.
+
+Each interpolation or extrapolation uses function values and first
+derivative values at two adjacent tabular points and is exact for
+cubic polynomial data.  If the interpolation abscissa, $x$, is equal
+to an interior tabular abscissa, say $x_i$, then tabular data
+associated with $x_{i-1}$ and $x_i$ will be used for the computation.
+Extrapolation uses the first or last two tabular points, as
+appropriate.
+
+If the given data are samples from a function having at least a fourth order
+derivative, and this derivative is bounded in magnitude by $M_4$ over the
+interval $[x_i$, $x_{i+1}]$, of length, $h$, then the error, $E_i$, in
+computing the interpolated derivative of order $i$ for any argument in this
+interval is bounded as follows:
+\begin{alignat*}{3}
+\hspace{-8pt}
+|E_0| &\leq c_0M_4h^4k,&\ \ c_0 &= 1/384\:&\approx \:&0.00260\\
+\hspace{-8pt}
+|E_1| &\leq c_1M_4h^3 + O(h^4),&\ \ c_1 &= \sqrt 3/216\:
+&\approx \:&0.00802\\
+\hspace{-8pt}
+|E_2| &\leq c_2M_4h^2 + O(h^3),&\ \ c_2&= 1/12 \:&\approx \:&0.0833\\
+\hspace{-8pt}
+|E_3| &\leq c_3M_4h + O(h^2),&\ \ c_3 & = 0.5
+\end{alignat*}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+This subprogram requires NTAB $\geq 2$ and $0 \leq \text{NDERIV} \leq 3$.
+The values in the XTAB() array must either be strictly increasing or
+strictly decreasing. These conditions are not checked. Violation of these
+conditions will cause unpredictable effects.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.15in} {\bf Required Files}\vspace{2pt} \\
+DHINT & \parbox[t]{2.7in}{\hspace{.35in} DHINT\rule[-5pt]{0pt}{8pt}}\\
+SHINT & \parbox[t]{2.7in}{\hspace{.35in} SHINT}\\
+\end{tabular}
+
+Original code designed by C. L. Lawson and R. J. Hanson, JPL, 1968.
+Programmed and modified by Lawson, Hanson, T. Lang, and D. Campbell, JPL,
+1968--1974. Adapted to Fortran~77 by Lawson and S. Y. Chiu, July~1987.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSHINT}\vspace{10pt}
+\lstinputlisting{\codeloc{shint}}
+
+\vspace{30pt}\centerline{\bf \large ODSHINT}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{shint}}
+\end{document}

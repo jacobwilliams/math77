@@ -1,0 +1,209 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 9.1 Find a Local Minimum of a Univariate Function
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Find a local minimum of a univariate function, $f(x)$, in the closed
+interval between specified abscissae, $a$ and $b$, to within a specified
+tolerance, TOL.
+
+\subsection{Usage}
+
+This subroutine uses reverse communication, $i.e.$, it returns to the
+calling program each time it needs to have $f()$ evaluated at a new value of
+$x.$
+
+\subsubsection{Program Prototype, Single Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf MODE}
+\item[REAL]  \ {\bf X, XORF, TOL}
+\end{description}
+\begin{tabbing}
+\hspace{.2in}\= MODE = 0\\
+\>X = An endpoint of the search interval\\
+\>XORF = The other endpoint\\
+\>TOL = Tolerance on $x$\\
+10\> continue
+\end{tabbing}\vspace{-3pt}
+$$
+\fbox{{\bf CALL SFMIN(X, XORF, MODE, TOL)}}
+$$
+\begin{tabbing}
+\hspace{.2in}\=if( MODE .eq. 1) then\\
+\>\ \ \ \ \=XORF = f() evaluated at X\\
+\>\>go to 10\\
+\>endif
+\end{tabbing}
+Computed quantities are returned in MODE, X, and XORF.
+
+\subsubsection{Argument Definitions}
+\begin{description}
+\item[X, XORF, MODE]  \ [all are inout] When starting a new problem, the
+user must set MODE $=0$, X = $a$, and XORF = $b$. The value of MODE should not
+be changed during the solution process, except to control detailed printing as
+explained in Section D.
+
+$a$ and $b$ denote endpoints defining a closed interval in which a local minimum
+is to be found. Permit $a < b$ or $a > b$ or $a = b$.
+
+On each return after a call with MODE = 0 or 1, this subroutine will set
+MODE to a value in the range [1:4] to indicate the action needed from the
+calling program or the status on termination.
+\begin{itemize}
+\item[= 1]  \ means the calling program must evaluate $f($X), store the
+value in XORF, and then call this subroutine again.
+\item[= 2]  \ means normal termination. XORF contains the value of $f($X)
+where X is a local minimum of the function in the interval specified.
+\item[= 3]  \ same as $\text{MODE}=2$, except the requested accuracy was not
+obtained.
+\item[= 4]  \ means error termination due to SFMIN having been entered with
+MODE $>$ 1.
+\end{itemize}
+\item[TOL]  \ [in] An absolute tolerance on the uncertainty in the final
+estimate of the local minimum. If TOL $\leq $ 0, SFMIN attempts to get
+all the accuracy it can. MODE will not be set to~3 in this case. Let $%
+\epsilon $ denote the machine precision, the value of which is obtained
+by reference to R1MACH(4) (D1MACH(4) for double precision), see
+Chapter~19.1. The operational tolerance, $\tau $, at any trial abscissa, X,
+will be
+\begin{equation*}
+\tau =(2/3)\times \text{TOL}+2\times |\text{X}|\times \epsilon ^{1/2}.
+\end{equation*}
+\end{description}
+\subsubsection{Modifications for Double Precision}
+
+For double-precision usage change the name SFMIN to DFMIN, and change the
+REAL declaration to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+The program DRSFMIN illustrates the use of SFMIN to compute the local
+minimum of the function, $f(x)=2^x+2^{-2x}$, for which the exact answer is $%
+x=1/3$, with a minimum value of $(3/2)2^{1/3}\approx 1.88988$. Output is
+shown in ODSFMIN.
+
+This algorithm evaluates $f$ at an initial endpoint, $a$ or $b$, only if the
+descent process leads to one of these points.
+
+\subsection{Functional Description}
+
+At the beginning of each iteration after the first, the algorithm has three
+ordered abscissae, $a^{\prime}< x < b^{\prime}$. The point $x$ will have the
+smallest function value found up to this point. All further searching will
+be in the closed interval $[a^{\prime},b^{\prime}]$. The algorithm will not
+necessarily have evaluated the function at $a^{\prime}$ and $b^{\prime}$.
+There may also be up to two saved points, $w$ and $v$, with associated saved
+function values satisfying $f(x) \leq f(w) \leq f(v)$. The points $w$ and $v$
+may or may not coincide with $a^{\prime}$ and $b^{\prime}$. If $\max
+(x-a^{\prime}$, $b^{\prime}-x) \leq \tau $, where $\tau $ is the operational
+tolerance defined above in Section B, the algorithm terminates, returning $x$
+as the approximate abscissa of the local minimum.
+
+If the algorithm has not converged then the algorithm generates a new point
+strictly between $a^{\prime}$ and $b^{\prime}$ by use of either
+\begin{itemize}
+\item[(1)]  \ parabolic interpolation using $x$, $w$, $v$, $f(x)$, $f(w)$,
+and $f(v)$, or
+\item[(2)]  \ golden section prediction using $a^{\prime}$, $x$, and $%
+b^{\prime}.$
+\end{itemize}
+The algorithm chooses between these two methods on the basis of tests
+designed to achieve a balance between rapid progress and reliability. Let $%
+e_i$ denote the distance of the $i^{th}$ trial abscissa from the solution
+abscissa. For a sufficiently smooth function whose first derivative has a
+simple zero at the minimizing abscissa, and when the trial point is
+sufficiently close to the solution, Method~1 converges according to $e_{i+1}
+= e^{1.324}_i$. Method~2 is slower but more reliable, converging according
+to $(b^{\prime}-a^{\prime})_{i+1} = 0.618(b^{\prime}-a^{\prime})_i$ regardless
+of the smoothness of the function or the proximity to the solution. Note
+that five steps of Method~2 gains somewhat more than one decimal place in
+the solution since $(0.618)^5 \approx 0.090$.
+
+This algorithm, with a Fortran~66 implementation, is presented in
+\cite{Forsythe:1977:CMM}.  The algorithm is due to R.  P.  Brent,
+\cite{Brent:1973:AMW}.
+
+The algorithm as given in \cite{Forsythe:1977:CMM} never evaluates $f$ at
+either of the initially given endpoints.  In cases in which the minimum is
+at an endpoint, the algorithm returns a final abscissa that differs from
+the endpoint by $\tau $, and may use many iterations.  We have altered
+the code to permit evaluation at an endpoint when the search process
+approaches an endpoint, and to keep the number of iterations used for an
+endpoint minimum essentially the same as for an interior minimum.
+
+\subparagraph{Detailed printing}
+
+Before the initial call with MODE $= 0$, or any time during the iterative
+process, the user may initiate or stop the detailed output by calling SFMIN
+with a negative value of MODE. There is no problem-solving action on such a
+call. A saved counter is set so detailed output will be written using
+WRITE(*,...) on the next $|$MODE$|-1$ normal calls. To resume normal
+computation the calling program must set MODE $= 0$ if a new problem
+sequence is being started or MODE\ $= 1$ if an iterative sequence is being
+continued.
+
+The detailed output will consist of X, XORF, and IC. IC is an internal variable
+that is initially~0 and is incremented by~1 whenever a golden section move
+is used rather than a move determined from a parabola. If IC gets to~4, it
+will either be set to $-$99, or it serves as an internal flag to check the
+results at an endpoint.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+SFMIN permits the given endpoints to satisfy $a < b,\ a > b,\text{ or }a = b$.
+In the latter case the solution is $x = a$, and it will be found in one
+iteration.
+
+The user must initially set MODE $= 0$ and must not alter MODE after that
+while iterating on the same problem, except to obtain the detailed
+printing as described in Section D. Entering SFMIN with MODE $>$ 1
+is an error condition and an error message will be issued using the
+error processing routines of Chapter~19.2 with an error level of 0.
+
+SFMIN uses the Fortran~77 SAVE statement to save values of internal
+variables between the successive calls needed to solve a problem. Thus SFMIN
+cannot be used to work on more than one problem at a time. In particular,
+calling SFMIN with MODE $= 0$ will always initialize it for a new problem
+and no data will be retained from a previous problem, except for the
+internal detailed printing counter mentioned in Section D. If one needs this
+type of capability, possibly because of a recursive formulation of a
+multivariate minimization problem, one could make multiple copies of this
+subroutine, giving a distinct name to each copy.  DMLC01,
+Chapter~9.2, is recommended for most such problems, however.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DFMIN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DFMIN, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SFMIN & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SFMIN}\\
+\end{tabular}
+
+Adapted to Fortran~77 for the JPL MATH77 library from the subroutine, FMIN,
+in \cite{Forsythe:1977:CMM} by C. L. Lawson and F. T. Krogh, JPL, Oct.~1987.
+
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSFMIN}\vspace{10pt}
+\lstinputlisting{\codeloc{sfmin}}
+
+\vspace{30pt}\centerline{\bf \large ODSFMIN}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sfmin}}
+
+\end{document}

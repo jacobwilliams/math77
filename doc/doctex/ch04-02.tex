@@ -1,0 +1,312 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 4.2 Linear Least-Squares and Covariance Matrix
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The principal expected application of this set of subroutines is the
+solution of the linear least-squares problem, $A{\bf x} \simeq {\bf b}$,
+where $A$ is an $m \times n$ matrix with $m > n$, and ${\bf b}$ is an $m$%
+-vector. The solution vector, ${\bf x}$, is an $n$-vector. Computation of
+the covariance matrix of the solution vector, ${\bf x}$, is also supported.
+
+This software is not limited to the usual case of $m > n$ and $A$ being of
+full rank. A pseudoinverse solution is provided for all of the cases, $m > n$%
+, $m = n$, and $m < n$, including the case of $A$ being rank-deficient.
+Furthermore, the right-side of the problem may be an $m \times k$ matrix, $B$,
+in which case the solution will be an $n \times k$ matrix, $X$.
+
+\subsection{Usage}
+
+\subsubsection{Solving a Least-Squares Problem}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf LDA, M, N, LDB, NB, KRANK, IP}($\geq $N)
+
+\item[REAL]  \ {\bf A}(LDA, $\geq $N){\bf , TAU, RNORM}($\geq $NB){\bf ,\\
+WORK}($\geq $N){\bf , B}(LDB) or {\bf B}(LDB, $\geq $ NB)
+\end{description}
+
+Assign values to A(,), LDA, M, N, B(,), LDB, NB, and TAU.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SHFTI(A, LDA, M, N, B, LDB, NB,\\
+TAU, KRANK, RNORM, WORK, IP)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in A(,), B(,), KRANK, RNORM(), and IP().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)]  \ [inout] On entry contains the M$\times $N matrix, $A$, of the
+least-squares problem. Permit M $>$ N, M = N, or M $<$ N. On return contains
+an upper triangular matrix that can be used by subroutine, SCOV2, to compute
+the covariance matrix.
+
+\item[LDA]  \ [in] First dimensioning parameter for the array, A(,). Require
+LDA $\geq $ M.
+
+\item[M]  \ [in] Number of rows of data in A(,) and B(,) on entry. Require
+M $\geq 1.$
+
+\item[N]  \ [in] Number of columns of data in A(,) on entry. Require N $\geq
+0.$
+
+\item[B(,)]  \ [inout] May be a singly or doubly subscripted array. On entry
+contains the right-side M-vector, ${\bf b}$, or (M$\times $NB)-matrix, $B$,
+for the least-squares problem. On return contains the solution N-vector, $%
+{\bf x}$, or (N$\times $NB)-matrix, $X$.
+
+\item[LDB]  \ [in] First dimensioning parameter for the array B(,). Require
+LDB $\geq \max (\text{M},\text{N})$ when NB $\geq 1$, and LDB $\geq 1$
+when NB $=0.$
+
+\item[NB]  \ [in] Number of right-side vectors for the least-squares
+problem. Require NB $\geq 0$. If NB = 1, the array, B(,), may be either
+singly or doubly subscripted. If NB $>1$, the array B(,) must be doubly
+subscripted. If NB = 0, this subroutine will not access B(,).
+
+\item[TAU]  \ [in] Absolute tolerance parameter provided by the user.
+Ideally should indicate the noise level of the data in the given matrix, $A$.
+The value, zero, is acceptable. Will be used in estimating the rank of $A$.
+Larger values of TAU will lead to a smaller estimated rank for $A$.
+
+\item[KRANK]  \ [out] Rank of $A$ estimated by the subroutine. Will be in the
+range, $0\leq \text{KRANK}\leq \min (\text{M},\text{N}).$
+
+\item[RNORM()]  \ [out] On return, RNORM(i) will contain the square root of
+sum of squares of residuals for the $i^{th}$ right-side vector.
+
+\item[WORK()]  \ [scratch] This array, of length at least N, is used
+internally by the subroutine as working space.
+
+\item[IP()]  \ [out] On return contains a record of column interchanges.
+\end{description}
+
+\subsubsection{Computing the Covariance Matrix}
+
+Subroutine SCOV2 is designed to be used following SHFTI; but only in cases
+in which KRANK determined by SHFTI is N.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf LDA, N, IP}($\geq $N){\bf , IERR}
+
+\item[REAL]  \ {\bf A}(LDA, $\geq $N){\bf , VAR}
+\end{description}
+
+On entry the values in A(,), LDA, N, and IP() should be the same as on
+return from a previous call to SHFTI. Also, assign a value to VAR.
+$$
+\fbox{{\bf CALL SCOV2(A, LDA, N, IP, VAR, IERR)}}
+$$
+Computed quantities are returned in A(,) and IERR.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)]  \ [inout] On entry contains an N$\times $N upper-triangular
+matrix produced by the subroutine, SHFTI. On return contains the
+upper-triangular part of the symmetric covariance matrix of the original
+least-squares problem. Elements in A(,) below the diagonal will not be
+referenced.
+
+\item[LDA, N]  \ [in] Must be the same as in a previous call to SHFTI.
+
+\item[IP()]  \ [in] Contains a record of column interchanges performed by a
+previous call to SHFTI.
+
+\item[VAR]  \ [in] Estimate of the variance of the data errors in the
+original right-side vector, ${\bf b}$. To compute the covariance matrix for
+the $i^{th}$ right-side vector of the original problem, the user's code can
+compute VAR in terms of output quantities from SHFTI as
+{\tt \begin{tabbing}
+\hspace{.2in}\=DOF = M - N\\
+\>STDDEV = RNORM($i$)/sqrt(DOF)\\
+\>VAR = STDDEV**2
+\end{tabbing}}
+\item[IERR]  \ [out] Error flag. Zero indicates no error was detected. A
+positive value indicates that A(IERR, IERR) was zero on entry. In this
+latter case no result will be produced.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change the REAL type statements to DOUBLE PRECISION, and change the
+subroutine names from SHFTI and SCOV2 to DHFTI and DCOV2, respectively.
+
+\subsection{Examples and Remarks}
+
+\subsubsection{A least-squares example}
+
+Data for a sample linear least-squares problem were generated by computing
+values of%
+\begin{equation*}
+y=0.5+0.25\ \sin (2\pi x)+0.125\ \exp (-x)
+\end{equation*}
+at eleven points, $x=0.0$, 0.1, ..., 1.0, and rounding the resulting $y$%
+-values to 4~decimal places, thus introducing errors bounded in magnitude by
+0.00005. The program, DRSHFTI, uses SHFTI to compute a least-squares fit to
+this data using the model%
+\begin{equation*}
+c_1+c_2\sin (2\pi x)+c_3\exp (-x)
+\end{equation*}
+and uses SCOV2 to compute the covariance matrix for the computed
+coefficients. Results are shown in the output file, ODSHFTI.
+
+\subsubsection{Large problems}
+
+If M $>>$ N and storage limitations make it awkward or impossible to
+allocate M$\times $N locations for the array, A(,), one can use sequential
+accumulation of the rows of data to produce a smaller matrix to which SHFTI
+and SCOV2 can then be applied. See Chapter~4.4 for sequential accumulation.
+
+\subsubsection{Underdetermined problems}
+
+If M $<$ N, or, more generally, whenever Rank($A$) $<$ N, there will be
+infinitely many vectors, ${\bf x}$, that achieve the same minimal residual
+norm for the least-squares problem. For such cases SHFTI computes the
+pseudoinverse solution, $i.e$. the solution vector, ${\bf x}$, of least
+Euclidean norm.
+
+\subsubsection{Computing the pseudoinverse matrix}
+
+If one sets B(,) to be the M$\times$M identity matrix, the resulting
+N$\times $M solution matrix, $X$, will be the pseudoinverse matrix of $A$.
+
+\subsubsection{Reliability issues regarding KRANK}
+
+KRANK must be understood as an estimate of the rank of $A$ that depends not
+only on $A$, but on the user's setting of TAU and the particular algorithm
+used in SHFTI. A small change in the value of TAU could result in a
+different value being assigned to KRANK, which in turn could result in a
+large change in the solution vector.
+
+Although this subroutine will produce a solution whatever the value of
+KRANK, the occurrence of KRANK $< \min (\text{M}$, N$)$ should be regarded
+as exceptional. The user should investigate such instances as it could be
+due to a programming error or a very ill-conditioned model. Singular Value
+Analysis (see Chapter~4.3) can be useful in analyzing an ill-conditioned model.
+
+\subsection{Functional Description}
+
+This software is an adaptation to Fortran~77 of the subroutine, HFTI,
+given and described in \cite{Lawson:1974:SLS}.  The name, HFTI, denotes
+Householder Forward Transformation with column Interchanges.
+
+To avoid nonessential complications, we shall describe the algorithm only
+for the case of M $\geq $ N and NB = 1. A sequence of up to N Householder
+orthogonal transformations is applied from the left, with column
+interchanges, the total effect of which may be summarized by the equation%
+\begin{equation*}
+Q\left[ A:{\bf b}\right] \left[
+\begin{array}{cc}
+P & 0 \\
+0 & 1
+\end{array}
+\right] =\left[
+\begin{array}{cc}
+R & {\bf g} \\ 0 & {\bf h}
+\end{array}
+\right]
+\end{equation*}
+where Q is the M$\times $M product of the Householder matrices, $P$ is an N$%
+\times $N permutation matrix accounting for the column interchanges, $R$ is an
+N$\times $N upper-triangular matrix with diagonal elements in order of
+decreasing magnitudes, ${\bf g}$ is an N-vector, and ${\bf h}$ is an
+(M $-$ N)-vector.
+
+If all diagonal elements of $R$ exceed TAU in magnitude, the solution, ${\bf x}
+$, is computed by solving $R{\bf x}={\bf g}$. The subroutine sets KRANK $=$
+N and RNORM(1)\ $=\Vert {\bf h}\Vert .$
+
+Alternatively, if the diagonal elements of $R$ beyond position $i$ are less
+than TAU, the subroutine sets KRANK $=i$. Let $[R_1:{\bf g}_1]$ denote the
+first KRANK rows of $[R:{\bf g}]$, and let ${\bf g}_2$ denote the last
+N $-$ KRANK components of ${\bf g}$. The subroutine applies up to KRANK
+Householder transformations to $R_1$ from the right, effecting the
+transformation
+\begin{equation*}
+R_1K=[W:0]
+\end{equation*}
+where $K$ is the N$\times $N product of Householder transformations and $W$ is a
+KRANK$\times $KRANK non-singular upper-triangular matrix. A KRANK-vector, $%
+{\bf y}_1$, is computed by solving $W{\bf y}_1={\bf g}_1$. An N-vector, $%
+{\bf y}$, is formed by appending zeros to the end of ${\bf y}_1$, and the
+minimal length solution vector, ${\bf x}$, is computed as ${\bf x}=\text{PK}%
+{\bf y}$. RNORM(1) is computed as the Euclidean norm of the (M $-$ KRANK)-vector
+formed by concatenating ${\bf g}_2$ and ${\bf h}.$
+
+Subroutine, SCOV2, is intended for use only when Rank($A$) = N.
+Algorithm, COV, from \cite{Lawson:1974:SLS} is used.  The covariance
+matrix is traditionally defined as $ C=\sigma ^2(A^tA)^{-1}$, where
+$\sigma ^2$ is the variance of the data error.  Using the triangular
+matrix, $R$, and the (orthogonal) permutation matrix, $P$, defined above,
+one can also write $C=\sigma ^2(PR^tRP^t)^{-1}=\sigma ^2PR^{-1}R^{-t}P^t$,
+where $R^{-t}$ denotes the transpose of $R^{-1}$.  Thus, SCOV2 computes%
+\begin{align*}
+E&=R^{-1} \\ F&=EE^t\\ C&=\sigma ^2PFP^t
+\end{align*}
+
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+In SHFTI (or DHFTI) an error message will be issued and an immediate return
+will be made, setting KRANK = 0, if any of the following conditions are
+noted:%
+\begin{equation*}
+\text{M}<1,\text{ N}<0,\text{ LDA}<\text{M, or LDB}<\max (\text{M, N})
+\end{equation*}
+Most commonly, on return KRANK will have the value $\min (\text{M}$, N$)$.
+A smaller value of KRANK may be valid, but unless the user has reason to
+expect this possibility it is likely to be due to a usage error.
+
+In SCOV2 (or DCOV2) the N diagonal elements of A(,) must be nonzero on
+entry. If so, IERR is set to zero. If not, IERR is set to the index of the
+first zero element, an error message will be issued, and a return will be
+made with the computation being incomplete.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCOV2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCOV2, DDOT, DSWAP, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DHFTI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DAXPY, DDOT, DHFTI, DHTCC, DHTGEN, DNRM2, ERFIN, ERMOR, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SCOV2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SCOV2, SDOT, SSWAP\rule[-5pt]{0pt}{8pt}}\\
+SHFTI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMOR, ERMSG, IERM1, IERV1, SAXPY, SDOT, SHFTI, SHTCC, SHTGEN, SNRM2}\\\end{tabular}
+
+Adapted to Fortran~77 from \cite{Lawson:1974:SLS} by C.  L.  Lawson and S.
+Y.  Chiu, JPL, May~1986, June~1987.
+
+
+\begcode
+\bigskip
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSHFTI}\vspace{10pt}
+\lstinputlisting{\codeloc{shfti}}
+
+\vspace{30pt}\centerline{\bf \large ODSHFTI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{shfti}}
+\end{document}

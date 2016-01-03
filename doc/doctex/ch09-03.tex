@@ -1,0 +1,1750 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{DNLSxx}
+\begmath 9.3 Nonlinear Least-Squares
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The subroutines in this package estimate parameters in a nonlinear model
+using the criterion of least-squares. Eight different user-callable
+subroutines are provided to support different combinations of three options:
+(1) the method of obtaining derivative values, (2) bounds on parameters, and
+(3) use of a special algorithm for the separable problem.
+
+On July 8, 2015 this code was getting a divide by 0 with compiler optimization,
+but not with just the debug flag.  Krogh has made a very minor change to work
+around that problem, but has no confidence that all is o.k. here.
+
+We urge you not to be put off by the length and complexity of this
+documentation.  The length is primarily due to the large number of
+internal parameters that are made accessible via the IV() and V() arrays.
+For simplest usage you can just set IV(1) = 0 and not store anything into
+the V() array.  Then most of the information needed to use the package
+will be found in Section B.1 for the nonseparable subroutines or in
+Section B.2 for the separable subroutines.  Two sample main programs are
+described in Section C and listed following Section F.
+
+A typical application of this software would be the identification of
+parameters in a nonlinear model to provide the best fit to measured data in
+the sense of minimizing the sum of squares of differences between values of
+the model function and the observed data. For example one could define a
+residual function as
+\begin{equation}
+\label{O1}r_i({\bf c})=f(t_i;{\bf c})-y_i,\quad i=1,...,NDATA,
+\end{equation}
+where $y_i$ is an item of measured data associated with an independent
+variable value $t_i$, and $f$ is a model function depending nonlinearly on
+the NC-dimensional parameter vector ${\bf c}$. The objective function that
+will be minimized by subroutines of this package is
+\begin{equation}
+\label{O2}\psi ({\bf c})=\frac 12\sum_{i=1}^{NDATA}r_i({\bf c})^2.
+\end{equation}
+The function $r_i$ could be defined in ways other than the expression in
+Eq.\,(\ref{O1}). The package does assume that $r_i({\bf c})$ is a continuously
+differentiable function of ${\bf c}$, \cite[p.~369]{Dennis:1981:ANL}.
+
+It is not uncommon for some parameters in a nonlinear least-squares problem
+to occur linearly. When this is the case we shall say the problem is
+separable. Algorithms specialized for the separable problem have been
+developed. By reducing the dimension of the parameter space in which the
+nonlinear search must be executed, such an algorithm generally has better
+efficiency and robustness than an algorithm that does not take advantage of
+the separability.
+
+A problem is separable if there is a way the coefficient vector, ${\bf c}$,
+can be partitioned into two subsets, say ${\bf \alpha }$ and ${\bf \beta }$,
+such that, with the ${\bf \alpha }$ coefficients held at fixed values, the
+model function is a linear function of the ${\bf \beta }$ coefficients. With
+such a partition we will refer to ${\bf \alpha }$ as the nonlinear
+coefficients, and ${\bf \beta }$ as the linear coefficients. Suppose ${\bf %
+\alpha }$ has NA components and ${\bf \beta }$ has NB components. The
+residual function will be regarded as having one of the forms
+\begin{align}
+\hspace{-15pt}\label{O3}r_i({\bf \alpha },{\bf \beta })&=\beta _1
+\varphi _{i,1}({\bf \alpha })+\cdot \cdot \cdot +\beta _{NB}
+\varphi _{i,NB}({\bf \alpha })-y_i,\ \text{or ~~~}\hspace{-1in}\\
+\hspace{-15pt}r_i({\bf \alpha },{\bf \beta })&=\beta _1\varphi _{i,1}({\bf \alpha })
++\cdot \cdot \cdot \notag\\
+\label{O4}& \qquad +\beta _{NB}\varphi _{i,NB}({\bf \alpha })+
+\varphi_{i,NB+1}({\bf \alpha })-y_i,\hspace{-2in}
+\end{align}
+where the $\varphi _{i,j}$'s are assumed to be continuously
+differentiable functions of {\bf $\alpha $}. Typically one will have $\varphi
+_{i,j}=\varphi _j(t_i)$ where $t_i$ is a value of the independent variable in
+the data set. Examples of the formulation of problems as separable are given
+in Section~C, page \pageref{refsep}.
+
+Where the symbols ${\bf x}$ and {\em nx} are used here they should be
+interpreted as denoting ${\bf c}$ and NC respectively in the nonseparable
+algorithms, and ${\bf \alpha }$ and NA respectively in the separable
+algorithms.  The notation $\| \cdot \| $ will denote the Euclidean vector
+norm throughout.
+
+To denote subsets of the eight subroutines defined in Sections B.1 and B.2
+we will use a ``wild-card" notation. For example DNLAxx will denote any of
+the four subroutines of Section B.1.
+
+\subsection{Usage}
+
+Described below under B.1 through B.5 are:
+\begin{tabular*}{3.3in}{@{}l@{~}l}
+B.1 &  Subroutines not Specialized for the Separable Prob-\\
+ & lem: DNLAFB, DNLAFU, DNLAGB, DNLAGU \dotfill \pageref{PB1}\\
+B.2 &  Subroutines Specialized for the Separable Problem:\ \ \\
+ & DNLSFB, DNLSFU, DNLSGB, DNLSGU \dotfill \pageref{PB2}\\
+B.3 &  Setting Options and Using Subroutine DIVSET \dotfill \pageref{PB3}\\
+B.4 &  The Contents of IV() and V() \dotfill \pageref{PB4}\\
+B.5 &  Modifications for Single Precision \dotfill \pageref{PB5}
+\end{tabular*}
+\subsubsection{Subroutines not Specialized for the Separable Problem: DNLAFB,
+DNLAFU, DNLAGB, DNLAGU\label {PB1}}
+
+These subroutines are
+\begin{description}
+\item[DNLAFB]  Requires function values only. Applies bounds.
+
+\item[DNLAFU]  Requires function values only. No bounds.
+
+\item[DNLAGB]  Requires function and derivative values. Applies bounds.
+
+\item[DNLAGU]  Requires function and derivative values. No bounds.
+\end{description}
+For these subroutines the residual functions, $r_i$, are assumed to be
+continuously differentiable functions of the NC-vector ${\bf c}$. Although
+the $r_i$'s are not assumed to have any particular form, the form
+shown in Eq.\,(\ref{O1}) would be typical.
+
+To conserve space the descriptions of these four subroutines are merged.
+Note that the argument BND() is only used by DNLAFB and DNLAGB, and the
+argument DCALCJ is only used by DNLAGU and DNLAGB.
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NDATA, NC, IV(LIV), LIV, LV}
+
+\item[DOUBLE PRECISION]  {\bf COEF}($\geq $NC){\bf ,\\ BND}(2,$\geq $NC){\bf %
+, V}(LV)
+
+\item[EXTERNAL]  \ {\bf DCALCR, DCALCJ}
+\end{description}
+Assign values to NDATA, NC, COEF(), BND(), IV(), LIV, LV, and optionally to
+V().\vspace{-5pt}
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }l}
+CALL DNLAFU (NDATA, NC, COEF,\\
+\quad DCALCR, \phantom{DCALCJ, }IV, LIV, LV, V)\\\vspace{-6pt}
+\\
+CALL DNLAGU (NDATA, NC, COEF,\\
+\quad DCALCR, DCALCJ, IV, LIV, LV, V)\\\vspace{-6pt}
+\\
+CALL DNLAFB (NDATA, NC, COEF, BND,\\
+\quad DCALCR, \phantom{DCALCJ, }IV, LIV, LV, V)\\\vspace{-6pt}
+\\
+CALL DNLAGB (NDATA, NC, COEF, BND,\\
+\quad DCALCR, DCALCJ, IV, LIV, LV, V)\\
+\end{tabular}}
+\end{center}
+Results are returned in COEF(), IV(), and V().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[NDATA]  \ [in] Number of observations (equations) in the problem.
+Require NDATA $\geq 1.$
+
+\item[NC]  \ [in] Number of coefficients. Require NC $\geq 1$. Generally one
+would have NC $\leq $ NDATA; however, NC $>$ NDATA is permitted. In the
+latter case the solution will be nonunique, and if the computation is
+successful the return value of IV(1) is likely to be~7.
+
+\item[COEF()]  \ [inout] On entry, COEF(1:NC) must contain an initial
+estimate of the solution coefficients, denoted by ${\bf c}$ in Eqs.\,(\ref{O1}%
+) and (\ref{O2}). On return COEF(1:NC) will contain the subroutine's best
+estimate of the solution coefficients.
+
+\item[BND()]  \ [in] Specifies bounds to be satisfied by the solution
+coefficients. The bounds are
+\begin{equation*}
+\hspace{-5pt}\text{BND}(1,j)\leq \text{COEF}(j)\leq \text{BND}(2,j)
+\text{, }j=1\text{,..., NC}
+\end{equation*}
+Require BND($1,j)\leq $ BND(2,$j)$ for $j=1$, ..., NC. If a coefficient is
+to be unbounded in one or both directions, set the appropriate bound very
+small or very large, but not to such large magnitudes that the
+difference BND($2,j)-\text{BND}(1,j)$ would overflow. If the initial
+values for COEF( ) do not satisfy these bounds the coefficient values will
+be immediately altered so they are within the bounds.
+
+\item[DCALCR]  \ [in] The name of a subroutine provided by the user to
+compute the residual values, $r_i$, $i=1$, ..., NDATA, using the current
+COEF() values. It must have an interface of the form
+\vspace{-8pt}{\tt \begin{tabbing}
+SUBROUTINE DCALCR(NDATA, NC, COEF, ICOUNT,\\
+\ \ \ \=RES)\\
+INTEGER NDATA, NC, ICOUNT\\
+DOUBLE PRECISION COEF(NC), RES(NDATA)
+\end{tabbing}}\vspace{-8pt}
+DCALCR must store the residual values in RES(i), $i=1$, ..., NDATA. DCALCR
+must not change the values of NDATA, NC, or COEF().
+
+In some applications DCALCR may need additional data, such as the $%
+t_i$'s or $y_i$'s of Eq.\,(\ref{O1}), that may have been
+input by the user's main program. One way to handle this in Fortran~77 is by
+use of named COMMON blocks.
+
+ICOUNT is a count of calls to DCALCR maintained by DNLAxx. DCALCR can
+reset ICOUNT to zero as a signal that it cannot evaluate the residual using
+the current COEF() values. This will cause DNLAxx to change the values in
+COEF() and try again.
+
+\item[DCALCJ]  \ [in] The name of a subroutine provided by the user to
+compute the Jacobian matrix of partial derivatives of the residual vector
+with respect to the coefficients using the current COEF() values. It must
+have an interface of the form
+\vspace{-8pt}{\tt \begin{tabbing}
+SUBROUTINE DCALCJ(NDATA, NC, COEF, ICOUNT,\\
+\ \ \ AJAC)\\
+INTEGER NDATA, NC, ICOUNT\\
+DOUBLE PRECISION COEF(NC), AJAC(NDATA, NC)
+\end{tabbing}}\vspace{-8pt}
+DCALCJ must store the value of the $\partial r_i / \partial c_j$ in AJAC$(i,j)$,
+for $i=1$, ..., NDATA, and $j=1$, ..., NC. DCALCJ must not change the
+values of NDATA, NC, or COEF().
+
+If DCALCJ needs additional data, that may have been input by the user's main
+program, such data can be made available to DCALCJ via named COMMON blocks.
+
+ICOUNT is a count of calls to DCALCR maintained by DNLAxx. DCALCJ can
+reset ICOUNT to zero as a signal that it cannot evaluate the partial
+derivatives using the current COEF() values. This will cause DNLAxx to
+return to the calling program with IV(1) set to~65.
+
+Generally the computation of the Jacobian matrix involves subexpressions
+that also appear in computing the residual vector. If efficiency is
+particularly important, the subroutines DCALCR and DCALCJ can be designed to
+avoid recalculation of such subexpressions. DCALCR can store values of
+common subexpressions into a COMMON block and copy ICOUNT into a COMMON
+variable, say KTAG, each time it is invoked. When DCALCJ is called it can
+compare KTAG from COMMON with ICOUNT from its argument list. When they are
+the same, which they will be most of the time, it means COEF() still has the
+same value it had when the subexpressions were computed, and thus DCALCJ can
+use these subexpression values without recomputing them.
+
+For greatest efficiency DCALCR should save the two most recent evaluations,
+along with their ICOUNT values, say in KTAG1 and KTAG2 in a COMMON block.
+DCALCJ should then test ICOUNT against KTAG1 and KTAG2 and will usually find
+a match with one of them.
+
+\item[IV()]  \ [inout] An integer array of length LIV. Used as work space.
+Also used to input option selections and to output auxiliary results,
+including a beginning and ending status flag in IV(1). For simplest usage
+the user should set IV($1)=0$ before calling DNLAxx. This signals DNLAxx to
+set all options to default values by calling DIVSET. See Sections B.3 and
+B.4 for further information on setting options and interpreting output in
+IV().
+
+\item[LIV]  \ [in] The dimension of IV().  The minimum value allowed
+for LIV is for
+
+DNLAFU, DNLAGU: 82 + NC,
+
+and for
+
+DNLAFB, DNLAGB: 82 + 4 $\times $ NC.
+
+If LIV is set too small, DNLAxx will return with IV(1) = 15 and will store
+the minimal acceptable value for LIV in IV({\em lastiv}) = IV(44),
+provided $\text{LIV} \geq 44.$
+
+\item[LV]  \ [in] The dimension of V().  The minimum value allowed
+for LV is for
+
+DNLAFU, DNLAGU: 105 + NC $\times $ (NDATA + 2 $\times $ NC + 17)
++ 2 $\times $ NDATA
+
+and for
+
+DNLAFB, DNLAGB: 105 + NC $\times $ (NDATA + 2 $\times $ NC + 21)
++ 2 $\times $ NDATA.
+
+If LV is set too small, DNLAxx will return with IV(1) = 16 and will store
+the minimal acceptable value for LV in IV({\em lastv}) = IV(45),
+provided $\text{LIV} \geq 45.$
+
+\item[V()]  \ [inout] A floating point array of length LV. Used as work
+space. Also used to input option selections and to output auxiliary results.
+For simplest usage the user does not need to set any values in V() before
+calling DNLAxx. See Sections B.3 and B.4 for information on setting options
+and interpreting output in V().
+\end{description}
+
+\subsubsection{Subroutines Specialized for the Separable Problem: DNLSFB,
+DNLSFU, DNLSGB, DNLSGU\label{PB2}}
+
+These subroutines are
+\begin{description}
+\item[DNLSFB]  Requires function values only. Applies bounds to the
+nonlinear coefficients.
+
+\item[DNLSFU]  Requires function values only. No bounds.
+
+\item[DNLSGB]  Requires function and derivative values. Applies bounds to
+the nonlinear coefficients.
+
+\item[DNLSGU]  Requires function and derivative values. No bounds.
+\end{description}
+For these subroutines the residual functions, $r_i$, are assumed to be of
+the form shown in Eqs.\,(\ref{O3}) or (\ref{O4}), and the $\varphi
+_{i,j}$'s are assumed to be continuously differentiable functions of
+the NA-vector ${\bf \alpha }.$
+
+To conserve space the descriptions of these four subroutines are merged.
+Note that the argument BND() is only used by DNLSFB and DNLSGB, and the
+argument DCALCB is only used by DNLSGU and DNLSGB.
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf NDATA, NA, NB, IND}(LIND,$\geq $NA){\bf , LIND, IV}%
+(LIV){\bf , LIV, LV}
+
+\item[DOUBLE PRECISION]  {\bf ALF}($\geq $NA){\bf , BND}(2,$\geq $NC), {\bf %
+BET}($\geq $NB){\bf , YDATA}($\geq $NDATA){\bf , V}(LV)
+
+\item[EXTERNAL]  \ {\bf DCALCA, DCALCB}
+\end{description}
+Assign values to NDATA, NA, NB, ALF(), BND(), YDATA(), IND(,), LIND, IV( ),
+LIV, LV, and optionally to V().
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }l}
+CALL DNLSFU (NDATA, NA, NB, ALF,\\
+\quad BET, YDATA, DCALCA, \phantom{DCALCB,}\\
+\quad IND, LIND, IV, LIV, LV, V)\\\vspace{-6pt}
+\\
+CALL DNLSGU (NDATA, NA, NB, ALF,\\
+\quad BET, YDATA, DCALCA, DCALCB,\\
+\quad IND, LIND, IV, LIV, LV, V)\\\vspace{-6pt}
+\\
+CALL DNLSFB (NDATA, NA, NB, ALF,\\
+\quad BND, BET, YDATA, DCALCA,\\
+\quad \phantom{DCALCB, }IND, LIND, IV, LIV, LV, V)\\\vspace{-6pt}
+\\
+CALL DNLSGB (NDATA, NA, NB, ALF,\\
+\quad BND, BET, YDATA, DCALCA,\\
+\quad DCALCB, IND, LIND, IV, LIV, LV, V)\\
+\end{tabular}}
+\end{center}
+Results are returned in ALF(), BET(), IV(), and V().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[NDATA]  \ [in] Number of observations (equations) in the problem.
+Require NDATA $\geq 1.$
+
+\item[NA]  \ [in] Number of nonlinear coefficients. Require NA $\geq 1$.
+
+\item[NB]  \ [in] Number of linear coefficients. Require NB $\geq 0$.
+Generally one would have NA + NB $\leq $ NDATA; however, NA + NB $>$ NDATA
+is permitted. In the latter case the solution will be nonunique, and if the
+computation is successful the return value of IV(1) is likely to be~7.
+
+\item[ALF()]  \ [inout] On entry, ALF(1:NA) must contain an initial estimate
+of the nonlinear coefficients, denoted by ${\bf \alpha }$ in Eqs.\,(\ref{O3})
+and (\ref{O4}). On return ALF(1:NA) will contain the subroutine's best
+estimate of the ${\bf \alpha }$ vector.
+
+\item[BND()]  \ [in] Specifies bounds to be satisfied by the nonlinear
+coefficients. The bounds are
+\begin{equation*}
+\text{BND}(1,j)\leq \text{ALF}(j)\leq \text{BND}(2,j)\text{, }j=1\text{,
+..., NA}
+\end{equation*}
+Require BND($1,j)\leq $ BND(2,$j)$ for $j=1$, ..., NA. If a coefficient is
+to be unbounded in one or both directions, set the appropriate bound very
+small or very large, but not to such large magnitudes that the difference
+BND($2,j)-\text{BND}(1,j)$ would overflow. If the initial values for ALF()
+do not satisfy these bounds the coefficient values will be immediately
+altered so they are within the bounds.
+
+\item[BET()]  \ [out] On return BET(1:NB) will contain the values of the
+linear coefficients, denoted by ${\bf \beta }$ in Eqs.\,(\ref{O3}) and (\ref
+{O4}).
+
+\item[YDATA()]  \ [in] On entry YDATA(1:NDATA) must contain the data values
+denoted by $y_i$ in Eqs.\,(\ref{O3}) and (\ref{O4}).
+
+\item[DCALCA]  \ [in] The name of a subroutine provided by the user to
+compute values of the functions $\varphi _{i,j}$ of Eqs.\,(\ref{O3}) or (\ref{O4}%
+), using the current ALF() values. It must have an interface of the form
+\vspace{-8pt}{\tt \begin{tabbing}
+SUBROUTINE DCALCA(NDATA, NA, NB, ALF,\\
+\ \ \ \=ICOUNT, PHI)\\
+INTEGER NDATA, NA, NB, ICOUNT\\
+DOUBLE PRECISION ALF(NA), PHI(NDATA, NB or\\
+\>NB+1)
+\end{tabbing}}\vspace{-8pt}
+DCALCA must store the value of $\varphi _{i,j}$ in PHI($i,j)$, for $i=1$, ...,
+NDATA, and $j=1$, ... NB or NB+1. The array PHI() must have NB columns if
+the model is Eq.\,(\ref{O3}), and NB+1 columns if it is Eq.\,(\ref{O4}).
+
+DCALCA must not change the values of NDATA, NA, NB, or ALF().
+
+If DCALCA needs additional data, which may have been input by the user's
+main program, such data can be made available to DCALCA via named COMMON
+blocks.
+
+ICOUNT is a count of calls to DCALCA maintained by DNLSxx. DCALCA can
+reset ICOUNT to zero as a signal that it cannot compute PHI() using the
+current ALF() values. This will cause DNLSxx to change the values in ALF()
+and try again.
+
+\item[DCALCB]  \ [in] The name of a subroutine provided by the user to
+compute partial derivatives of the functions $\varphi _{i,j}$ with respect to
+the components of the coefficient vector ${\bf \alpha }$. It must have an
+interface of the form
+\vspace{-8pt}{\tt \begin{tabbing}
+SUBROUTINE DCALCB(NDATA, NA, NB, ALF,\\
+\ \ \ \=ICOUNT, DER)\\
+INTEGER NDATA, NA, NB, ICOUNT\\
+DOUBLE PRECISION ALF(NA), DER(NDATA, {\em nzero})
+\end{tabbing}}\vspace{-8pt}
+where {\em nzero} is the number of nonzeros in the array IND(,). See the
+specification of IND(,) below.
+
+Let the nonzeros in IND(,) be indexed from~1 to {\em nzero} as they occur in
+traversing down the first column, then the second column, etc. If the $%
+m^{th} $ nonzero in this ordering is at IND($j,k)$, then DCALCB must store
+the value of $\partial \varphi _{i,j}/\partial {\bf \alpha }_k$ in DER($i,m)$
+for $i=1$, ..., NDATA, and $m=1$, ..., {\em nzero}.
+
+Equivalently we may describe DER() by saying that row $i$ of DER() must
+contain values of $\partial \varphi _{i,j}/\partial {\bf \alpha }_k$ for all
+index pairs $(j,k)$ for which ${\bf \alpha }_k$ appears in the formula
+defining $\varphi _{\ell ,j}$ for at least some $\ell $, and these values must
+be ordered across row $i$ of DER() with major sort on $k$ and minor sort on $%
+j.$
+
+DCALCB must not change the values of NDATA, NA, NB, or ALF().
+
+If DCALCB needs additional data, which may have been input by the user's
+main program, such data can be made available to DCALCB via named COMMON
+blocks.
+
+ICOUNT is a count of calls to DCALCA maintained by DNLSxx. DCALCB can
+reset ICOUNT to zero as a signal that it cannot evaluate the partial
+derivatives using the current ALF() values. This will cause DNLSxx to return
+to the calling program with IV(1) set to~65.
+
+Generally the computation of the derivatives involves subexpressions that
+also appear in computing the $\varphi _{i,j}$'s. If efficiency is
+important, the subroutines DCALCA and DCALCB can be designed to avoid
+recalculation of such subexpressions. DCALCA can store values of common
+subexpressions into a COMMON block and copy ICOUNT into a COMMON variable,
+say KTAG, each time it is invoked. When DCALCB is called it can compare KTAG
+from COMMON with ICOUNT from its argument list. When they are the same,
+which they will be most of the time, it means ALF() still has the same value
+it had when the subexpressions were computed, and thus DCALCB can use these
+subexpression values without recomputing them.
+
+For greatest efficiency DCALCA should save the two most recent evaluations,
+along with their ICOUNT values, say in KTAG1 and KTAG2 in a COMMON block.
+DCALCB should then test ICOUNT against KTAG1 and KTAG2 and will usually find
+a match with one of them.
+
+\item[IND(,)]  \ [in] An integer array containing an (NB+1)$\times $NA matrix
+of zeros and ones. The user must set IND($j,k)=1$ if the coefficient ${\bf %
+\alpha }_k$ appears in the formula defining $\varphi _{i,j}$, for some
+$i$, and set IND($j,k)=0$ otherwise. If the model of Eq.\,(\ref{O3}) is used,
+all elements of IND(NB+1, 1:NA) must be set to zero.  The condition
+of IND(NB+1, 1:NA) being all zero signals DNLSxx that Eq.\,(\ref{O3}) rather
+than Eq.\,(\ref{O4}) is being used.
+
+If any column of IND(,) were entirely zero it would mean the corresponding
+component of ${\bf \alpha }$ would not affect the model function. This is
+regarded as an error condition and will cause a return with IV(1) = 66.
+
+\item[LIND]  \ [in] The first dimensioning parameter for IND(,). Require LIND
+$\geq $ NB + 1.
+
+\item[IV()]  \ [inout] An integer array of length LIV. Used as work space.
+Also used to input option selections and to output auxiliary results,
+including a beginning and ending status flag in IV(1). For simplest usage
+the user should set IV(1) = 0 before calling DNLSxx. This signals DNLSxx to
+set all options to default values by calling DIVSET. See Sections B.3 and
+B.4 for further information on setting options and interpreting output in
+IV().
+
+\item[LIV]  \ [in] The dimension of IV(). Let {\em nzero} denote the number of
+nonzeros in IND(,).
+\begin{tabular}{@{}l@{\ \ }l}
+\bf Program & \multicolumn{1}{c}{\bf Minimum value allowed for LIV}\\
+\bf DNLSFU &  $122+2\times nzero+4\times \text{NA}+2\times \text{NB}$\\
+ & $\quad + \max (\text{NB}+1,6\times \text{NA})$\\
+\bf DNLSGU & $115+\text{NA}+\text{NB}+2\times nzero$\\
+\bf DNLSFB & $122+2\times nzero+7\times \text{NA}+2\times \text{NB}$\\
+ & $\quad + \max (\text{NB}+1,6\times \text{NA}$)\\
+\bf DNLSGB & $115+4\times \text{NA}+\text{NB}+2\times nzero$\\
+\end{tabular}
+If LIV is set too small, DNLSxx will return with IV(1) = 15 and will store
+the minimal acceptable value for LIV in IV({\em lastiv}) = IV(44),
+provided $\text{LIV} \geq 44.$
+
+\item[LV]  \ [in] The dimension of V(). Define:\vspace{2pt}
+\begin{description}
+\item[\em nzero]= the number of nonzeros in IND(,),
+\item[\em bterm]= (NB $\times $ (NB+3))/2, {\em nc} = NA + NB, and
+\item[\em jlen]= NA $\times $ NDATA if neither the covariance
+matrix nor regression diagnostics are requested,
+otherwise {\em jlen} = (NB + NA) $\times$ (NDATA + NB + NA + 1).
+\end{description}
+\begin{tabular}{@{}l@{}l}
+\bf Program & \multicolumn{1}{c}{\bf Minimum value allowed for LV}\\
+\bf DNLSFU & \quad $105+2\times \text{NDATA}\times (\text{NB}+3)$\\
+ & $+jlen +bterm+ \text{NA}\times(2\times \text{NA}+18)$\\
+\bf DNLSGU & \quad $105+\text{NDATA}\times (\text{NB}+nzero+3)$\\
+ & $+jlen+bterm+ \text{NA}\times(2\times \text{NA}+17)$\\
+\bf DNLSFB & \quad $105+\text{NDATA}\times (2\times \text{NB}+6+\text{NA})$\\
+ & $+bterm+\text{NA}\times (2\times \text{NA}+22)$\\
+\bf DNLSGB & \quad $105+\text{NDATA}\times (\text{NA}+\text{NB}+nzero$\\
+ & $+3)+ bterm+\text{NA}\times (2\times \text{NA}+21)$
+\end{tabular}
+
+If the problem is of the form of Eq.\,(\ref{O3}) rather than Eq.\,(\ref{O4}),
+LV can be less than indicated above by 4 $\times $ NDATA for DNLSFU or
+DNLSFB, and by NDATA for DNLSGU or DNLSGB.
+
+If LV is set too small, DNLSxx will return with IV(1) = 16 and will store
+the minimal acceptable value for LV in IV({\em lastv}) = IV(45),
+provided $\text{LIV} \geq 45.$
+
+\item[V()]  \ [inout] A floating point array of length LV. Used as work
+space. Also used to input option selections and to output auxiliary results.
+For simplest usage the user does not need to set any values in V() before
+calling DNLSxx. See Sections B.3 and B.4 for information on setting options
+and interpreting output in V().
+\end{description}
+
+\subsubsection{Setting Options and Using Subroutine\protect\\DIVSET\label
+{PB3}}
+
+Options are selected by storing values into IV() and V(). To set options to
+nondefault values you should first call DIVSET which will store default values
+into IV() and V(), then individually reset particular elements of IV() and V()
+to desired nondefault values, and then call the desired DNLxxx subroutine.
+
+We describe here the call to DIVSET. The contents of IV() and V() are
+described in Section B.4.
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf MODE, IV(LIV), LIV, LV}
+
+\item[DOUBLE PRECISION]  {\bf V}(LV)
+\end{description}
+Set MODE = 1, and assign values to LIV and LV.
+$$
+\fbox{{\bf CALL DIVSET (MODE, IV, LIV, LV, V)}}
+$$
+Results are returned in IV() and V().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[MODE]  \ [in] Always set MODE = 1.
+
+\item[IV()]  \ [out] Integer array into which DIVSET will store default
+values. On return will have IV(1) = 12.
+
+\item[LIV]  \ [in] Dimension of IV(). DIVSET requires LIV $\geq 82$, but a
+larger value will be needed for DNLxxx.
+
+\item[LV]  \ [in] Dimension of V(). DIVSET requires LV $\geq 98$, but a
+larger value will be needed for DNLxxx.
+
+\item[V()]  \ [out] Floating point array into which DIVSET will store
+default values.
+\end{description}
+\subsubsection{The Contents of IV() and V()\label{PB4}}
+
+The following Sections, B.4.a to B.4.j, give the interpretation of the
+elements of IV() and V() that are most likely to be of interest to the user
+of this package.
+
+The values that will be assigned by DIVSET are indicated by ``Default $=
+..." $. See Section D for discussion of objects such as the ${\bf d}$ vector, the
+$S$ matrix, the Gauss-Newton and augmented models, etc.
+
+The name {\em machep} will be used in the following descriptions to denote the
+unit round-off of the host arithmetic. It is obtained in the code by calling
+D1MACH(4) (or R1MACH(4) for single precision); see Chapter~19.1.
+
+Internally this package uses symbolic names for certain fixed index values
+used in IV() or V(). These associations will be indicated in the following
+descriptions by the notation: IV({\em covprt}) $\equiv$ IV(14). If the user wishes
+to use such an association in his/her program the Fortran~77 syntax would be
+
+INTEGER {\em covprt}
+
+PARAMETER( {\em covprt} = 14 )
+
+The contents of IV() and V() will be described in functional groupings in
+Sections B.4.a through B.4.j.
+
+The following table summarizes the indices used.
+
+\begin{tabular}{|@{\ }l@{}r@{\ \ \ \ }l|l@{}r@{\ \ \ \ }l|}\hline
+\multicolumn{3}{|c|}{\bf Indices used in IV()} & \multicolumn{3}{c|}{\bf
+Indices used in V()}\\\hline
+\multicolumn{1}{|c|}{\bf Name} & \multicolumn{1}{r|}{\bf
+Value} & \multicolumn{1}{l|}{\bf Ref.} &
+\multicolumn{1}{c|}{\bf Name} & \multicolumn{1}{r|}{\bf
+Value} & \multicolumn{1}{l|}{\bf Ref.}\\\hline
+       & 1 & \ \ B.4.a & {\em afctol} & 31 & \ \ B.4.d\\
+{\em covmat} & 26 & \ \ B.4.f & {\em d0init} & 40 & \ \ B.4.h\\
+{\em covprt} & 14 & \ \ B.4.c & {\em delta0} & 44 & \ \ B.4.g\\
+{\em covreq} & 14 & \ \ B.4.c & {\em dfac} & 44 & \ \ B.4.g\\
+$d$ & 27 & \ \ B.4.h & {\em dgnorm} & 1 & \ \ B.4.j\\
+{\em dtype} & 16 & \ \ B.4.h & {\em dinit} & 38 & \ \ B.4.h\\
+$g$ & 28 & \ \ B.4.b & {\em dltfdc} & 42 & \ \ B.4.g\\
+{\em inits} & 25 & \ \ B.4.i & {\em dltfdj} & 43 & \ \ B.4.g\\
+{\em jtol} & 59 & \ \ B.4.h & {\em dstnrm} & 2 & \ \ B.4.j\\
+{\em lastiv} & 44 & \ \ B.4.j & {\em dtinit} & 39 & \ \ B.4.h\\
+{\em lastv} & 45 & \ \ B.4.j & $f$ & 10 & \ \ B.4.b\\
+{\em mxfcal} & 17 & \ \ B.4.e & {\em f0} & 13 & \ \ B.4.j\\
+{\em mxiter} & 18 & \ \ B.4.e & {\em lmaxs} & 36 & \ \ B.4.d\\
+{\em nfcall} & 6 & \ \ B.4.j & {\em nreduc} & 6 & \ \ B.4.j\\
+{\em nfcov} & 52 & \ \ B.4.j & {\em preduc} & 7 & \ \ B.4.j\\
+{\em ngcall} & 30 & \ \ B.4.j & {\em rcond} & 53 & \ \ B.4.j\\
+{\em ngcov} & 53 & \ \ B.4.j & {\em reldx} & 17 & \ \ B.4.j\\
+{\em niter} & 31 & \ \ B.4.j & {\em rfctol} & 32 & \ \ B.4.d\\
+{\em outlev} & 19 & \ \ B.4.c & {\em sctol} & 37 & \ \ B.4.d\\
+{\em parprt} & 20 & \ \ B.4.c & {\em stppar} & 5 & \ \ B.4.j\\
+{\em prunit} & 21 & \ \ B.4.c & {\em xctol} & 33 & \ \ B.4.d\\
+{\em rdreq} & 57 & \ \ B.4.f & {\em xftol} & 34 & \ \ B.4.d\\
+{\em regd} & 67 & \ \ B.4.f & \ & \ & \ \\
+$s$ & 62 & \ \ B.4.i & \ & \ & \ \\
+{\em solprt} & 22 & \ \ B.4.c & \ & \ & \ \\
+{\em statpr} & 23 & \ \ B.4.c & \ & \ & \ \\
+{\em x0prt} & 24 & \ \ B.4.c & \ & \ & \ \\\hline
+\end{tabular}
+\begin{description}
+\item[B.4.a]  Primary entry mode and termination status flag: IV(1).
+
+\item[B.4.b]  Primary output objects: Objective function value, Gradient
+vector: V($f$), IV($g$).
+
+\item[B.4.c]  Print options: IV({\em prunit}), IV({\em covprt}),
+IV({\em outlev}), IV({\em parprt}), IV({\em solprt}), IV({\em statpr}),
+IV({\em x0prt}).
+
+\item[B.4.d]  Convergence tolerances: V({\em afctol}),
+V({\em lmaxs}), V({\em rfctol}), V({\em sctol}), V({\em xctol}),
+V({\em xftol}).
+
+\item[B.4.e]  Operation count limits: IV({\em mxfcal}), IV({\em mxiter}).
+
+\item[B.4.f]  The covariance matrix and regression diagnostics: IV({\em rdreq}),
+IV({\em covreq}), IV({\em covmat}), IV({\em regd}).
+
+\item[B.4.g]  Parameters used in approximating derivatives by differences:
+V({\em delta0}), V({\em dltfdc}), V({\em dltfdj}).
+
+\item[B.4.h]  The scaling vector ${\bf d}$: IV({\em dtype}), V({\em dfac}),
+V({\em dinit}), V({\em d0init}), V({\em dtinit}), IV($d$), IV({\em jtol}).
+
+\item[B.4.i]  The $S$ matrix: IV({\em inits}), IV($s$)
+
+\item[B.4.j]  Additional output quantities: IV({\em lastiv}), IV({\em lastv}),
+IV({\em nfcall}), IV({\em nfcov}), IV({\em ngcall}), IV({\em ngcov}),
+IV({\em niter}), V({\em dgnorm}), V({\em dstnrm}), V({\em f0}),
+V({\em nreduc}), V({\em preduc}), V({\em rcond}), V({\em reldx}),
+V({\em stppar}).
+\end{description}
+\paragraph{Primary entry mode and termination status flag: IV(1).}
+
+{\bf On entry to DNLxxx, IV(1)} specifies the entry mode. Require $0 \leq
+\text{IV}(1) \leq 14.$
+
+Zero means the user is not setting any options and DNLxxx is to call DIVSET
+to set all options to default values and proceed to execute the
+problem-solving algorithm.
+
+A value from 1 to~11 means DNLxxx has returned to the user with this value
+in IV(1), and the user's program has changed some tolerance(s) and wishes to
+resume computation without starting over from scratch.
+
+12 means all options have already been set in IV() and V() and DNLxxx is not
+to call DIVSET. Typically the user will have called DIVSET to set default
+values into IV() and V() and then may have altered some from the default
+settings. DIVSET sets IV(1) = 12.
+
+13 means the user has set all options, as described above for~12, but also
+wishes to set one or more of the vectors ${\bf d}$, ${\bf d0}$, or ${\bf dtol}$ or the matrix, $S$.
+DNLxxx will set IV($d$), IV({\em jtol}), and IV($s$) that depend on the problem size,
+and then return, setting IV(1) = 14. The user can then set one or more of
+\begin{description}
+\item[${\bf d}$] in V() starting at V(IV($d$)),
+
+\item[${\bf d0}$] in V() starting at V(IV({\em jtol})+{\em nx}), where {\em nx} denotes NC or NA,
+
+\item[${\bf dtol}$] in V() starting at V(IV({\em jtol})), and
+
+\item[$S$] stored in V() by rows of the lower triangle, starting at V(IV($s$)),
+\end{description}
+and then reenter DNLxxx with IV(1) = 14. See IV({\em dtype}) and IV({\em inits}) for
+additional information.
+
+14 means the process described above for IV(1) = 13 has been done. DNLxxx
+will assume all options have been set and will proceed to execute the
+problem-solving algorithm.
+
+{\bf On return, IV(1)} indicates the reason for the return. Values~3--6
+indicate successful termination. Values~7--14 permit continuation after
+changing some input values in IV() or V(). Values exceeding 14 do not permit
+continuation.
+\begin{description}
+\item[3]  Coefficient convergence. The scaled relative
+difference (See Eq.\,(\ref{O5}), page \pageref{O5}) between the current ${\bf %
+c}$ or ${\bf \alpha }$ and a locally optimal parameter vector is very likely
+at most V({\em xctol}).
+
+\item[4]  Relative function convergence. The relative
+difference between the current objective function value and its locally
+optimal value is very likely at most V({\em rfctol}).
+
+\item[5]  Both coefficient and relative function convergence $%
+(i.e.$, the conditions for IV(1) = 3 and IV(1) = 4 both hold).
+
+\item[6]  Absolute function convergence. The current
+objective function value is at most V({\em afctol}) in absolute value.
+
+\item[7]  Singular convergence. The Hessian near the current
+iterate appears to be singular or nearly so, and a step of length at most
+V({\em lmaxs}) is unlikely to yield a relative function decrease of more than
+V({\em sctol}). This could be a successful termination when NC $>$ NDATA or NA +
+NB $>$ NDATA. Otherwise check for errors in the problem formulation, or
+consider reducing the number of coefficients to be determined.
+
+\item[8]  False convergence. The iterates appear to be
+converging to a noncritical point. This may mean that the convergence
+tolerances (V({\em afctol}), V({\em rfctol}), V({\em xctol})) are too small for the accuracy
+to which the function and gradient are being computed, that there is an
+error in computing the gradient, or that the function or gradient is
+discontinuous near the current ${\bf c}$ or ${\bf \alpha }.$
+
+\item[9]  Function evaluation count limit reached without
+other convergence. See IV({\em mxfcal}).
+
+\item[10]  Iteration count limit reached without other
+convergence. See IV({\em mxiter}).
+
+\item[11]  External interrupt via subprogram STOPX. This is
+not activated in the MATH77 version.
+
+\item[14]  DNLxxx was entered with IV(1) = 13.
+
+\item[15]  LIV is too small. An acceptable value is given in
+IV({\em lastiv}) if LIV $\geq lastiv$ (=44).
+
+\item[16]  LV is too small. An acceptable value is given in
+IV({\em lastv}) if LIV $\geq lastv$ (=45).
+
+\item[17]  Restart attempted with NDATA, NC, NA, or NB
+changed. This is not permitted.
+
+\item[18]  Bad initialization of the scaling vector ${\bf d}$. Check
+IV({\em dtype}), IV({\em dinit}), and V(IV($d$):IV($d$)+{\em nx}{$-$}1)
+where {\em nx} denotes NC for DNLAxx and NA for DNLSxx.
+
+\item[19\ldots 44]  V(IV(1)$-$18) is out of range.
+
+\item[63]  ${\bf r}({\bf c})$  or ${\bf r}({\bf \alpha },{\bf \beta })$ cannot
+be computed at the initial ${\bf c}$ or ${\bf \alpha }.$
+
+\item[64]  Bad parameters on an internal call. Should not
+happen.
+
+\item[65]  The derivatives could not be computed at the current
+${\bf c}$ or ${\bf \alpha }$ (see DCALCJ or DCALCB).
+
+\item[66]  Some column of IND(,) is all zero, or some array
+dimensions are inconsistent.
+
+\item[67]  Call to DIVSET with argument MODE not set to~1.
+
+\item[68, 69]  Internal errors. Should not happen.
+
+\item[70]  Inconsistent bounds. Require BND($1,j)\!\leq \!\text{%
+BND}(2,j)$ for $j=1$, ..., {\em nx}, where {\em nx} = NC or NA.
+
+\item[80]  IV(1) exceeds~14 on entry.
+
+\item[81]  NDATA, NC, NA, or NB out of range. Require NDATA $%
+>$ 0, NC $>$ 0, NA $>$ 0, and NB $\geq $ 0.
+
+\item[87\ldots (86 + {\em nx})]  Bad initialization of ${\bf dtol}$. Check
+V({\em dtinit}) and V(IV({\em jtol}):IV({\em jtol}$)+nx-1)$, where {\em nx} denotes NC or NA.
+\end{description}
+
+\paragraph{Primary output objects: Objective function value, Gradient
+vector: V($f$), IV($g).$}
+\begin{description}
+\item[V($f) \equiv $ V(10)]  \ is the current value of the objective
+function $\psi $ defined by Eq.\,(\ref{O2}), $i.e.$, half the sum of squares
+of residuals.
+
+\item[IV($g) \equiv $ IV(28)]  \ is the starting subscript in V() of the
+current gradient vector ${\bf g}$ $=J^t{\bf r}.$
+\end{description}
+\paragraph{Print options: IV({\em prunit}), IV({\em covprt}),
+IV({\em outlev}), IV({\em parprt}), IV({\em solprt}), IV({\em statpr}),
+IV({\em x0prt}).}
+\begin{description}
+\item[IV({\em prunit}) $\equiv $ IV(21)]  = 0 or the output unit number on which
+all printing is done. The default is the standard output unit number
+obtained from I1MACH(2) (See Chapter~19.1.), which will be~6 on most systems.
+0 means suppress all printing.
+
+\item[IV({\em covprt}) $\equiv $ IV(14)]  Selects printing of the covariance matrix
+and/or the regression diagnostics when the solution process is successfully
+completed, $i.e.$, on a return with IV(1) = 3, 4, 5, or~6.  Relevant
+only for DNLxxU for the reasons given in the description of
+IV({\em rdreq}).  Allowed values are 0, 1, 2, or~3 and the default is~0.
+\begin{itemize}
+\item[0]  means neither is to be printed.
+
+\item[1]  means print the covariance matrix.
+
+\item[2]  means print the regression diagnostics.
+
+\item[3]  means print both.
+\end{itemize}
+Selection of printing also causes the selected object to be computed even if
+it was not selected by IV({\em rdreq}). In such a case the method of computing the
+covariance matrix is that of IV({\em covreq}) = 1.
+
+\item[IV({\em outlev}) $\equiv $ IV(19)]  controls printing of iteration summary
+lines. Default = 0.
+
+IV({\em outlev}) = 0 means do not print any summary lines. Otherwise, print a
+summary line after each abs(IV({\em outlev})) iterations.
+
+If IV({\em outlev}) is positive, then summary lines of length~117 (plus carriage
+control) are printed.
+
+If IV({\em outlev}) is negative, lines of maximum length~79 (or~55 if IV({\em covprt}) =
+0) are printed, including only the first 6 items listed below (through
+V({\em reldx})).
+
+The items printed will be:
+
+The iteration and function evaluation counts: IV({\em niter}) and IV({\em nfcall}).
+
+Current value of $\psi $: V($f$).
+
+Relative change in $\psi $ achieved by the latest step, $i.e.$, RELDF =
+(V({\em f0}$) - \text{V}(f))/\text{V({\em f0})}$,
+
+The relative objective function reduction predicted for the step just taken,
+$i.e.$, PRELDF $=$ V({\em preduc})/V({\em f0}),
+
+The scaled relative change in ${\bf c}$ or ${\bf \alpha }$: V({\em reldx}),
+
+The model used in the current iteration (G = Gauss-Newton, S = augmented),
+
+The Marquardt parameter V({\em stppar}) used in computing the last step,
+
+The sizing factor used in updating $S$ (see \cite{Dennis:1981:ANL}),
+
+The 2-norm of the scale vector ${\bf d}$ times the step just taken (see
+\cite{Dennis:1981:ANL}), and
+
+NPRELDF = V({\em nreduc})/V({\em f0}).
+
+If NPRELDF is positive, then it is the relative function reduction predicted
+for a Newton step (one with {\em stppar} = 0).
+
+If NPRELDF is zero, either the gradient vanishes (as does PRELDF) or else
+the augmented model is being used and its Hessian is indefinite (with PRELDF
+positive).
+
+If NPRELDF is negative, then it is the negative of the relative function
+reduction predicted for a step computed with step bound V({\em lmaxs}) for use in
+testing for singular convergence.
+
+\item[IV({\em parprt}) $\equiv $ IV(20)]  = 0 or~1. Default = 0. 1~means print any
+nondefault V() values on a fresh start or any changed V() values on a
+restart. 0~means skip this printing.
+
+\item[IV({\em solprt}) $\equiv $ IV(22)]  = 0 or~1. Default = 0. 1~means print
+the solution, ${\bf c}$ for DNLAxx or ${\bf \alpha }$ and ${\bf \beta }$ for
+DNLSxx, as well as the gradient vector, ${\bf g}$, and final scaling vector,
+${\bf d}$. 0~means skip this printing.
+
+\item[IV({\em statpr}) $\equiv $ IV(23)]  = 0 or~1. Default = 0. 1~means print
+summary statistics upon returning. 0~means skip this printing. The items
+printed are:
+
+The final value of $\psi $:V($f$).
+
+V({\em reldx}).
+
+FUNC. EVALS: Number of calls to DCALCR or DCALCA for function
+evaluations.
+
+GRAD. EVALS: In DNLxGx this is the number of calls to DCALCJ or
+DCALCB.  In DNLxFX this is the number of calls to DCALCR or DCALCA for
+computation of finite-difference approximations to the gradient.
+
+The relative function reductions predicted for the last step taken and
+for a Newton step, or perhaps a step bounded by V({\em lmaxs}). See
+the descriptions of PRELDF and NPRELDF under IV({\em outlev}) above.
+
+The number of calls to DCALCR and DCALCJ or DCALCA and DCALCB used in
+trying to compute the covariance matrix, if an attempt was made to
+compute it.
+
+\item[IV({\em x0prt}) $\equiv $ IV(24)] = 0 or~1. Default = 0. 1~means
+  print the initial ${\bf c}$ or ${\bf \alpha }$ and scale vector
+  ${\bf d}$ (on a fresh start only). 0~means skip this printing.
+\end{description}
+
+\paragraph{Convergence tolerances: V({\em afctol}), V({\em lmaxs}),
+V({\em rfctol}), V({\em sctol}), V({\em xctol}), V({\em xftol}).}
+\begin{description}
+\item[V({\em afctol}) $\equiv $ V(31)] \ is the absolute function
+  convergence tolerance. If DNLxxx finds a point where $\psi $ is less
+  than V({\em afctol}), and if DNLxxx does not return with IV(1) = 3,
+  4, or~5, then it returns with 8(?).
+
+\item[V({\em lmaxs}) $\equiv $ V(36)] \ Default = 1.0. Used with
+  V({\em sctol}), see below.
+
+\item[V({\em rfctol}) $\equiv $ V(32)] \ is the relative function
+  convergence tolerance. If the current model predicts a maximum
+  possible function reduction (see V({\em nreduc})) of at most V({\em
+    rfctol}$)\times \psi_0$ at the start of the current iteration,
+  where $\psi_0$ is the current function value, and if the last step
+  attempted achieved no more than twice the predicted function
+  decrease, then DNLxxx returns with IV(1) = 4 (or~5).  Default $=\max
+  (10^{-10}, machep^{2/3}).$
+
+\item[V({\em sctol}) $\equiv $ V(37)] \ is the singular convergence
+  tolerance.  Default $=\max (10^{-10},\ machep^{2/3})$. Singular
+  convergence occurs if the tests for returns with IV(1) = 3, 4, 5,
+  or~6 are not satisfied but it appears that no step with scaled step
+  length less than V({\em lmaxs}) can make a change of more than
+  V({\em sctol}$)\times \psi $ in the value of $\psi .$
+
+\item[V({\em xctol}) $\equiv $ V(33)] \ is the coefficient convergence
+  tolerance.  Default $=\sqrt {machep}.$ Coefficient convergence
+  occurs if the algorithm thinks the scaled relative distance from the
+  current ${\bf c}$ or ${\bf %
+    \alpha }$ to the solution is at most V({\em xctol}), where the
+  scaled relative distance between two vectors ${\bf x}$ and ${\bf y}$
+  is computed as
+\begin{equation}
+  \label{O5}\frac{\max _j\left\{ d_j|x_j-y_j|\right\} }{\max _j\left\{
+      d_j\left( |x_j|+|y_j|\right) \right\} }
+\end{equation}
+This distance function is computed by subprogram DRLDST. One could
+replace this subprogram to use a different distance function. DRLDST
+has an interface of the form \vspace{-6pt}{\tt \begin{tabbing}
+    DOUBLE PRECISION FUNCTION DRLDST(NX,D,X,Y)\\
+    INTEGER NX\\
+    DOUBLE PRECISION D(NX), X(NX), Y(NX)
+\end{tabbing}}\vspace{-6pt}
+\item[V({\em xftol}) $\equiv $ V(34)] \ is the false convergence
+  tolerance.  Default $=100\times machep$. False convergence occurs if
+  the tests for returns with IV(1) = 3, 4, 5, 6, or~7 are not
+  satisfied and a step of scaled relative length (measured using
+  Eq.\,(\ref{O5})) at most V({\em xftol}) is tried but not
+  accepted. See remarks for IV(1) = 8.
+\end{description}
+\paragraph{Operation count limits: IV({\em mxfcal}), IV({\em mxiter}).}
+\begin{description}
+\item[IV({\em mxfcal}) $\equiv $ IV(17)] \ gives the maximum number of
+  function evaluations (calls to DCALCR or DCALCA, excluding those
+  used to compute the covariance matrix) allowed. If this number does
+  not suffice, DNLxxx returns with IV(1) = 9. Default = 200.
+
+\item[IV({\em mxiter}) $\equiv $ IV(18)] \ gives the maximum number of
+  iterations allowed. It also indirectly limits the number of gradient
+  evaluations (calls to DCALCJ or DCALCB, excluding those used to
+  compute the covariance matrix) to IV({\em mxiter}) + 1. If IV({\em
+    mxiter}) iterations do not suffice, then DNLxxx returns with IV(1)
+  = 10. Default = 150.
+\end{description}
+\paragraph{The covariance matrix and regression diagnostics: IV({\em rdreq}),
+IV({\em covreq}), IV({\em covmat}), IV({\em regd}).}
+
+IV({\em rdreq}) requests computation of the covariance matrix and/or regression
+diagnostics. IV({\em covreq}) specifies how the covariance matrix is to be
+computed. The storage locations of these objects are indicated by IV({\em covmat})
+and IV({\em regd}). Printing of these objects is selected by IV({\em covprt}) described
+in Section B.4.c.
+\begin{description}
+\item[IV({\em rdreq}) $\equiv $ IV(57)]  \ Selects computation of the covariance
+matrix and/or the regression diagnostics described in Section D.
+
+IV({\em rdreq}), IV({\em covprt}) and IV({\em covreq}) are relevant only
+with DNLxxU, and have no effect when using DNLxxB, since the concepts of a
+covariance matrix and regression diagnostics are less well-defined when
+variables are bounded.  See, {\em e.g.}, \cite[pp~180--183]{Bard:1974:NPE}
+for a discussion of this issue.
+
+Possible values are 0, 1, 2, and~3 and the default is~3.
+\begin{itemize}
+\item[0]  \ means do not compute these.
+
+\item[1]  \ means compute just the covariance matrix.
+
+\item[2]  \ means compute just the regression diagnostics.
+
+\item[3]  \ means compute both the covariance matrix and the regression
+diagnostics.
+\end{itemize}
+The covariance matrix is a symmetric matrix of order NC for the DNLAxU, and
+of order NA + NB for DNLSxU. In the latter case the first NA indices in the
+covariance matrix are associated with the ${\bf \alpha }$ vector while the
+last NB indices are associated with the ${\bf \beta }$ vector. See
+IV({\em covmat}) and IV({\em regd}) for specification of the storage methods for these
+objects.
+
+\item[IV({\em covreq}) $\equiv $ IV(15)]  \ Specifies how the covariance matrix is to be computed if
+its computation is requested by IV({\em rdreq}) or by IV({\em covprt}).  Relevant
+only for DNLxxU for the reasons given in the description of IV({\em rdreq}).
+For DNLxGU this should be set to~1, 2, or~3 and the default is~1. For
+DNLxFU it should be set to $-$1, $-$2, or $-$3, and the default is $-$1.
+If it is set positive for DNLxFU it will be reset to negative.
+
+Let K = $|$IV({\em covreq})$|$ and let
+\begin{equation*}
+\text{VARFAC}=2\psi /\text{DOF},
+\end{equation*}
+where $\psi $ is defined by Eq.\,(\ref{O2}), and DOF = NDATA $-$ NC for
+DNLAxU and NDATA $-$ NA $-$ NB for DNLSxU.
+
+If K = 1 or 2, then a finite-difference Hessian approximation $H$ is obtained.
+If $H$ is positive definite (or, for K = 3, if the Jacobian matrix $J$ is of
+full rank), one of the following is computed:
+
+K $=1\Rightarrow \text{VARFAC}\times H^{-1}J^tJH^{-1}.$
+
+K $=2\Rightarrow \text{VARFAC}\times H^{-1}.$
+
+K $=3\Rightarrow \text{VARFAC}\times (J^tJ)^{-1}$.
+
+If IV({\em covreq}$)>0$, $H$ will be computed using first differences of derivative
+values with step sizes determined using V({\em delta0}). This requires a
+user-provided DCALCJ or DCALCB subroutine.
+
+If IV({\em covreq}$)<0$, $H$ will be computed using second differences of function
+values with step sizes determined using V({\em dltfdc}).
+
+(IV({\em covreq}$)=0$ will act the same as IV({\em covreq}) = 1, but this is not
+recommended.)
+
+\item[IV({\em covmat}) $\equiv $ IV(26)]  \ tells whether a covariance matrix
+was computed. If (IV({\em covmat}) is positive, the lower triangle of the
+covariance matrix is stored compactly by rows in V() starting at
+V(IV({\em covmat})). If IV({\em covmat}) = 0, no attempt was made to compute
+the covariance. If IV({\em covmat}$)=-1$, the finite-difference Hessian was
+indefinite. If IV({\em covmat}$)=-2$, a successful finite-differencing step
+could not be found for some component of ${\bf c}$ or ${\bf \alpha }\ (i.e.$,
+DCALCR or DCALCA set ICOUNT to~0 for each of two trial steps).
+
+\item[IV({\em regd}) $\equiv $ IV(67)]  \ If nonzero, this is the starting
+subscript in V() of the NDATA regression diagnostics. 0~means the
+regression diagnostics were not computed (either not requested or the
+computation failed.)
+\end{description}
+\paragraph{Parameters used in approximating derivatives by differences:
+V({\em delta0}), V({\em dltfdc}), V({\em dltfdj}).}
+\begin{description}
+\item[V({\em delta0}) $\equiv $ V(44)]  \ Used in choosing the step size for
+computing the Hessian matrix by differencing gradient values. Used when
+IV({\em inits}) = 3 or IV({\em covreq}) = 1 or~2. For component $j$, the step size
+\begin{equation*}
+\text{V({\em delta0})}\times \max (|x_j|,1/d_j)\times \text{ sign}(x_j)
+\end{equation*}
+is used. If this step results in DCALCR or DCALCA setting ICOUNT to~0, then
+$-$0.5 times this step is also tried. Default $=\sqrt {machep}$.
+
+\item[V({\em dltfdc}) $\equiv $ V(42)]  \ Used in choosing the step size for
+computing the Hessian matrix by second differences of function values. Used
+when IV({\em inits}) = 3 or IV({\em covreq}$)=-1$ or $-$2. For differences involving $%
+x_j $, the step size first tried is
+\begin{equation*}
+\text{V({\em dltfdc})}\times \max (|x_j|,1/d_j)
+\end{equation*}
+If this step is too big the first time it is tried, $i.e.$, if DCALCR or
+DCALCA sets ICOUNT to~0, then $-$0.5 times this step is also tried. Default $%
+=machep^{1/3}.$
+
+\item[V({\em dltfdj}) $\equiv $ V(43)]  \ Used in choosing the step size for
+computing the Jacobian matrix by differencing function values. Default $%
+=\sqrt {machep}$. The first step tried when differencing in the $x_j$
+coordinate will be
+\begin{equation*}
+\text{V({\em dltfdj})}\times \max (|x_j|,1/d_j)
+\end{equation*}
+If this step causes DCALCR or DCALCA to set ICOUNT = 0, smaller steps will
+be tried.
+\end{description}
+\paragraph{The scaling vector ${\bf d}$: IV({\em dtype}), V({\em dfac}),
+V({\em dinit}), V({\em d0init}), V({\em dtinit}), IV($d$), IV({\em jtol}).}
+\begin{description}
+\item[IV({\em dtype}) $\equiv $ IV(16)]  \ \label{dtype}= 0, 1, or~2. Default = 1.
+Specifies if and when the scaling vector ${\bf d}$, discussed in Section D, is
+to be updated. The vector ${\bf d}$ is of dimension {\em nx} where {\em nx} =
+NC for DNLAxx and NA for DNLSxx.
+\begin{itemize}
+\item[0] means ${\bf d}$ is not to be updated. In this case the user must
+either store a positive value in V({\em dinit}), which will be assigned as the
+value of all components of ${\bf d}$, or must set V({\em dinit}) to a negative
+value, say $-$1.0, and store the complete ${\bf d}$ vector in V() beginning
+at V(IV($d$)). To give the complete ${\bf d}$ vector the user must use the
+process described above for IV(1) = 13 in order to have the package set IV($d$).
+
+\item[1] means ${\bf d}$ is to be updated at every iteration.
+
+\item[2] means ${\bf d}$ is to be updated only at the first iteration and left at
+that setting throughout the rest of the solution procedure.
+\end{itemize}
+The updating procedure uses the number V({\em dfac}) and two {\em nx}-dimensional
+vectors ${\bf d0}$ and ${\bf dtol}$. This updating is done in subroutine DD7UPD. The
+updating algorithm is
+\begin{gather*}
+d_j=\max (\text{V({\em dfac})}\times d_j, jcnorm_j)\\
+\text{if }d_j<dtol_j\text{ then }d_j=d0_j
+\end{gather*}
+Here $\text{\em jcnorm}_j$ denotes the computed Euclidean norm of the $j^{th}$ column
+of the current Jacobian matrix.
+
+If V({\em dinit}$)\geq 0$, all components of ${\bf d}$ will initially be set to this
+value. Otherwise the user must supply the complete ${\bf d}$ vector, beginning in
+V(IV($d$)), using the process described for IV(1) = 13.
+
+If V({\em d0init}$)>0$, all components of ${\bf d0}$ will be set to this value. Otherwise
+the user must supply the complete ${\bf d0}$ vector, beginning in V(IV({\em jtol}$)+nx)$,
+using the process described for IV(1) = 13.
+
+If V({\em dtinit}$)>0$, all components of ${\bf dtol}$ will be set to this value.
+Otherwise the user must supply the complete ${\bf dtol}$ vector, beginning in
+V(IV({\em jtol})), using the process described for IV(1) = 13.
+
+\item[V({\em dfac}) $\equiv $ V(41)]  \ Default = 0.6. See IV({\em dtype}).
+
+\item[V({\em dinit}) $\equiv $ V(38)]  \ Default = 0. See IV({\em dtype}).
+
+\item[V({\em d0init}) $\equiv $ V(40)]  \ Default = 1.0. See IV({\em dtype})
+
+\item[V({\em dtinit}) $\equiv $ V(39)]  \ Default = 10$^{-6}$. See IV({\em dtype}).
+
+\item[IV($d) \equiv $ IV(27)]  \ is the starting subscript in V() of the
+current scale vector ${\bf d}$. See IV({\em dtype}).
+
+\item[IV({\em jtol}) $\equiv $ IV(59)]  \ is the starting subscript in V() of the
+vector ${\bf dtol}$, and IV({\em jtol}$)+nx$ is the starting subscript in V() of the
+vector ${\bf d0}$. See IV({\em dtype}).
+\end{description}
+
+\paragraph{The $S$ matrix: IV({\em inits}), IV($s$)}
+\begin{description}
+\item[IV({\em inits}) $\equiv $ IV(25)]  \ = 0, 1, 2, 3, or~4. Default = 0.
+Chooses how the $S$ matrix discussed in Section D should be initialized.
+\begin{itemize}
+\item[0] means initialize $S$ to~0 and start with the Gauss-Newton model.
+
+\item[1] means the user is providing the initial $S$ and start with the
+Gauss-Newton model.
+
+\item[2] means the user is providing the initial $S$ and start with the
+augmented model.
+
+\item[3 or 4] mean the package is to compute a finite difference
+approximation to the initial $S$ and start with the augmented model. 3~means
+the package will compute second differences of function values using the
+parameter V({\em dltfdc}).
+
+\item[4] which can only be used with DNLxGx, means the
+package will compute first differences of gradient values using the
+parameter V({\em delta0}).
+\end{itemize}
+In cases 1 or 2 the caller must store the lower triangle of the initial $S$,
+compactly by rows, in V() starting at V(IV($s$)). To do this the user must use
+the procedure described above for IV(1) = 13.
+
+\item[IV($s) \equiv $ IV(62)]  \ is the starting subscript in V() of the $S$
+matrix. It is stored by rows of the lower triangle.
+\end{description}
+\paragraph{Additional output quantities: IV({\em lastiv}),\newline
+IV({\em lastv}), IV({\em nfcall}), IV({\em nfcov}),\newline
+IV({\em ngcall}), IV({\em ngcov}), IV({\em niter}),\newline
+V({\em dgnorm}), V({\em dstnrm}), V({\em f0}),\newline
+V({\em nreduc}), V({\em preduc}), V({\em rcond}),\newline
+V({\em reldx}), V({\em stppar}).}
+\begin{description}
+\item[IV({\em lastiv}) $\equiv $ IV(44)]  \ is the minimal acceptable value for
+LIV. Set only on a return with IV(1) = 15.
+
+\item[IV({\em lastv}) $\equiv $ IV(45)]  \ is the minimal acceptable value for LV.
+Set only on a return with IV(1) = 16.
+
+\item[IV({\em nfcall}) $\equiv $ IV(6)]  \ is the number of calls made to DCALCR
+or DCALCA, $i.e.$, function evaluations, including those used in computing
+the covariance.
+
+\item[IV({\em nfcov}) $\equiv $ IV(52)]  \ is the number of calls made to DCALCR
+or DCALCA when computing the covariance matrix.
+
+\item[IV({\em ngcall}) $\equiv $ IV(30)]  \ is the number of gradient evaluations,
+$i.e.$, calls to DCALCJ or DCALCB, including those used for computing the
+covariance.
+
+\item[IV({\em ngcov}) $\equiv $ IV(53)]  \ is the number of calls made to DCALCJ
+or DCALCB when computing the covariance matrix.
+
+\item[IV({\em niter}) $\equiv $ IV(31)]  \ is the number of iterations performed.
+
+\item[V({\em dgnorm}) $\equiv $ V(1)]  \ = $\|D^{-1}{\bf g}\| $ where ${\bf g}$ is
+the gradient vector.
+
+\item[V({\em dstnrm}) $\equiv $ V(2)]  \ = $\| D\times ({\bf x}-{\bf x}^{prev})\| $%
+, $i.e.$, the scaled length of the most recent step. Here ${\bf x}$ denotes $%
+{\bf c}$ or ${\bf \alpha }.$
+
+\item[V({\em f0}) $\equiv $ V(13)]  \ is the value of $\psi $ at the end of the
+previous iteration.
+
+\item[V({\em nreduc}) $\equiv $ V(6)]  \ if positive, or zero with V({\em stppar}) = 0,
+is the maximum objective function reduction possible according to the
+current model. V({\em nreduc}) = 0 with V({\em stppar}$)>0$ means $H$ is not positive
+definite.
+
+If V({\em nreduc}$)<0$, then $-$V({\em nreduc}) / V({\em f0}) is the quantity with which
+V({\em sctol}) is compared in the singular convergence test.
+
+\item[V({\em preduc}) $\equiv $ V(7)]  \ is the function reduction predicted for
+the last step taken, or attempted. V({\em preduc}$)/\max (\text{V}(f),
+\text{V({\em f0})})$ is
+used in testing for relative function convergence.
+
+\item[V({\em rcond}) $\equiv $ V(53)]  \ If $|$IV({\em covreq}$)|=1$ or 2 this is an
+approximate reciprocal condition number of the finite-difference Hessian
+approximation. If $|$IV({\em covreq}$)|=3$ this is an approximate reciprocal
+condition number of the current Jacobian matrix.
+
+\item[V({\em reldx}) $\equiv $ V(17)]  \ is the scaled relative change in ${\bf c}$
+or ${\bf \alpha }$ due to the last step taken or attempted, computed using
+Eq.\,(\ref{O5}).
+
+\item[V({\em stppar}) $\equiv $ V(5)]  \ If nonnegative, this is the
+Levenberg-Marquardt parameter, $\lambda $, of Eq.\,(\ref{O19}) Thus, a zero
+value indicates an undamped Newton step. A negative value indicates a
+special case described in \cite{Gay:1981:COL}.
+\end{description}
+
+\subsubsection{Modifications for Single Precision\label{PB5}}
+
+For single precision usage change all subroutine names beginning with D to
+begin with S. Change all DOUBLE PRECISION type statements to REAL.
+
+The authors of \cite{Dennis:1981:ANL} recommend that the double precision
+version of this package should be used, except on machines such as the
+Cray, where single precision arithmetic has precision of about~14.4
+decimal places.
+
+\subsection{Examples and Remarks}
+
+\subparagraph{Example}
+
+Define
+\begin{multline}
+\label{O6}
+f(t;{\bf c})=c_3+c_4\cos c_1t+c_5\sin c_1t\vspace{2pt}\\
++c_6\cos c_2t+c_7\sin c_2t
+\end{multline}
+Let NDATA = 30. Generate a data set $(t_i,y_i)$ for $i=1$, ..., NDATA, by
+setting $t_i=(i-1)/29,$%
+\begin{equation*}
+{\bf \hat c}=(6,9,1,0.5,0.4,0.2,0.1),
+\end{equation*}
+and $y_i=f(t_i;{\bf \hat c})+\nu _i$, where $\nu _i$ is Gaussian noise with
+mean zero and sample standard deviation~0.001.
+
+The program DRDNLAFU illustrates the use of DNLAFU to find a coefficient
+vector ${\bf c}$ that best fits this data in the least-squares sense, using
+the model function of Eq.\,(\ref{O6}) The computation is started with an
+initial guess of\vspace{-2pt}%
+\begin{equation*}
+{\bf c}_0=(5,10,0.5,0.5,0.5,0.5,0.5).
+\end{equation*}
+The output is shown in ODDNLAFU. The solution vector is\vspace{-2pt}%
+\begin{equation*}
+{\bf c}=(5.99,9.00,1.00,0.502,0.397,0.199,0.100),
+\end{equation*}
+and the standard deviation of the noise in the data is estimated to be
+SIGFAC $=0.000986.$
+
+Program DRDNLSGU\label{refsep} illustrates the solution of this problem
+treating it as a separable problem and using DNLSGU. To treat this as a
+separable problem, we relabel the coefficients in Eq.\,(\ref{O6}) obtaining
+\begin{multline}
+\label{O7}
+f(t,\alpha ,\beta )=\beta_1+\beta_2\cos \alpha_1t+\beta_3\sin \alpha_1t\\
+ +\beta_4\cos \alpha_2t+\beta_5\sin \alpha_2t
+\end{multline}
+This is in the form of Eq.\,(\ref{O3}) with
+\begin{equation}
+\label{O8}
+\begin{array}{l@{\:}ll@{\:}ll}
+\varphi _{i,1}&=1,& \varphi _{i,2}&=\cos \alpha _1t,&
+\varphi _{i,3}=\sin \alpha _1t, \\
+\varphi _{i,4}&=\cos \alpha _2t,& \varphi _{i,5}&=\sin \alpha _2t
+\end{array}\hspace{-2in}
+\end{equation}
+Note the setting of the IND(,) array in DRDNLSGU: The~1's in rows~2 and~3 of
+column~1 indicate that ${\bf \alpha }_1$ appears only in $\varphi _{i,2}$ and $%
+\varphi _{i,3}$, while the~1's in rows 4 and~5 of column~2 indicate that ${\bf %
+\alpha }_2$ appears only in $\varphi _{i,4}$ and $\varphi _{i,5}$. The zeros in
+row~6 indicate that there is no $\varphi _{i,6}$ term in the problem, $i.e.$,
+the problem is of the form of Eq.\,(\ref{O3}) and not Eq.\,(\ref{O4}).
+
+Initial comments in subroutine DCALCB explain the storage of partial
+derivatives in the array DER().
+
+Comparing the results from the DNLAFU and DNLSGU it is seen that the two
+solutions are of similar accuracy.
+
+These two sample drivers also illustrate the setting of print options by
+first calling DIVSET to set nominal values into IV() and V(), and then
+resetting some elements of IV().
+
+As another example of a separable problem, suppose one has data $(t_i,y_i)$,
+and wishes to fit the ${\bf y}$ data by a rational function of $t$, say with
+the residual function defined as
+\begin{equation}
+\label{O9}r_i({\bf \alpha },{\bf \beta })=\frac{\beta _1+\beta _2t_i}{%
+1+\alpha _1t_i+\alpha _2t_i^2}-y_i.
+\end{equation}
+This can be put into the form of Eq.\,(\ref{O3}) by defining
+\begin{equation}
+\label{O10}\varphi _{i,1}({\bf \alpha })=\frac 1{1+\alpha _1t_i+\alpha
+_2t_i^2},
+\end{equation}
+
+\vspace{-4pt}and
+\begin{equation}
+\label{O11}\varphi _{i,2}({\bf \alpha })=\frac{t_i}{1+\alpha _1t_i+\alpha
+_2t_i^2}.
+\end{equation}
+
+\subparagraph{Remarks}
+\begin{itemize}
+\item[1.]  \ It is important for success of DNLxxx that the initial guess
+be as good as possible.
+\item[2.]  \ DNLxxx only finds a local minimum. Problems may have more than
+one local minimum, so caution in accepting results is suggested. It may be
+useful to solve the problem several times using significantly different
+starting points.
+\item[3.]  \ Solution of nonlinear least-squares problems is inherently
+difficult in many cases, and sometimes may require interaction with the
+user. The internal output available from the subroutine may be useful if one
+has questions about the performance of the subroutine. It is not uncommon to
+make mistakes in writing the code for computing partial derivatives. This
+mistake is likely to cause a return with IV(1) = 8. The subroutine DCKDER of
+Chapter~8.3 can be used to check the mutual consistency of code for function
+and Jacobian evaluation.
+\item[4.]  \ If the different data points have significantly different a
+priori uncertainties then appropriate row scaling should be used. In the
+user supplied subroutines (DCALCR, DCALCJ, DCALCA, DCALCB) the $i^{th}$
+component of the residual vector and the $i^{th}$ row of the Jacobian matrix
+should be divided by the a priori standard deviation of the error in $y_i.$
+
+To see if the standard deviations introduced in this way are reasonable, one
+can, after the fit, compute SIGFAC $=\sqrt {2\times \psi /\text{DOF}}$ where $%
+\psi $ is obtained from V($f$), and DOF = NDATA $-$ NC for DNLAxx and
+NDATA $-$ NA $-$ NB for
+DNLSxx. SIGFAC is a quantity that could be multiplied times each of the a
+priori standard deviation values to obtain values that are more consistent
+with the fit. If SIGFAC is near one it is an indication that the a priori
+standard deviations were not uniformly unreasonably small or large.
+\item[5.]  \ If the final residual vector is desired, the user must add code
+to compute it using the final solution coefficients. If using DNLAxx, this
+can be done just by calling DCALCR. If using DLNSxx, the user can call
+DCALCA to evaluate the functions $\varphi _{i,j}({\bf \alpha })$, and then
+execute code that uses these values, along with the final ${\bf \beta }$'s,
+to compute the residuals using the formulas of Equations~3 or 4 of Section~A.
+\item[6.] \ With default settings the package generates and updates a
+scaling vector, ${\bf d}$, to avoid difficulties that can arise if
+components of the solution vector are of significantly different
+magnitudes.  In \cite{Dennis:1981:ANL} it is reported that in problems
+where the solution vector components are of about the same order of
+magnitude the program works better if the vector ${\bf d}$ is held
+constant.  This can be done by setting IV({\em dtype}) = 0 and V({\em
+d0init}) = 1.0.
+\item[7.]  \ To compute the covariance matrix of the solution coefficients
+see Section B.4.f and IV({\em covprt}) of B.4.c.  This is only relevant
+with DNLxxU.
+\item[8.]  \ We are not describing a reverse communication usage for this
+package; however, one level below the described user-callable subroutines
+this package does use reverse communication. If a user needs to embed this
+package into a larger package and feels reverse communication would be
+important, he/she could study the way the top level subroutines call the
+second level ones and mimic this protocol. Specifically DNLAFU and DNLAGU
+call DRN2G; DNLSGU and DNLSFU call DRNSG; DNLAFB and DNLAGB call DRN2GB; and
+DNLSFB and DNLSGB call DRNSGB.
+\end{itemize}
+\subsection{Functional Description}
+
+\subsubsection{Fundamental notation for nonlinear least-squares}
+
+The problem is to minimize the function $\psi ({\bf c})$ of Eq.\,(\ref{O2}).
+Let $J$ denote the NDATA $\times $ NC Jacobian matrix of the NDATA-dimensional
+vector valued function ${\bf r}({\bf c})$. Thus the $(i,j)$ element of $J$ is $%
+\partial r_i/\partial c_j.$
+
+The NC-dimensional gradient vector of $\psi $ with respect to the components
+of ${\bf c}$ is%
+\begin{equation*}
+{\bf g}=J^t{\bf r}
+\end{equation*}
+Let $h_i$ denote the NC $\times $ NC Hessian matrix of second partial
+derivatives of the $i^{th}$ component of ${\bf r}$ with respect to the
+components of ${\bf c}$. Then the NC $\times $ NC Hessian matrix of second
+partial derivatives of $\psi $ with respect to the components of ${\bf c}$
+can be written as
+\begin{equation}
+\label{O12}H=J^tJ+\sum_{i=1}^{NDATA}r_ih_i
+\end{equation}
+A necessary condition for $\psi $ to attain a local minimum is that the
+gradient vector ${\bf g}$ must be zero. Linearizing ${\bf g}$ about a
+nominal value of ${\bf c}$ gives
+\begin{equation}
+\label{O13}{\bf g}({\bf c}+{\bf \delta c})={\bf g}({\bf c})+H{\bf \delta c}%
++O(\| {\bf \delta c}\| ^2).
+\end{equation}
+Thus a correction, ${\bf \delta c}$, to a current parameter vector, ${\bf c}$%
+, that tends to move the gradient toward zero is given as the solution of
+\begin{equation}
+\label{O14}H{\bf \delta c}=-{\bf g}
+\end{equation}
+Eq.\,(\ref{O14}) is called the full Newton iteration for solving a nonlinear
+least-squares problem.
+A different iteration formula, called the Gauss-Newton method can be derived
+by linearizing ${\bf r}({\bf c})$, writing:
+\begin{equation}
+\label{O15}{\bf r}({\bf c}+{\bf \delta c})={\bf r}({\bf c})+J{\bf \delta c}%
++O(\|{\bf \delta c}\|^2).
+\end{equation}
+The correction ${\bf \delta c}$ that must be added to a current parameter
+vector, ${\bf c}$, to make the linearized expression in Eq.\,(\ref{O15})
+close to the zero vector in the least-squares sense is the solution of the
+linear least-squares problem
+\begin{equation}
+\label{O16}J{\bf \delta c}\simeq -{\bf r}.
+\end{equation}
+By forming normal equations, we can express this correction vector, ${\bf %
+\delta c}$, as the solution of
+\begin{equation}
+\label{O17}J^tJ{\bf \delta c}=-J^t{\bf r}\equiv -{\bf g}.
+\end{equation}
+Note that both of the Eqs.\,(\ref{O14}) and (\ref{O17}) can be expressed in
+the general form
+\begin{equation}
+\label{O18}(J^tJ+S){\bf \delta c}=-{\bf g},
+\end{equation}
+where $S$ is $\sum r_i h_i$ for the full Newton method and $S$ = 0 for the
+Gauss-Newton method.
+
+It is known that the correction vector, ${\bf \delta c}$, obtained from Eq.\,(%
+\ref{O18}) with either of the two definitions of $S$ so far mentioned will
+frequently be too long, especially when the current ${\bf c}$ is not close
+to the solution. Logic can be added to try shorter correction vectors in the
+same direction; however, a different approach that has been found more
+effective is to add a term of the form $\lambda P$ to the matrix in Eq.\,(\ref
+{O18}), where $\lambda $ is a nonnegative scalar and $P$ is a positive
+definite symmetric matrix, sometimes taken as diagonal or the identity
+matrix. Increasing $\lambda $ not only decreases the Euclidean norm of ${\bf %
+\delta c}$, but also turns ${\bf \delta c}$ closer to the direction of local
+steepest descent. This use of a matrix of the form $\lambda P$ is associated
+with the names of Levenberg and Marquardt.
+
+In the original Marquardt approach $\lambda $ was the primary control
+parameter. Subsequent ``trust-region'' algorithms have set target values for
+$\| {\bf \delta c}\| $, or more precisely for $\| D{\bf %
+\delta c}\| $ using a scaling matrix $D$, and determined $\lambda $ to
+achieve that target value.
+
+\subsubsection{The NL2SOL algorithm}
+
+The present package has evolved from the NL2SOL package of
+\cite{Dennis:1981:ANL}.  Additional details of the underlying techniques
+are given in \cite{Dennis:1983:NMU}.  A trust-region method is used with
+$P = D^2$, where $D$ is a diagonal matrix with positive diagonal elements.
+Thus Eq.\,(\ref{O18}) is replaced by
+
+\begin{equation}
+\label{O19}(J^tJ+S+\lambda D^2){\bf \delta c}=-{\bf g.}
+\end{equation}
+The full Newton method has the advantage over the Gauss-Newton method of
+providing a more complete model of the nonlinear problem and ultimately
+having a quadratic rate of convergence when close enough to the solution.
+It has the disadvantage of requiring computation of a large number of
+second derivative terms.  The authors of \cite{Dennis:1981:ANL} developed
+a reasonably inexpensive method of sequentially constructing a matrix,
+$S$, that has properties in common with the true $S$ matrix of the full
+Newton method in some directions of NC-dimensional parameter space.  They
+found that using this approximate $S$ in Eq.\,(\ref{O19}) was sometimes
+better and sometimes worse than using $S$ = 0, the latter being a
+Gauss-Newton-Marquardt method.
+
+The complete algorithm developed in \cite{Dennis:1981:ANL} updates the
+approximate $S$ matrix at each iteration and then does tests to decide
+whether to use this $S$ or $S$ = 0 in Eq.\,(\ref{O19}) to determine the
+next ${\bf \delta c}$.  The authors found that their strategy of choosing
+between the approximate $S$ and $S$ = 0 at each iteration led to better
+performance over many test cases than the exclusive use of either the
+approximate $S$ or $S$ = 0.  In the detailed output selected by IV({\em
+outlev}) the method used is indicated by ``S'' when the approximate $S$
+matrix is used and ``G'' (for Gauss-Newton-Marquardt) when $S$ = 0 is
+used.
+
+\subsubsection{Specializing for the separable problem}
+
+Refer to Eqs.\,(\ref{O2}), (\ref{O3}), and (\ref{O4}). Let $\Phi $ denote the
+NDATA $\times $ NB matrix with components $\varphi _{i,j}$. Let ${\bf z}$
+denote an NDATA dimensional vector equal to ${\bf y}$ in Eq.\,(\ref{O3}), and
+with components $z_i=y_i-\varphi _{i,\text{NB}+1}$ in Eq.\,(\ref{O4}). Note that
+$\Phi $ is a function of ${\bf \alpha }$, and so also is ${\bf z}$ when
+using Eq.\,(\ref{O4}).
+
+The objective function of Eq.\,(\ref{O2}) can be expressed as
+\begin{equation}
+\label{O20}
+\begin{split}
+\psi (
+{\bf \alpha },{\bf \beta })&=\frac 12\min _{{\bf \alpha },{\bf \beta }}\|
+{\bf r}({\bf \alpha },{\bf \beta })\| ^2\vspace{2pt} \\
+&=\frac 12\min _{{\bf \alpha }}\left\{ \min _{{\bf \beta }}\|
+\Phi {\bf \beta }-{\bf z}\|^2\right\} .
+\end{split}
+\end{equation}
+
+For fixed ${\bf \alpha }$ the minimizing vector ${\bf \beta }$ can be
+expressed as ${\bf \beta }=\Phi ^{+}{\bf z}$, where $\Phi ^{+}$ denotes the
+pseudoinverse of $\Phi $. Thus, the optimal residual vector associated with
+a fixed ${\bf \alpha }$ can be expressed as
+\begin{equation}
+\label{O21}{\bf r}({\bf \alpha )=}\Phi \Phi ^{+}{\bf z}-{\bf z}=(\Phi \Phi
+^{+}-I){\bf z}
+\end{equation}
+Then Eq.\,(\ref{O20}) can be rewritten as
+\begin{equation}
+\label{O22}\psi (\alpha )=\frac 12\min _\alpha \|{\bf r}({\bf \alpha })\|^2,
+\end{equation}
+where ${\bf r}({\bf \alpha })$ is defined by Eq.\,(\ref{O21})
+
+Thus a problem that appeared to depend on an NA-vector ${\bf \alpha }$ and
+an NB-vector ${\bf \beta }$ has been reformulated to depend only on ${\bf %
+\alpha }$. The vector ${\bf \beta }$ can be computed from ${\bf \alpha }$ as
+needed.
+
+Reference \cite{Lawton:1971:ELP} may have been the first paper to
+explicitly present this idea for reducing the effective dimensionality of
+a nonlinear least-squares problem.  More algorithmic details, particularly
+the transformations needed to compute partial derivatives of $\psi $ with
+respect to ${\bf \alpha }$ from the given partial derivatives of the
+$\varphi _{i,j}$'s with respect to ${\bf \alpha }$, are given in
+\cite{Golub:1973:TDP} and \cite{Kaufman:1975:AVP}.  The approach of this
+package is based particularly on \cite{Kaufman:1975:AVP}, with the
+transformed NA-dimensional problem being solved using the NL2SOL algorithm
+of \cite{Dennis:1981:ANL}.
+
+\subsubsection{$D$, ${\bf d}$, and parameter scaling}
+
+The algorithm uses a vector, ${\bf d}$, of positive scaling values to compensate for
+possible disparate scaling of the solution parameters at various points in
+the computation, particularly in convergence tests and in constructing the $D$
+matrix of Eq.\,(\ref{O19}). Thus, $D$ is defined to be the diagonal matrix with
+the components of the vector ${\bf d}$ on its diagonal.
+
+For DNLAxx the dimension of ${\bf d}$ and the order of $D$ is NC, and the
+scaled coefficient vector is $D{\bf c}$. For DNLSxx the dimension of ${\bf d}$
+and the order of $D$ is NA, and the scaled (nonlinear)
+coefficient vector is $D{\bf \alpha }$.  The scaled relative distance
+between two vectors is defined by Eq.\,(\ref{O5}), page \pageref{O5}.
+
+If the magnitudes of the individual solution components, $i.e.$, the $%
+c_j$'s or ${\bf \alpha }_j$'s, are fairly well known a priori,
+it is suggested that the components of ${\bf d}$ be set to the reciprocal of
+these magnitudes and held constant throughout the solution process.
+Otherwise it is suggested that the algorithm be permitted to control ${\bf d}$. See
+the specification of IV({\em dtype}), page \pageref{dtype} for specifications on
+how to exercise this option.
+
+\subsubsection{Covariance Matrix}
+
+Reference \cite{Dennis:1981:ANL} refers to \cite{Bard:1974:NPE} for
+discussion of three different matrices that might be regarded as the
+covariance matrix for the solution parameters of a nonlinear least-squares
+problem.  See the specification of IV({\em covreq}) in Section B.4.f for
+further information.  The default choice, $|$IV({\em covreq}$)| = 1$, is
+recommended in \cite{Dennis:1981:ANL}, whereas $|$IV({\em covreq}$)| = 3$
+is recommended in \cite{Donaldson:1987:CEC}.  When the Hessian matrix,
+$H$, is needed for computing the covariance matrix, $H$ is approximated by
+finite differences.
+
+\subsubsection{Influence Coefficients (Regression Diagnostics)}
+
+A method treated in the statistical literature for judging the relative
+influence of different data points on a fit is the {\em leave one out}
+analysis.  The idea is to repeat the fit NDATA times, with the $i^{th}$
+fit done using all except the $i^{th}$ data point.  Approaches to
+producing this type of information without repeating the fit NDATA times
+are presented in pp.~996--997 of \cite{Gay:1988:MLQ}.  This feature was
+not in NL2SOL (\cite{Dennis:1981:ANL}) but one of the methods of
+\cite{Gay:1988:MLQ} is implemented in the present package.
+
+Let ${\bf x}$ denote the solution vector $({\bf c}$ or ${\bf \alpha })$,
+and let $\psi _0$ be the value of the objective function at ${\bf x}$.
+For $i$ in [1, NDATA] let ${\bf g}^{(i)}$ and $H^{(i)}$ denote the
+gradient vector and Hessian matrix, respectively, computed using ${\bf x}$
+and omitting the contribution due to the $i^{th}$ data point.  Define
+\begin{equation} \label{O23}\gamma _i=\left( {\bf g}^{(i)t}H^{(i)-1}{\bf
+g}^{(i)}\right) ^{1/2}.  \end{equation} Note that $\gamma _i^2$ is a first
+order estimate of the amount by which the objective function $\psi $ would
+be reduced from $\psi _0$ if the problem were solved omitting the $i^{th}$
+data point.  In tests of this feature the values of $\gamma _i$ have been
+found to be from~0.6 to 1.2 times the true value.  For a more reliable
+{\em leave one out} analysis we suggest actually computing the NDATA
+different solutions, starting each solution from the solution of the full
+problem.
+
+If requested by the setting of IV({\em rdreq}) = 2 or~3, the package computes $%
+\gamma _i$, for $i = 1$, ..., NDATA, and stores these values in V() starting
+at V(IV({\em regd})). Printing of the $\gamma $'s is controlled by
+IV({\em covprt}).
+
+If $H$ is indefinite, the $\gamma $'s will not be computed and
+IV({\em regd}) will be set to $-$1. If the $\gamma $'s are not computed for
+any other reason, IV({\em regd}) will be set to zero. If an individual $H^{(i)}$
+is indefinite the corresponding $\gamma _i$ will be set to $-$1.0.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+On all returns, successful or not, the reason for the return is indicated by
+IV(1). See Section B.4.a for the interpretation of these values.
+
+After a return with IV(1) $\leq$ 11, it is possible to restart, $i.e.$, to
+change some of the IV() and V() input values described in Sections B.4.c
+through B.4.i, and continue the algorithm from the point where it was
+interrupted. IV(1) should not be changed.
+
+This package does not use the MATH77 error printing subroutines. Error
+conditions are reported by direct printing to the I/O unit selected by
+IV({\em prunit}) if IV({\em prunit}) $>$ 0. A message will be printed for successful
+returns if IV({\em prunit}) $>$ 0 and at least one option to print results has been
+selected. If IV({\em prunit}) = 0, all printing of both results and error messages
+is suppressed.
+
+Subroutines containing WRITE statements, and the number of WRITE statements
+in each, are DITSUM,32; DN2CVP,11; DN2RDP,1; DPARCK,16; and DS7CPR,1.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+The original code corresponding to DNLAGU/DNLAFU was NL2SOL/NL2SNO,
+developed in~1976--1980, partially supported by NSF grants MCS--7600324,
+DCR75--10143, 76--14311DSS, MCS76--11989, and MCS--7906671, and published
+in \cite{Dennis:1981:ANL}.  A precursor of the separable code, DNLSGU, was
+written by Linda Kaufman in 1977; see \cite{Kaufman:1975:AVP}.  The code
+in the file IDSM is from \cite{Coleman:1984:SES}.
+
+Additional development, resulting in the eight main user-callable
+subroutines described here was done by David Gay and Linda Kaufman at
+AT\&T Bell Laboratories, Murray Hill N.J., from~1980 through~1990.
+This code was developed for use in the PORT library that is used
+internally at AT\&T and is also leased to other organizations. In
+addition the code was placed in the {\tt /netlib/port} directory of
+{\tt netlib.att.com} on the Internet to make it publicly available.
+The code was downloaded from there to JPL by C. L.  Lawson in
+February~1990. Changes were made to this code to make it more
+consistent with the style of codes in the JPL MATH77 library.
+
+This writeup by C.  L.  Lawson, JPL, is based on \cite{Dennis:1981:ANL},
+\cite{Gay:1984:USS}, comment lines in the codes, and very helpful personal
+communication with David Gay.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DIVSET & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET\rule[-5pt]{0pt}{8pt}}\\
+DNLAFB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLAFB, DRN2GB, I7COPY\rule[-5pt]{0pt}{8pt}}\\
+DNLAFU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLAFU, DRN2G\rule[-5pt]{0pt}{8pt}}\\
+DNLAGB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLAGB, DRN2GB, I7COPY\rule[-5pt]{0pt}{8pt}}\\
+DNLAGU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLAGU, DRN2G\rule[-5pt]{0pt}{8pt}}\\
+DNLSFB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLSFB, DQ7RFH, DRN2GB, DRNSGB, I7COPY, IDSM\rule[-5pt]{0pt}{8pt}}\\
+DNLSFU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLSFU, DQ7RFH, DRN2G, DRNSG, IDSM\rule[-5pt]{0pt}{8pt}}\\
+DNLSGB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLSGB, DQ7RFH, DRN2GB, DRNSGB, I7COPY\rule[-5pt]{0pt}{8pt}}\\
+DNLSGU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DIVSET, DNLSGU, DQ7RFH, DRN2G, DRNSG\rule[-5pt]{0pt}{8pt}}\\
+SIVSET & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, SIVSET\rule[-5pt]{0pt}{8pt}}\\
+SNLAFB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, I7COPY, SIVSET, SNLAFB, SRN2GB\rule[-5pt]{0pt}{8pt}}\\
+SNLAFU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, SIVSET, SNLAFU, SRN2G\rule[-5pt]{0pt}{8pt}}\\
+SNLAGB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, I7COPY, SIVSET, SNLAGB, SRN2GB\rule[-5pt]{0pt}{8pt}}\\
+SNLAGU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, SIVSET, SNLAGU, SRN2G\rule[-5pt]{0pt}{8pt}}\\
+SNLSFB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, I7COPY, IDSM, SIVSET, SNLSFB, SQ7RFH, SRN2GB, SRNSGB\rule[-5pt]{0pt}{8pt}}\\
+SNLSFU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, IDSM, SIVSET, SNLSFU, SQ7RFH, SRN2G, SRNSG\rule[-5pt]{0pt}{8pt}}\\
+SNLSGB & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, I7COPY, SIVSET, SNLSGB, SQ7RFH, SRN2GB, SRNSGB\rule[-5pt]{0pt}{8pt}}\\
+SNLSGU & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, SIVSET, SNLSGU, SQ7RFH, SRN2G, SRNSG}\\
+\end{tabular}
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDNLAFU}\vspace{10pt}
+\lstinputlisting{\codeloc{dnlafu}}
+\newpage
+\enlargethispage*{10pt}
+\centerline{\bf \large ODDNLAFU}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dnlafu}}
+\newpage
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+\newpage
+\centerline{\bf \large DRDNLSGU}\vspace{10pt}
+\lstinputlisting{\codeloc{dnlsgu}}
+\newpage
+\enlargethispage*{10pt}
+\centerline{\bf \large ODDNLSGU}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dnlsgu}}
+\end{document}

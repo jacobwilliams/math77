@@ -1,0 +1,161 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 15.2 Cumulative Distribution Function and Percentage Points
+\hbox{for Normal Probability Distribution}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The procedures described in this chapter compute the Cumulative Distribution
+Function (CDF) and the percentage points of the Normal or Gaussian
+distribution. The CDF is sometimes called the lower tail. The lower tail,
+or CDF, $g(x;\mu ,\sigma )$, and the upper
+tail, $h(x;\mu ,\sigma )$ for the Normal probability distribution with mean $%
+\mu $ and standard deviation $\sigma $ are defined by%
+\begin{gather*}
+\hspace{-15pt}g(x;\mu ,\sigma )=\frac 1{\sigma \sqrt{2\pi }}\int_{-\infty }^x\!\!\exp
+\!\left( -\frac{(t-\mu )^2}{2\sigma ^2}\right) dt,\rule{50pt}{0pt}\\
+\hspace{-15pt}h(x;\mu ,\sigma )=\frac 1{\sigma \sqrt{2\pi }}\int_x^\infty \!\!\exp
+\!\left( -\frac{(t-\mu )^2}{2\sigma ^2}\right) dt=g(-x;\mu ,\sigma )
+\end{gather*}
+The percentage point of a distribution is the value of $x$ that gives the
+lower tail a specified value. In this case, the problem is to compute $x$
+given $u = g(x;\mu ,\sigma )$, $\mu $ and $\sigma $, that is, compute $x =
+g^{-1}(u;\mu ,\sigma ).$
+
+\subsection{Usage}
+
+\subsubsection{Cumulative Distribution Function}
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf U, X, MU, SIGMA, SCDNML}
+
+\item[EXTERNAL]  \ {\bf SCDNML}
+\end{description}
+
+Assign values to X, MU and SIGMA and obtain U $= g(x;\mu ,\sigma )$ by using
+$$
+\fbox{{\bf U = SCDNML(X, MU, SIGMA)}}
+$$
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument $x$ of the function $g(x;\mu ,\sigma ).$
+
+\item[MU]  \ [in] Parameter $\mu $ of the function $g(x;\mu ,\sigma ).$
+
+\item[SIGMA]  \ [in] Parameter $\sigma $ of the function $g(x;\mu ,\sigma ).$
+\end{description}
+
+\subsubsection{Percentage Points}
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf U, X, MU, SIGMA, SPPNML}
+
+\item[EXTERNAL]  \ {\bf SPPNML}
+\end{description}
+
+Assign values to U, MU and SIGMA and obtain X $= g^{-1}(u;\mu ,\sigma )$ by
+using
+$$
+\fbox{{\bf X = SPPNML(U, MU, SIGMA)}}
+$$
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[U]  \ [in] Argument $u$ of the function $g^{-1}(u;\mu ,\sigma ).$
+Require $0.0 \leq \text{U} \leq 1.0.$
+
+\item[MU]  \ [in] Parameter $\mu $ of the function $g^{-1}(u;\mu ,\sigma ).$
+
+\item[SIGMA]  \ [in] Parameter $\sigma $ of the function $g^{-1}(u;\mu
+,\sigma ).$
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision computation, change the REAL type statement to
+DOUBLE PRECISION and change the initial letter of the function names to D.
+Since these functions are not generic intrinsic functions, it is important
+to declare them explicitly to be DOUBLE PRECISION, because the default
+implicit type would be REAL.
+
+\subsection{Example and Remarks}
+
+See DRDCDNML and ODDCDNML for an example of the usage of these subprograms.
+
+\subsection{Functional Description}
+
+\subsubsection{Method}
+
+To avoid cancellation error when $x-\mu << 0$, the identity $g(x;\mu
+,\sigma) = \frac 12 \erfc ((\mu - x)/\sigma \sqrt 2)$ is used.  This
+expression never causes more cancellation error than mathematically
+equivalent alternatives, so it is used for all allowed values of $x$,
+$\mu $, and $\sigma $ (see Section E for restrictions). The procedure
+SERFC described in Chapter~2.2 is used to
+evaluate $\erfc ((\mu - x)/\sigma \sqrt 2).$
+
+To compute the percentage points, invert the last expression to compute $x =
+g^{-1}(u;\mu ,\sigma ) = \mu - \sigma \sqrt 2$\ erfc$^{-1}(2u)$. The
+procedure SERFCI described in Chapter~2.13 is used to evaluate erfc$%
+^{-1}(2u).$
+
+\subsubsection{Accuracy Tests}
+
+See Sections 2.2.D and~2.13.D.
+
+\subsection{Error Procedures and Restrictions}
+
+The procedure SERFC issues a warning message by way of the error message
+processor described in Chapter~19.2 if (X $-$ MU)/($\sqrt{2.0}\ \times $
+SIGMA) $< -xmax$. The value of $xmax$ depends on the system and the precision.
+Let $t=\sqrt {-\log(\sqrt \pi f)}$ where $f$ is the underflow limit
+provided by R1MACH(1) or D1MACH(1) of Chapter~19.1.  Then $xmax = t
+- ((\log \,t)/t) - 0.01.$ For example, $xmax \approx 9.18$ (26.5) for single
+(double) precision IEEE arithmetic.  The procedure SERFCI issues an error
+message at level 2 by way of the error message processor described in
+Chapter~19.2 if U $< 0.0 $ or U $> 1.0.$
+\subsection{Supporting Information}
+
+Designed and programmed by W. V. Snyder, JPL, 1993.
+
+\pagebreak
+%\rule[-50pt]{0pt}{10pt}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCDNML & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERF, DERM1, DERV1, DINITS, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DPPNML & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERFI, DERM1, DERV1, DPPNML, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+SCDNML & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERF, SERM1, SERV1, SINITS\rule[-5pt]{0pt}{8pt}}\\
+SPPNML & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERFI, SERM1, SERV1, SPPNML}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDCDNML}\vspace{5pt}
+\lstinputlisting{\codeloc{dcdnml}}
+
+\vspace{15pt}\centerline{\bf \large ODDCDNML}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dcdnml}}
+\end{document}

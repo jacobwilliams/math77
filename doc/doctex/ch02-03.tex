@@ -1,0 +1,347 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-03}
+\begmath 2.3 Gamma and Log-Gamma Functions
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms compute values of the gamma function and the natural
+logarithm of the gamma function, \cite{ams55} and~\cite{Hart:1968:CA:gam}.
+The gamma function is defined by%
+\begin{equation*}
+\Gamma (x)=\int_0^\infty e^{-s}s^{x-1}ds.
+\end{equation*}
+For integer values of $n\geq 0$, it satisfies the relation
+\begin{equation*}
+n!=\Gamma (n+1).
+\end{equation*}
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf SGAMMA, SLGAMA, X, Y}
+\end{description}
+
+Assign a value to X and obtain gamma or the natural logarithm of gamma,
+respectively, through use of the function statements:
+$$
+\fbox{{\bf Y =SGAMMA(X)}} \hspace{.5in} \fbox{{\bf Y =SLGAMA(X)}}
+$$
+
+\subsubsection{Argument Definition}
+
+\begin{description}
+\item[X]  \ [in] Argument at which function evaluation is desired. See
+Section E for restrictions on X.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage, change the REAL type statement to DOUBLE
+PRECISION and change the function names from SGAMMA to DGAMMA and SLGAMA to
+DLGAMA.
+
+\subsubsection{Program Prototype, Complex}
+
+\begin{description}
+\item[INTEGER]  \ {\bf MODE}
+
+\item[COMPLEX]  \ {\bf CARG, CVAL}
+
+\item[REAL]  \ {\bf ERREST}
+\end{description}
+
+Assign the complex argument in CARG. Set MODE to 0 or 1.
+
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+CALL CGAM(CARG, CVAL,\\
+ERREST, MODE)
+\end{tabular}}
+\end{center}
+
+The complex result will be in CVAL with an error estimate in ERREST.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[CARG]  \ [in] Complex argument. The argument must not be zero or a
+negative real integer value.
+
+\item[CVAL]  \ [out] Computed complex value of either log-gamma or gamma.
+The imaginary part of log-gamma, say $v$, will be standardized to satisfy $%
+-\pi <v\leq \pi .$
+
+\item[ERREST]  \ [out] On return ERREST gives an estimate of the absolute
+error (for log-gamma) or the relative error (for gamma) of the computed
+value.
+
+\item[MODE]  \ [in] Set value to 0 for log-gamma and 1 for gamma.
+\end{description}
+
+\subsubsection{Program Prototype, Double Precision Complex}
+
+\begin{description}
+\item[INTEGER]  \ {\bf MODE}
+
+\item[DOUBLE PRECISION]  \ {\bf CARG}(2){\bf , CVAL}(2){\bf , ERREST}
+\end{description}
+
+Assign the complex argument in CARG(), with real part in CARG(1) and
+imaginary part in CARG(2). Set MODE to 0 or 1.
+
+\begin{center}
+\fbox{%
+\begin{tabular}{@{\bf }c}
+CALL ZGAM(CARG, CVAL,\\
+ERREST, MODE)
+\end{tabular}}
+\end{center}
+
+The result will be in CVAL() with an error estimate in ERREST.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[CARG()]  \ [in] Array of 2 values representing the complex argument,
+CARG(1) for the real part and CARG(2) for the imaginary part. The argument
+must not be zero or a negative real integer value.
+
+\item[CVAL()]  \ [out] Array of 2 values representing the complex function
+value returned: CVAL(1) and CVAL(2) for real and imaginary parts,
+respectively. The imaginary part of log-gamma, say $v$, will be standardized
+to satisfy $-\pi <v\leq \pi .$
+
+\item[ERREST]  \ [out] On return ERREST gives an estimate of the absolute
+error (for log-gamma) or the relative error (for gamma) of the answer.
+
+\item[MODE]  \ [in] Set value to 0 for log-gamma and 1 for gamma.
+\end{description}
+
+Although the Fortran 77 standard does not support a double precision complex
+type, many vendors do provide for this using a declaration COMPLEX*16 or
+DOUBLE COMPLEX. With such a compiler one can probably use ZGAM with its
+first two arguments declared as double precision complex.
+
+\subsection{Examples and Remarks}
+
+\subsubsection{Example}
+
+The gamma function satisfies a ``duplication'' identity which may be written
+as%
+\begin{equation*}
+z=\frac{2\sqrt{\pi }\Gamma (x)}{2^x\Gamma (x/2)\Gamma (x/2+\frac 12)}-1=0.
+\end{equation*}
+The listing of DRSGAMMA and ODSGAMMA gives an example of using these
+subprograms to evaluate this identity. The program DRCGAM and output ODCGAM
+illustrate the use of CGAM.
+
+\subsubsection{Remarks}
+
+Neither the Fortran 77 standard nor the Fortran 90 standard includes
+intrinsic functions for gamma or log-gamma; however, such functions with the
+names GAMMA, DGAMMA, LGAMMA, ALGAMA, and DLGAMA are provided as intrinsic
+functions in some vendors' Fortran systems. In particular these latter
+functions are provided with the UNISYS ASCII Fortran and IBM VS-Fortran, but
+not with the VAX-11 Fortran. In the UNISYS and IBM systems GAMMA and LGAMMA
+are ``generic" names and thus can be used with either single or double
+precision arguments.
+
+In a system having DGAMMA or DLGAMA as intrinsics a reference to one of
+these function names will cause the vendor-supplied code to be used. If one
+wishes to override this and use the code from this library one must declare
+the function name to be EXTERNAL in the referencing program unit.
+
+\subsection{Functional Description}
+
+The gamma function is defined and takes positive values for all real $x>0$,
+becoming unbounded both as $x\rightarrow 0$ and as $x\rightarrow +\infty $.
+As $x\rightarrow 0$, $\Gamma (x)$ is asymptotic to $1/x$, and as $%
+x\rightarrow \infty $, $\Gamma (x)$ is asymptotic to%
+\begin{equation*}
+h(x)=\left( x/e\right) ^x\sqrt{2\pi /x}.
+\end{equation*}
+As an estimate of the size of $\Gamma (x)$ for large positive real $x$, note
+that for $x>9$, $\Gamma (x)$ satisfies $h(x)<\Gamma (x)<1.01\ h(x)$. The
+gamma function is also defined for negative $x$ except at the negative
+integers where it has poles.
+
+As a function of a complex variable the gamma function is analytic
+throughout the complex plane except for poles at zero and the negative real
+integer points. See \cite{ams55} and \cite{Hart:1968:CA:gam} for further
+discussion of the gamma function.
+
+The subprograms SGAMMA, DGAMMA, SLGAMA, and DLGAMA are based on subprograms
+developed by W.J. Cody, Argonne National Laboratory, which were designed for
+$10^{-20}$ precision. These subprograms use rational minmax approximations
+on selected subintervals as well as asymptotic formulas and argument
+reduction techniques. The degrees of the rational approximations are not
+varied between the single precision and double precision subprograms or as
+a function of the host computer's precision.
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-03a }
+
+Subprograms CGAM and ZGAM are based on \cite{Kuki:1972:CGF}, making use of
+the Stirling asymptotic series and recursive formulas.  The accuracy
+adjusts to the host machine up to about 17 significant decimal digits.
+CGAM and ZGAM reference I1MACH(10) to find the radix of the host system's
+floating point arithmetic.
+
+\subparagraph{Accuracy tests}
+
+Accuracy tests were run on a Univac 1108 in 1969 and on a Univac 1100 in
+1983. The arithmetic precision of these systems is $\rho _1 = 2^{-27}
+\approx 0.$ 745E$-$8 for single precision and $\rho _2 = 2^{-60}
+\approx 1.15$E$-$18 for double precision.
+
+Subprograms SGAMMA and SLGAMA were tested in 1983 on a Univac 1100 by
+comparison with DGAMMA and DLGAMA at 18,000 points. The test results may be
+summarized as follows:
+
+\begin{center}
+\begin{tabular}{l@{}lr}
+& \multicolumn{1}{c}{\bf Argument} & \multicolumn{1}{c}{\bf Max. Rel.}\\
+\multicolumn{1}{l}{\bf Function} & \multicolumn{1}{c}{\bf Interval} &
+\multicolumn{1}{c}{\bf Error}\\
+SGAMMA & \rule{.17in}{0pt}[0., 1.] & $2.5\rho _1$\rule{.12in}{0pt}\\
+& \rule{.17in}{0pt}[1., 2.] & $1.4\rho _1$\rule{.12in}{0pt}\\
+& \rule{.17in}{0pt}[2., 10.] & $9.2\rho _1$\rule{.12in}{0pt}\\
+& \rule{.17in}{0pt}[10., 17.] & $100.0\rho _1$\rule{.12in}{0pt}\\
+& \rule{.17in}{0pt}[17., 30.] & $180.0\rho _1$\rule{.12in}{0pt}\\
+SLGAMA & \rule{.17in}{0pt}[0.0, 0.5] & $2.7\rho _1$\rule{.12in}{0pt}\\
+& \rule{.17in}{0pt}[0.5, 4.0] & $6.5\rho _1$\rule{.12in}{0pt}\\
+& \rule{.17in}{0pt}[4.0, 35.0] & $2.8\rho _1$\rule{.12in}{0pt}
+\end{tabular}
+\end{center}
+
+To test the double precision functions, and as an additional test of the
+single precision functions, the function $z(x)$ defined in Section C and
+a logarithmic form of $z(x)$ defined as
+
+\hspace{.2in}$w(x) =\text{LGAM}(x) + 0.5\ \ln (2\pi ) + (0.5 - x) \ln(2)$
+\vspace{-2pt}
+
+\hspace{.8in}$- \text{LGAM}(0.5x) - \text{LGAM}(0.5x + 0.5) = 0$
+
+were evaluated on a Univac 1100 in 1983 at about 100 points. These tests are
+summarized as follows (``Max. Error" is the maximum magnitude of
+the test function):
+
+\begin{tabular}{@{}l@{}l@{\ \ }c@{ }r}
+\multicolumn{1}{@{}c}{\bf Subprogram} & \multicolumn{1}{c}{\bf Argument} &
+\multicolumn{1}{c}{\bf Test} & \multicolumn{1}{c}{\bf Max.}\\
+\multicolumn{1}{@{}c}{\bf Used} & \multicolumn{1}{c}{\bf Interval} &
+\multicolumn{1}{c}{\bf Function} & \multicolumn{1}{c}{\bf Error}\\
+SGAMMA & [$-$20.75, $-$11.25] & $z$ & $114\rho _1$\\
+ & [$-$11.25, 11.50] & $z$ & $6\rho _1$\\
+ & [11.50, 34.00] & $z$ & $100\rho _1$\\
+DGAMMA & [$-$20.75, 43.60] & $z$ & $130\rho _2$\\
+ & [43.60, 106.80] & $z$ & $384\rho _2$\\
+ & [106.80, 170.00] & $z$ & $1186\rho _2$\\
+SLGAMA & [0.0625, 3.1] & $w$ & $3\rho _1$\\
+ & [3.1, 11.5] & $w$ & $8\rho _1$\\
+ & [11.5, 0.12E37] & $w/\text{SLGAMA}$ & $2.7\rho _1$\\
+DLGAMA & [0.0625, 12.0] & $w$ & $110\rho _2$\\
+ & [12.0, 0.77D305] & $w/\text{DLGAMA}$ & $2.9\rho _2$
+\end{tabular}
+
+Subprogram ZGAM was tested in 1969 on a Univac 1108. The maximum relative
+error noted for complex arguments, $x$, satisfying $|x| < 30$, was $345\rho
+_2$ for gamma and $93\rho _2$ for log-gamma. The test function, $z$, was
+evaluated at a few complex points, $x$, of magnitude near one on a Univac
+1100 in 1983. The maximum value of $|z|$ was $30\rho _2.$
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Subprograms SGAMMA and DGAMMA accept negative as well as positive arguments.
+These subprograms will issue an error message and return the largest machine
+number, $\Omega $, if $x$ is zero or a negative integer, or if $x \geq x_g.$
+
+The subprograms SLGAMA and DLGAMA are designed only for positive arguments.
+These subprograms will issue an error message and return the value, $\Omega $%
+, if $x \leq 0$, or if $x \geq x_\lambda .$
+
+The complex gamma subroutines CGAM and ZGAM issue an error message and
+return the complex value $(\Omega $,\ $\Omega )$ if the argument is zero, a
+negative real integer, or a large argument that would cause overflow.
+
+Let $\Omega $ denote the machine overflow limit. Let $x_g$ denote the value
+of $x$ for which $\Gamma (x) = 0.875\ \Omega $, and let $x_\lambda $ denote
+the value of $x$ for which $\ln (\Gamma (x)) = 0.875\ \Omega $. Some
+examples of these values follow.
+
+\begin{center}
+\begin{tabular}{lrl}
+{\bf Computing System}&{\bf $x_g $}\rule{3pt}{0pt}&\ \ \ {\bf $x_\lambda $}\\
+VAX 11/780, SP \& DP & 34.8 & 1.8e36\\
+UNISYS (Sperry) 1100, SP & 34.5 & 1.8e36\\
+IEEE Math processor, SP & 35.0 & 3.6e36\\
+IBM Mainframe 3xxx, DP & 57.5 & 3.8e73\\
+UNISYS (Sperry) 1100, DP & 171.5 & 1.1e305\\
+IEEE Math processor, DP & 171.6 & 2.2e305\\
+Cray, SP \& DP & 966.9 & 8.5e2461
+\end{tabular}
+\end{center}
+
+The values listed above are computed on a first-time flag at run time making
+use of the overflow limit obtained from R1MACH(2) or D1MACH(2).
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+CGAM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, CGAM, ERFIN, ERMSG, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\DGAMMA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, DGAMMA, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DLGAMA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, DGAMMA, DLGAMA, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\SGAMMA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SGAMMA\rule[-5pt]{0pt}{8pt}}\\SLGAMA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SGAMMA, SLGAMA\rule[-5pt]{0pt}{8pt}}\\ZGAM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, ERFIN, ERMSG, ZGAM\rule[-5pt]{0pt}{8pt}}\\\end{tabular}
+
+Subprograms SGAMMA, DGAMMA, SLGAMA, and DLGAMA were developed by W.J. Cody,
+Argonne National Lab., 1982, and adapted to the JPL MATH 77 library by C.
+Lawson and S. Chiu, JPL, 1983.
+
+Subroutines CGAM and ZGAM were developed by H. Kuki with the name CDLGAM
+(\cite{Kuki:1972:CGF} above), adapted for JPL Univac 1108 usage by E.W.~%
+Ng, 1969, and adapted to the JPL MATH 77 library by C.~Lawson and S.~%
+Chiu, JPL, 1983.
+
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSGAMMA}\vspace{10pt}
+\lstinputlisting{\codeloc{sgamma}}
+
+\vspace{20pt}\centerline{\bf \large ODSGAMMA}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sgamma}}
+
+\newpage
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRCGAM}\vspace{10pt}
+\lstinputlisting{\codeloc{cgam}}
+
+\vspace{20pt}\centerline{\bf \large ODCGAM}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{cgam}}
+
+\closegraphsfile
+\end{document}

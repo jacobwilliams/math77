@@ -1,0 +1,631 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\begin{document}
+
+\intro{0}
+\begappc C Usage of the {\em mathc90} Library
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\begin{tabular*}{3.3in}{l}
+\multicolumn{1}{c}{\bf Table of Contents\rule[-10pt]{0pt}{8pt}}\\
+1.1\ \ Introduction \dotfill \pageref{Intro}\\
+1.2\ \ Usage documentation \dotfill \pageref{Usage}\\
+1.3\ \ Header files \dotfill \pageref{Headers}\\
+\rule{20pt}{0pt}1.3.a\ \ The library file, {\tt fhelp.c} \dotfill \pageref{libfile}\\
+\rule{20pt}{0pt}1.3.b\ \ A library archive file \dotfill \pageref{libarc}\\
+\parbox{3.3in}
+{1.4\ \ Correspondence between Fortran and C
+types \dotfill \pageref{corr}}\\
+\rule{20pt}{0pt}1.4.a\ \ CHARACTER arguments \dotfill \pageref{chararg}\\
+\rule{60pt}{0pt}STRING \dotfill \pageref{string}\\
+\rule{60pt}{0pt}CHAR\_INT \dotfill \pageref{char}\\
+\rule{60pt}{0pt}{\em byte} \dotfill \pageref{byte}\\
+\rule{60pt}{0pt}{\em byte*}, or {\em byte}{$[\,]$} \dotfill \pageref{bytestar}\\
+1.5\ \ Using the type {\em float} in C. \dotfill \pageref{caution_float}\\
+1.6\ \ Specification of functions to be passed\\
+\rule{20pt}{0pt}to library procedures \dotfill \pageref{functions}\\
+1.7\ \ User-accessible COMMON blocks \dotfill \pageref{common}\\
+1.8\ \ Codes in MATH77 but not in {\em mathc90} \dotfill \pageref{MATH77_not_mathc90}\\
+1.9\ \ Codes in {\em mathc90} and not in MATH77 \dotfill \pageref{mathc90_not_MATH77}\\
+\parbox{3.3in}
+{1.10\ \ Testing the portability of the {\em mathc90} library
+\dotfill \pageref{testport}}
+\end{tabular*}
+
+\subsection{Introduction\label{Intro}}
+
+{\em mathc90} is a conversion to the ANSI C language of the MATH77 library of
+Fortran 77 mathematical subprograms.  We recommend organizing the {\em
+  mathc90} library into two subdirectories: {\tt libsrc} containing files of
+library source code and their associated header files, and {\tt demo} a
+subdirectory of this containing source code files for demonstration drivers
+and their associated header files.
+
+\subsection{Usage documentation.\label{Usage}}
+
+Usage of procedures in the (Fortran) MATH77 library is thoroughly
+documented in this manual.  We do not provide similar documentation for the
+{\em mathc90} library.  Rather, we have attempted to produce the {\em
+mathc90} code with a consistent correspondence between its functions and
+the subprograms of MATH77.  Thus we hope a user can understand how to use
+{\em mathc90} by referring to the MATH77 (Fortran) documentation and applying
+the conventions given in this appendix for translating information about
+the declaration of variables.  This approach can be supplemented by
+looking at the function prototypes in the header file {\tt mathc90.h},
+which is listed in Appendix D, and by studying the {\em mathc90}
+demonstration drivers.
+
+Most of the user-callable C functions in {\em mathc90} have the same name,
+number of arguments, and functionality as the corresponding Fortran
+subprogram in MATH77. The types of arguments and results correspond
+according to conventions that will be described subsequently.
+
+Exceptions as to the number of arguments occur for some procedures
+that have character arguments. For CSORT we have omitted the last
+argument which was work space of type CHARACTER. Also for CSORT, and
+for other procedures discussed under CHAR\_INT on
+Page~C--\pageref{char}, we have added a character length argument of
+type {\em int} immediately following an argument that was a CHARACTER
+array in the Fortran version.
+
+Exceptions as to functionality occur in procedures DSVA/SSVA
+(Chapter~4.3), DNLxxx/SNLxxx (Chapter 9.3), MESS (Chapter 19.3), and I1MACH
+(Chapter~19.1).  The Fortran subroutines DSVA/SSVA, DNLxxx/SNLxxx, and MESS
+allow the user to specify a Fortran output unit number to be written to. The
+{\em mathc90} function mess() emulates this functionality by writing to a
+file named {\tt messf\_nn}, where {\tt nn} is the requested unit number. The {\em
+mathc90} functions dsva() and dnlxxx() simply write any requested
+output to {\em stdout}.
+
+Calls to R1MACH, D1MACH, and I1MACH in the MATH77 library are replaced
+using functionality in the C language.  Thus these subroutines
+are not included in the {\em mathc90} library.
+
+A few codes are only in MATH77 or only in {\em mathc90}.  These are
+discussed in Sections 1.8 and 1.9.
+
+\subsection{Header files.\label{Headers}}
+
+There is one large header file {\tt mathc90.h} which contains all the
+declarations required by any of the library files.  This file is only provided
+with the entire mathc90 library, but in most cases we recommend using instead
+the header files corresponding to the individual routines.  Each library
+routine except for {\tt csort1.c} has a corresponding header file with the
+``.c'' replaced by ``.h''.  A user-written program that uses functions from
+{\em mathc90} should reference either {\tt mathc90.h} in a {\tt \#include}
+directive or reference all the ``.h'' files with names corresponding to the
+names of the library files being referenced directly by the user's code.  The
+library is not designed to work in a pre-ANSI C90 environment.
+
+In addition there are header files for the library codes required by each
+of the demonstration drivers.  A demonstration driver with a name of the
+form {\tt drxxxx.c} uses a header file of the form {\tt p\_xxxx.h}.  When
+calling only library routines that are called by a demonstration driver,
+one may want to include the appropriate one of these headers.  Also a few of
+the drivers require a header file with the same name as the demonstration
+driver, but with the suffix ``.c'' replaced by ``.h''.
+
+{\tt fcrt.h} contains definitions of a number of macros whose use is
+needed in some of the converted codes, due to the way the commercial
+conversion processor we use produces some of the conversions.  A user code
+should not reference {\tt fcrt.h}, as we may change or delete items in
+this file without notice.  {\bf If one is compiling single precision codes
+in {\em mathc90} changes may be required in {\tt fcrt.h} as described in
+Section~\ref{caution_float} below.}
+
+\subsubsection{The library file, {\tt fhelp.c}\label{libfile}}
+
+The library file, {\tt fhelp.c}, contains a number of functions supporting
+operations that are built-in in Fortran but not in C. Functions in this
+file are not intended to be called by users. They may be changed or deleted
+in the future without notice.
+
+\subsubsection{A library archive file\label{libarc}}
+
+We suggest that on UNIX systems the object files for all of the library be
+collected into a library archive file with the name {\tt libmathc90.a}. This
+can easily be done using the UNIX {\tt ar} command. Then this library can be
+referenced from a compile or link command using the option {\tt -l mathc90}.
+We provide a Gnu make file that does this, as well as compiling all of the
+demos and running them.  Analogous methods of creating and referencing a
+pre-compiled library file exist on other systems.
+
+\subsection{Correspondence between Fortran and C types.\label{corr}}
+
+\begin{tabular}{ll}
+{\bf Fortran 77 declaration} & {\bf C declaration}\\
+{\bf in user code.} & {\bf in user code.}\\
+double precision a  & {\tt double a;}\\
+double precision a(5) & {\tt double a[5];}\\
+double precision a(5,10) & {\tt double a[10][5];}\\
+real a & {\tt float a;}\\
+real a(5) & {\tt float a[5];}\\
+real a(5,10) & {\tt float a[10][5];}\\
+integer i & {\tt long i;}\\
+integer i(5) & {\tt long i[5];}\\
+integer i(5,10) & {\tt long i[10][5];}\\
+logical p & LOGICAL32 p;\\
+logical p(5) & LOGICAL32 p[5];\\
+character ... & See: {\bf CHARACTER}\\
+ & {\bf arguments}, Page C--\pageref{chararg}.\\
+external sname & Function declaration for\\
+ & sname.\\
+\end{tabular}
+
+In converting Fortran 77 code to ANSI C there are different choices one
+could make as to how to convert types.  The specifications above relate
+specifically to the way we intend the {\em mathc90} library to be used.
+For subprogram arguments whose specification in the MATH77 (Fortran)
+documentation is as given in the first column below, we recommend a C
+declaration as specified in the second column.
+
+A reference to an element of a 1-dimensional array, whose Fortran indexing
+begins at 1, has a corresponding reference in C with the index decremented
+by 1.  Thus a(j) in Fortran 77 should be replaced by a[\,j-1] in C.
+
+In a reference to an element of a 2-dimensional array, whose Fortran
+indexing begins at (1,1), the indices must be interchanged, and each
+decremented by 1. Thus a(i,j) in Fortran 77 should be replaced by %
+a[\,j-1,i-1] in C.
+
+If MATH77 documentation specifies an argument of a procedure to be an
+array of any type, or a CHARACTER variable with length that could be
+greater than one, the actual argument in referencing a {\em mathc90}
+function must be an address, {\em i.e.}, a pointer. (Recall that in C
+an array name is a pointer.) For an argument that is specified in the
+MATH77 documentation as numeric, LOGICAL, or CHARACTER*1, and not an
+array, it must be passed by address $(i.e$. a pointer) or by value
+depending on whether its value can or cannot be modified by the
+procedure. The MATH77 documentation identify each variable as having the
+intent {\em in} if it cannot be modified, and one of the intents {\em
+out} or {\em inout} (or {\em work} or {\em scratch}) if it can be
+modified. If in doubt about the correct typing of an argument look at
+the function prototype in the header file {\tt mathc90.h} or at
+Appendix~D.
+
+Any argument to a library procedure that is specified in the MATH77
+documentation as a 2-dimensional numeric array with the first dimension
+being adjustable will be declared within the corresponding {\em mathc90}
+function as a 1-dimensional array, and subscript computation will be
+expressed explicitly.  (From the point of view of the MATH77
+documentation, a 2-dimensional array has an adjustable first dimension if
+the size of the first dimension is one of the arguments in the same
+argument list as the array name.) Thus if the user declares the array to
+be used as the corresponding actual argument as 2-dimensional, as we
+recommend, the user should also use ``cast" syntax in the function
+reference statement to force agreement of the type of the argument.  For
+example, if an array specified to have an adjustable first dimension is
+declared as
+
+\hspace{.2in}{\tt double a[10][5];}
+
+it should appear in the function reference as
+
+\hspace{.2in}{\tt(double*)a}
+
+Some C compilers may not require this but some, {\em e.g}. HP-720,
+do.\rule[-6pt]{0pt}{8pt}
+
+On the other hand, if the first dimension of a 2-dimensional array is
+specified in the MATH77 documentation to be a fixed value, such as 2 in some
+subprograms dealing with double precision complex data and in Chapter 9.3,
+then the array name in the function reference should not be prefixed with
+{\tt(double*}). Check the function prototypes in {\tt mathc90.h}
+(listed in Appendix D) or the associated header file when in doubt.
+
+\subsubsection{CHARACTER arguments\label{chararg}}
+
+\begin{minipage}{2.6in}
+In Fortran each CHARACTER variable has a declared length which may be
+specified using ``*" notation or has the default length 1 otherwise. This
+declared length is automatically passed with the character variable whenever
+it is passed as a subprogram argument.
+
+In C it is more common to think in terms of what could be called the
+operational length of a character string,
+{\em i.e.}, the length up to but not
+including a terminating null character. (The ASCII null character has the
+numeric value of zero and is written in C as $^{\prime}\backslash
+0^{\prime}.)$ This model of a character string is supported by a number of
+standard C library functions that do operations on null-terminated strings.
+\end{minipage}
+
+The notation $^\prime $A$^\prime $ denotes a constant of type {\em
+char} whose value is the integer, 65, associated with the ASCII
+character A. The notation $^{\prime \prime } $A$^{\prime \prime } $
+denotes a pointer of type {\em char*} pointing to an array of length
+2 whose components are $^\prime $A$^\prime $ and $^{\prime}\backslash
+0^{\prime}$. This later notation can also be used for longer strings,
+{\em e.g.}, $^{\prime \prime }$Mars$^{\prime \prime }$ denotes
+(a pointer to) an array of length 5 with components
+$^{\prime}$M$^{\prime}$, $^\prime $a$^\prime $,
+$^{\prime}r^{\prime}$, $^{\prime}$s$^{\prime}$, and
+$^{\prime}\backslash 0^{\prime}.$
+
+Following conventions introduced by the commercial conversion
+processor that we use, we use the defined terms {\em byte}, STRING,
+and CHAR\_INT to distinguish different usages of character variables.
+These three terms are synonyms for {\em char}, {\em char*}, and {\em
+char*,int}. Note that {\em byte*} is therefore another synonym for
+{\em char*}.
+
+We choose these different terms as follows:\vspace{-7pt}
+\begin{description}
+
+\item[STRING\label{string}] \ The translation of a non-array CHARACTER*$k$
+argument of intent {\em in} whose purpose is just to be printed.  In the C
+version such an argument must be null-terminated.  If the actual argument
+in C is written as a literal, it must be a string literal delimited by
+(double) quotes, {\em e.g.}, $^{\prime \prime}$Venus$^{\prime \prime}$.
+Occurrences in user-callable procedures are in the table at the top of the
+next column.
+
+\item[CHAR\_INT\label{char}] The translation of an array of
+CHARACTER*$k$ variables for which both the array size and CHARACTER
+length are user specified and the length $k$ is not present in the
+same (Fortran) argument list. In this case the single argument in
+Fortran becomes two arguments in C. This pair of arguments must be of
+types {\em char*} and {\em int}, respectively. The {\em int}
+parameter should be one greater than the $k$ in the corresponding
+Fortran declaration to allow space for null terminators. Occurrences
+in user-callable procedures:
+
+\hspace{-1in}\fbox{\begin{tabular}{r@{}ll}
+\multicolumn{1}{c}{Chapter} & \multicolumn{1}{c}{Procedure
+Name\rule{40pt}{0pt}} &
+\multicolumn{1}{c}{\hspace{-16pt}CHARACTER*$k$ Argument}\\
+6.1\rule{15pt}{0pt} & dmatp, dvecp, imatp, & text\\
+& ivecp, smatp, svecp\\
+6.2\rule{15pt}{0pt} & dmatpr, dvecpr, imatpr, & text\\
+ & ivecpr, smatpr, svecpr\\
+14.1\rule{15pt}{0pt} & divadb, sivadb & text\\
+16.2\rule{15pt}{0pt} & dtcst, stcst & tcs, mode\\
+16.3\rule{15pt}{0pt} & dcft, scft & mode\\
+16.3\rule{15pt}{0pt} & dplot, splot & copt\\
+19.2\rule{15pt}{0pt} & ermsg, & subnam, mess\\
+19.2\rule{15pt}{0pt} & derm1, ierm1, serm1 & subnam, mess, label\\
+19.2\rule{15pt}{0pt} & derv1, ierv1, serv1 & label\\
+19.2\rule{15pt}{0pt} & ermor & mess\\
+21.1\rule{15pt}{0pt} & dprpl1, dprpl2 & title, xname, yname\\
+ & sprpl1, sprpl2\\
+\end{tabular}}\vspace{5pt}
+
+\begin{tabular}{r@{}l@{}l}
+&\multicolumn{1}{c}{Procedure \rule{10pt}{0pt}}& \multicolumn{1}{c}{\hspace{-10pt}CHARACTER}\\
+\multicolumn{1}{c}{Chapter} & \multicolumn{1}{c}{Name \rule{10pt}{0pt}} &
+\multicolumn{1}{c}{\hspace{-10pt}Array Argument}\\
+4.3\rule{15pt}{0pt} & dsva, ssva & \rule{10pt}{0pt} names\\
+18.1\rule{15pt}{0pt} & csort, csortp, & \rule{10pt}{0pt} c\\
+ & csortq\\
+19.2\rule{15pt}{0pt} & dervn, & \rule{10pt}{0pt} labels\\
+ & servn\\
+19.3\rule{15pt}{0pt} & dmess, mess, smess & \rule{10pt}{0pt} text\\
+\end{tabular}
+
+\item[{\em byte}\label{byte}] The translation of a non-array CHARACTER*1
+argument whose intent is {\em in}.
+If the actual argument in C is written as a literal, it must be a
+character literal delimited by apostrophes, {\em e.g.}, $^\prime $A$^\prime $.
+Occurrences in user-callable procedures:
+
+\begin{tabular}{@{}r@{}l@{}l}
+& \multicolumn{1}{c}{Procedure} & \multicolumn{1}{c}{CHARACTER*1}\\
+\multicolumn{1}{c}{Chapter} & \multicolumn{1}{c}{Name} &
+\multicolumn{1}{c}{Argument}\\
+16.1\rule{15pt}{0pt} & drft1, srft1 & \rule{20pt}{0pt}mode\\
+16.4\rule{15pt}{0pt} & drft, srft & \rule{20pt}{0pt}mode\\
+19.2\rule{15pt}{0pt} & derm1, derv1, dervn, & \rule{20pt}{0pt}flag\\
+& ermor, ermsg, ierm1,\\
+& ierv1, serm1, serv1,\\
+& servn\\
+21.2\rule{15pt}{0pt} & dprpl, sprpl & \rule{20pt}{0pt}symbol
+\end{tabular}
+
+\item[{\em byte*}, or {\em byte}{$[\,]$}\label{bytestar}] The translation
+of an array or non-array CHARACTER*$k$ argument whose length $k$ is known
+to the procedure by some means other than the implicit passing of the
+length in Fortran.  The non-array argument of intent {\em in}, {\em i.e.},
+symbol, is not required to be null-terminated, however if the actual
+argument is written as a literal it must be a string literal delimited by
+(double) quotes, {\em e.g.}, $^{\prime \prime } $A$^{\prime \prime } $.
+
+In the procedures DSFITC/SSFITC of Chapter 11.5, the argument, CCODE, is
+an array of intent {\em in}, declared as
+
+\hspace{.2in}CHARACTER CCODE(mdim)*(4)
+
+In C, ccode should be declared as
+
+\hspace{.2in}{\tt char ccode[mdim][5];}
+
+If the main program in Fortran would have made an assignment such as CCODE(I)
+= $^{\prime}$10$\sim $a$^{\prime}$, then the corresponding assignment in C
+could be ccode[i-1] = $^{\prime \prime }$10$\sim $a$^{\prime \prime } $.
+
+In the Fortran subroutines DPRPL1/SPRPL1 and DPRPL2/SPRPL2, the declaration
+of the argument IMAGE depends on two other arguments, NLINES and NCHARS:
+
+\hspace{.2in}CHARACTER IMAGE(NLINES)*(NCHARS)
+
+In C, {\em image} should be declared as
+
+\hspace{.2in}{\tt char image[nlines][nchars + 1];}
+
+and the actual argument should be written as {\tt char* image}
+in the reference to dprpl1/sprpl1() or dprpl2/sprpl2(). On return, null
+terminators will have been stored in image[$i$][nchars], for $i$ = 0,
+..., {\em nlines} $-$ 1.
+
+In the Fortran subroutines DPRPL/SPRPL, the declaration of the argument IMAGE
+depends on another argument, NCHAR:
+
+\hspace{.2in}CHARACTER IMAGE*(NCHAR)
+
+In C, {\em image} should be declared as
+
+\hspace{.2in}{\tt char image[nchar + 1];}
+
+On return there will be a null terminator in {\em image}[{\em nchar}].
+
+Occurrences in user-callable procedures:\vspace{5pt}
+
+\hspace{-.1in}\begin{tabular}{rll@{}l}
+& \multicolumn{1}{c}{Procedure} & \multicolumn{1}{c}{CHARACTER*$k$}\\
+\multicolumn{1}{c}{Chapter} & \multicolumn{1}{c}{Name} &
+\multicolumn{1}{c}{Argument} & \multicolumn{1}{c}{Intent}\\
+11.5\rule{10pt}{0pt} & dsfitc, ssfitc & \hspace{20pt} ccode &
+\rule{5pt}{0pt}{\em in}\\
+21.1\rule{10pt}{0pt} & dprpl1, sprl1 & \hspace{20pt} image &
+ \rule{5pt}{0pt}{\em out}\\
+21.1\rule{10pt}{0pt} & dprpl2, sprl2 & \hspace{20pt} image &
+ \rule{5pt}{0pt}{\em out}\\
+ & & \hspace{20pt} symbol & \rule{5pt}{0pt}{\em in}\\
+21.2\rule{10pt}{0pt} & dprpl,sprpl & \hspace{20pt} image &
+ \rule{5pt}{0pt}{\em inout}
+\end{tabular}
+\end{description}
+
+\subsection{Using the type {\em float} in C.\label{caution_float}}
+
+The ANSI C language standard does not support the type {\em float}
+as completely as it supports the type {\em double}.  In particular, there
+is a set of twenty-two elementary mathematical functions that are
+required by the ANSI C standard to be provided for operations on data
+of type {\em double}.  The standard does not require these to be provided
+for type {\em float}, but does specify names these functions should have
+if they are provided.
+
+The names of these functions for type {\em double} are {\em acos, asin, atan,
+atan2, cos, sin, tan, cosh, sinh, tanh, exp, frexp, ldexp, log, log10,
+modf, pow, sqrt, ceil, fabs, floor}, and {\em fmod}.  The corresponding names
+for type {\em float} are {\em acosf, asinf, atanf,
+atan2f, cosf, sinf, tanf, coshf, sinhf, tanhf,
+expf, frexpf, ldexpf, logf, log10f,
+modff, powf, sqrtf, ceilf, fabsf, floorf}, and {\em fmodf}.
+Function prototypes for these functions of type {\em float} are
+contained in the header file {\tt mathf.h}.
+
+The end of {\tt fcrt.h} contains definitions for these single precision
+``intrinsic'' functions.  Three methods for defining these functions are
+provided, the method is selected by the value in the preprocessor variable
+{\tt SINGLE\_MATH\_FUNCS}.  If this variable has the value {\tt
+intrinsic}, it is assumed that the same names can be used for the single
+as for the double precision versions.  If this variable has the value {\tt
+use\_double} the double precision functions are used with the arguments
+cast to {\em double}, and the result cast back to type {\em float}.  If
+{\tt SINGLE\_MATH\_FUNCS} has neither of these values, the names used for
+these functions are the usual double names followed by an ``f'', thus for
+example {\tt sin} becomes {\tt sinf} in the single precision codes.
+{\large \bf It is critical that the user choose the correct value for}
+{\tt SINGLE\_MATH\_FUNCS} if the single precision routines are compiled.
+
+Note that the following two function headers do not have the same meaning:
+
+\begin{tabular}{ll}
+Example H1: & {\em fname(x)}\\
+& {\em float x;}\\
+\\
+Example H2: & {\em fname(float x)}
+\end{tabular}
+
+The first example is in the K\&R or pre-ANSI style.  It implies that
+the argument $x$ is expected to be passed as type {\em double} and will be
+coerced to type {\em float} before being used within the function.  In the
+second example the argument $x$ is expected to be passed as type {\em float}.
+
+Similarly there are distinct pre-ANSI and ANSI styles for use in a code
+that references a function:
+
+\begin{tabular}{l@{\ }l}
+\hspace{-5pt}Example R1: & {\em void fname();}\\
+&  {\em float x;}\\
+&  ...\\
+&  {\em fname(x);}\\
+\vspace{5pt}
+\hspace{-5pt}Example R2: & {\em void fname(float);}\\
+&  {\em float x;}\\
+&  ...\\
+&  {\em fname(x);}
+\end{tabular}
+
+In Example R1, which is the pre-ANSI style, $x$ will be coerced from
+{\em float} to {\em double} when it is passed to fname,
+whereas in Example R2, which is the ANSI style, $x$ will be passed as
+type {\em float}.  The ANSI standard allows usage of either pre-ANSI
+or ANSI style.  Note, however, that R1 is compatible with H1, and R2
+is compatible with H2, but mixing the styles gives erroneous results.
+
+\begin{minipage}{1.95in}
+We have used the ANSI style, i.e., as in Example H2, in the codes of
+mathc90 that have arguments of type {\em float}.  Thus a user must use
+the ANSI style, i.e., as in Example R2, in code that references a
+library function that has an argument of type {\em float}.  The needed
+function prototypes can be easily obtained by simply including the
+header file {\em mathc90.h}.
+
+\subsection{Specification of\newline
+functions to be\newline
+passed to library\newline
+procedures.\label{functions}}
+
+For some library procedures one or more of the arguments is the name of a
+user-coded procedure. As a documentation aid, we list prototypes for these
+procedures to the right, using the MATH77 names.
+
+\subsection{User-accessible COMMON blocks.\label{common}}
+
+We have generally avoided user-accessible COMMON blocks in MATH77,
+however in specialized usages of the code of Chapter 14.1 for
+Ordinary Differential Equations there is a need to access the COMMON
+block DIVASC.
+
+In {\em mathc90} this is represented as an external data structure named {\em
+divasc} and having type {\em t\_divasc}. \hfill See the file {\tt diva.c} for
+\end{minipage}\vspace{-3pt}
+
+the components of this structure. If you are working from the
+``mangled'' code, the names will be different than those in the documentation,
+but the names in the structure appear in the same order as given in the
+documentation.  For type {\em float}, replace ``diva" with ``siva" in the text
+above.
+
+\subsection{Codes in MATH77 but not in {\em mathc90}.\label{MATH77_not_mathc90}}
+
+Since ANSI C does not have a complex data type, some codes using a complex
+data type are in MATH77 but not in {\em mathc90}.  In particular codes in
+Chapters~4.1,``Square Nonsingular Systems of Equations", and 6.3, ``Basic
+Linear Algebra Subprograms" which use complex arguments are not
+available in {\em mathc90}. \hfill When the Fortran codes
+
+\hspace{-1.5in}\begin{tabular}{|@{\hspace{-4pt}}r@{}l@{}l
+@{\hspace{1pt}}|}\hline
+&\multicolumn{1}{c}{\hspace{-8pt}Library}& ~\rule{0pt}{12pt}\\
+\multicolumn{1}{|c}{Chap.} &\multicolumn{1}{c}{\hspace{-8pt}Functions} &
+\multicolumn{1}{c|}{Prototypes for user-coded functions
+\rule[-8pt]{0pt}{8pt}}\\\hline
+\rule{0pt}{14pt}8.2 \rule{10pt}{0pt} & dnqsol() & {\tt void dnqfj(long,%
+double[\,],double[\,],double*,long*);}\\
+ & snqsol() & {\tt void snqfj(long,float[\,],float[\,],%
+float*,long*);}\rule[-8pt]{0pt}{20pt}\\\hline
+
+\rule{0pt}{14pt}9.2 \rule{10pt}{0pt} & dmlc01() & {\tt void dmlcfg(long,%
+double[\,],double*,double[\,],}\\
+ & & {\tt LOGICAL32*);}\\
+ & smlc01() & {\tt void smlcfg(long,float[\,],float*,float[\,],}\\
+ & & {\tt LOGICAL32*);}\rule[-8pt]{0pt}{20pt}\\\hline
+
+9.3 \rule{10pt}{0pt} & dnlafu() & {\tt void dcalcr(long,long,%
+double[\,],long*,double[\,]);}\rule{0pt}{12pt}\\
+ & dnlagu() & {\tt void dcalcj(long,long,double[\,],
+long*,double*);}\\
+ & dnlafb() & ~\\
+ & dnlagb() & \\
+ & snlafu() & {\tt void scalcr(long,long,float[\,],%
+long*,float[\,]);}\rule{0pt}{12pt}\\
+ & snlagu() & {\tt void scalcj(long,long,float[\,],long*,double*);}\\
+ & snlafb() & ~\\
+ & snlagb() & ~\rule[-8pt]{0pt}{8pt}\\\hline
+
+9.3 \rule{10pt}{0pt} & dnlsfu() & {\tt void dcalca(long,long,%
+long,double[\,],long*,double*);}\rule{0pt}{12pt}\hspace{-4pt}\\
+ & dnlsgu() & {\tt void dcalcb(long,long,long,double[\,],long*,%
+double*);}\hspace{-4pt}\\
+ & dnlsfb() & ~\\
+ & dnlsgb() & \\
+ & snlsfu() & {\tt void scalca(long,long,long,float[\,],long*,
+float*);}\rule{0pt}{12pt}\\
+ & snlsgu() & {\tt void scalcb(long,long,long,float[\,],long*,float*);}\\
+ & snlsfb() & ~\\
+ & snlsgb() & ~\rule[-8pt]{0pt}{8pt}\\\hline
+
+14.4 \rule{10pt}{0pt} & diva() & {\tt void derivs(double[\,],double[\,],%
+double[\,],long[\,]);} \rule{0pt}{12pt}\\
+ & divaa() & {\tt void output(double[\,],double[\,],double[\,],long[\,]);}\\
+ & siva() & {\tt void derivs(float[\,],float[\,],float[\,],long[\,]);}
+\rule{0pt}{12pt}\\
+ & sivaa() & {\tt void output(float[\,],float[\,],float[\,],long[\,]);}
+\rule[-8pt]{0pt}{8pt}\\\hline
+
+18.3 \rule{10pt}{0pt} & insort() & {\tt long compar(long,long);}
+\rule[-8pt]{0pt}{20pt}\\\hline
+
+18.4 \rule{10pt}{0pt} & exsort() & {\tt void dataop(long,long,%
+long,long*);}\rule[-8pt]{0pt}{20pt}\\\hline
+\end{tabular}
+
+implement a complex version by using real or double precision arrays, such
+versions are also available in C.
+
+\subsection{Codes in {\em mathc90} but not in MATH77.\label{mathc90_not_MATH77}}
+
+There is one additional sorting function and a few additional single
+precision complex arithmetic functions in {\em mathc90}.
+
+To the functions {\em csort}(), {\em csortp}(), and {\em csortq}() of
+Chapter 18.1, we have added a character string sorting function
+named {\em csort1}().  For {\em csort}(), {\em csortp}(), and {\em
+csortq}(), the character data to be sorted must be in an array declared in
+a form such as
+
+\hspace{.2in}{\tt char c[100][11];}
+
+which would provide space for 100 character strings each having up to 10
+meaningful character positions plus a null termination character. The second
+dimensioning value, {\em e.g}. 11 in this example, must be passed as the second
+argument to {\em csort}(), {\em csortp}(), or {\em csortq}(). Note that the operational length
+of each character string in the array is determined by the position of its
+null terminator, but a total of 11 character positions of storage are
+allocated for each string.
+
+For {\em csort1}() the character data to be sorted are referenced via an array of
+pointers to {\em char}. Such an array, say for 100 character strings, can be
+declared as
+
+\hspace{.2in}{\tt char *pc[100];}
+
+With this method of storing character strings, each string need not occupy
+any more storage than is needed for its meaningful characters, its null
+terminator, and its pointer. The procedure {\em csort1}() operates by swapping C
+pointers, whereas {\em csortp}() and {\em csortq}() operate by swapping indices, and
+{\em csort}() operates by swapping the actual character strings.
+
+The~statement for referencing {\em csort1}() is
+
+\hspace{.2in}{\tt csort1( pc, m, n, k, l);}
+
+where {\tt pc} must be declared as described above and the other four arguments
+are {\em long int'}s with the same interpretation as in the other character
+sorting procedures.
+
+In MATH77, Chapter 17.2, there are subprograms for double precision
+complex arithmetic named ZSUM, ZDIF, ZPRO, ZQUO, ZSQRTX, and DZABS.  These
+are provided because double precision complex arithmetic is not directly
+supported in standard Fortran 77.  There is no need in Fortran for single
+precision versions of these since single precision complex arithmetic is
+directly supported in standard Fortran 77.
+
+In C, however, there is no direct support for complex arithmetic, so
+there is potential use for both single precision and double precision
+versions of these complex operations.  Thus, in {\em mathc90}
+we provide routines named
+{\em csum, cdif, cpro, cquo, csqrtx}, and {\em scabs},
+with arguments (and the returned value from {\em scabs}) of type
+{\em float}, as well as the ``$z$" procedures for type {\em double}.
+
+\subsection{Testing the portability of the {\em mathc90} library.
+\label{testport}}
+
+The {\em mathc90} library has been tested for portability on the same
+machines as the MATH77 library.  This test involves running the set of
+demonstration drivers and comparing the results with those obtained in
+Fortran and with results in C on other machines.
+\begcodenp
+\end{document}
+
+
+\subsection{Testing the portability of the {\em mathc90} library.
+\label{testport}}
+
+The {\em mathc90} library has been tested on a variety of computer systems.
+It appears to be portable as long as the compiler supports C90 ANSI standard.

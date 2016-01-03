@@ -1,0 +1,175 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-10}
+\begmath 2.10 Exponential Integrals Ei and $E_1$
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subroutines compute the exponential integrals Ei and $E_1$, defined
+by%
+\begin{equation*}
+\text{Ei}(x)=\int_{-\infty }^x\frac{e^t}t\,dt,\quad \text{and\quad }%
+E_1(x)=\int_x^\infty \frac{e^{-t}}t\,dt.
+\end{equation*}
+
+These functions are related by the equation
+\begin{equation*}
+\text{Ei}(x) = -E_1(-x)
+\end{equation*}
+The functions Ei$(x)$ for $x > 0$ and $E_1(x)$ for $x < 0$ are defined as
+Cauchy principal value integrals. These functions thus have well-defined
+finite values for all real $x$ except $x = 0$ where Ei$(0) = -\infty $ and $%
+E_1(0) = +\infty .$
+
+For additional properties of these functions see \cite{ams55:exp-int}.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf X, Y, EI, SE1}
+\end{description}
+
+Assign a value to X and obtain the value of Ei or $E_1$ respectively by
+use of the statements,
+$$
+\fbox{{\bf Y =SEI(X)}} \hspace{.4in} \fbox{{\bf Y =SE1(X)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument of function. Require X $\neq 0.$
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change the REAL statement to DOUBLE PRECISION and
+change the function names to DEI and DE1 respectively.
+
+\subsection{Examples and Remarks}
+
+See the program DRSEI and the output ODSEI for an example of the use of SEI
+and SE1 to tabulate values of Ei and $E_1.$
+
+\subsection{Functional Description}
+
+As $x$ varies from $-\infty $ to~0, $E_1(x)$ varies monotonically from $%
+-\infty $ to $+\infty $. There is a single real root
+at~$-$0.37250~74107~81366~63446.
+
+As $x$ varies from~0 to~$+\infty $, $E_1(x)$ varies monotonically from $%
++\infty $ to zero.
+
+$E_1(x)$ is asymptotic to $x^{-1}e^{-x}$ as $x$ approaches $+\infty $ or $%
+-\infty $, and to $-\ln |x|$\ as $x$ approaches zero.
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-10 }
+
+Let $\mu $ and $\lambda $ be defined so that $e^\mu $ is the overflow limit
+and $e^{-\lambda }$ is the underflow limit for the machine arithmetic.
+Define $\alpha = \mu + \ln \mu $ and $\beta = \lambda - \ln \lambda $. Then $%
+E_1(x)$ would overflow for $x < -\alpha $ and underflow for $x > \beta .$
+
+This algorithm, due to L. W. Fullerton, with minor changes by Lawson and
+Chiu, partitions the interval $[-\alpha ,\beta ]$ into eight subintervals.
+On each subinterval a polynomial approximation is used.
+
+The polynomial degrees and the numbers $\alpha $ and $\beta $ are determined
+on the first entry to the subprogram by use of the System Parameters
+subprograms (see Chapter~19.1). The subprograms adapt to any precision up to
+about~31 decimal places.
+
+\subparagraph{Accuracy tests}
+
+Subprogram SE1 was tested on an IBM compatible PC using IEEE
+arithmetic by comparison with DE1 at~50,000
+points between~$-$80 and 80. The relative precision of the IEEE single
+precision arithmetic is $\rho = 2^{-23} \approx 1.19 \times 10^{-7}$. The
+test results may be summarized as follows:
+
+\begin{tabular}{l@{}r@{{.}}l@{{, }}r@{{.}}lr}
+\multicolumn{5}{c}{\bf Argument Interval} &
+\multicolumn{1}{c}{\bf Max. Rel. Error}\\
+\rule{.2in}{0pt} [ & $-$80&00  &$-$1&20] & $2.5\rho $\rule{.4in}{0pt} \\
+\rule{.2in}{0pt} [ &  $-$1&20  &$-$1&00] & $4.6\rho $\rule{.4in}{0pt} \\
+\rule{.2in}{0pt} [ &  $-$1&00  &$-$0&41] & $0.9\rho $\rule{.4in}{0pt} \\
+\rule{.2in}{0pt} [ &  $-$0&41 &$-$0&30] & (see just below)~~\\
+\rule{.2in}{0pt} [ &  $-$0&30 &  80&00] & $0.8\rho $\rule{.4in}{0pt}
+\end{tabular}
+
+The relative error in the interval [$-$0.41, $-$0.30] is large due to the
+root near $-$0.3725. However, $|E_1(x)|$ is bounded by~0.31 and the absolute
+error has a satisfactorily small bound of $0.22\rho $ in this interval.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+In the following cases the function value would be beyond the representable
+range. The subprograms will issue an error message and return a value as
+follows ($\Omega $ is the overflow limit):
+\begin{center}
+\begin{tabular}{lr|lr}
+\multicolumn{1}{c}{X} & \multicolumn{1}{c}{SEI(X)\rule{10pt}{0pt}} &
+\multicolumn{1}{|c}{\rule{10pt}{0pt}X} & \multicolumn{1}{c}{SE1(X)}\\
+$< -\beta $            & 0 \rule{20pt}{0pt}                    &
+\rule{10pt}{0pt}$< -\alpha $           & $-\Omega $\rule{13pt}{0pt}\\
+$= \phantom{-}0.$      & $-\Omega $ \rule{20pt}{0pt}           &
+\rule{10pt}{0pt}$= \phantom{-}0.$      & $\Omega $\rule{13pt}{0pt}\\
+$> \phantom{-}\alpha $ & $\phantom{-}\Omega $ \rule{20pt}{0pt} &
+\rule{10pt}{0pt}$> \phantom{-} \beta $ & 0\rule{13pt}{0pt}\\
+\end{tabular}
+\end{center}
+Error messages are processed using the subroutines of Chapter~19.2 with
+an error level of zero.
+
+\subsection{Supporting Information}
+
+The source language is Fortran~77.
+
+Based on code designed and programmed by L.\ W.\ Fullerton, Los Alamos
+National Lab., 1977. Modified by C. L.\ Lawson and S.\ Y. Chiu, JPL, 1983.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DE1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DEI, DERM1, DERV1, DINITS, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}}\\
+DEI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DEI, DERM1, DERV1, DINITS, ERFIN, ERMSG, IERM1,
+IERV1\rule[-5pt]{0pt}{8pt}}\\
+SE1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SEI, SERM1, SERV1,
+SINITS\rule[-5pt]{0pt}{8pt}}\\
+SEI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SEI, SERM1, SERV1
+SINITS\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begcode
+
+\bigskip
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSEI}\vspace{10pt}
+\lstinputlisting{\codeloc{sei}}
+
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSEI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sei}}
+\closegraphsfile
+\end{document}

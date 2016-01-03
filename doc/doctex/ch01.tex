@@ -1,0 +1,313 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\usepackage{url}
+\begin{document}
+\intro{0}
+
+\begmath 1.0 MATH77 and {\em mathc90}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math
+  \`a la Carte, Inc.}
+
+This manual and the software described herein constitute
+the \base_site MATH77 and {\em mathc90} libraries. MATH77 is a library of
+Fortran~77 subprograms implementing algorithms useful in numerical
+computation. MATH77 contains over 550 user-callable entries.
+
+{\em mathc90} is an ANSI C language version of most of the MATH77 library.
+For usage of {\em mathc90} see Appendices C and D. The remainder of this
+introductory chapter applies primarily to MATH77 (Fortran).
+
+The Table of Contents provides a directory of the library by topics. The
+Index lists each user-callable subprogram name, with its argument
+list, and a reference to the chapter in which it is described. Appendix A
+lists for each subprogram name all of the program files from MATH77 needed
+for that subprogram. Appendix B lists all SUBROUTINE, FUNCTION, ENTRY, and
+COMMON names used in the library. This will be useful if one wishes to avoid
+using the same names.
+
+A set of demonstration drivers that illustrate the use of library
+subprograms accompanies the library.  These can be used to test that the
+library is properly installed on a new system.  An individual driver may
+be useful to a user as a starting point for using a library subprogram.
+Listings of about half the demonstration drivers are included in this
+manual.
+
+These libraries were developed at the Jet Propulsion Laboratory 
+from 1977--1997 and have been licensed to Math \`a la Carte by the
+California Institute of Technology.
+
+\subsection{Purpose and Scope}
+
+The purpose of high-quality mathematical subprogram libraries is to make
+scientific and engineering computing more reliable and economical, and to
+reduce the length of time from problem conception until a solution is
+obtained.  The MATH77 and {\em mathc90} libraries are particularly useful
+in that there are no language portability difficulties to inhibit
+transport of the libraries to all Fortran~77 and ANSI C environments.
+
+Computers ranging from microcomputers to supercomputers are used for
+scientific and engineering computing.  Most of these systems support both ANSI
+Fortran~77 and ANSI C, and thus allow use of the MATH77 and/or {\em mathc90}
+libraries.  For persons programming in other languages, most systems provide
+support for making calls to Fortran~77 or ANSI C libraries.
+
+The Fortran~77 language was initially issued as an ANSI standard in 1978,
+\cite{Fortran77}, and was reaffirmed by ANSI in 1988.  It was also a U.S.
+Federal standard (FIPS PUB 69, Sept.~1980) and an international (ISO)
+standard.  The ANSI X3J3 committee then developed Fortran~90,
+\cite{Fortran90}, and Fortran~95, \cite{Fortran95}, which became the
+current Fortran standard.  Fortran~90 was designed to include all of
+Fortran~77, although this is no longer true of Fortran~95.  There are a
+very few programs in MATH77 that do not satisfy the Fortran~95 standard,
+but these should still compile on such compilers.  Although the later
+versions of Fortran are a substantial improvement over Fortran~77, we
+continue to use Fortran~77, as it is only in this language that we have a
+way to generate the C library automatically.
+
+The first ANSI standard for C was issued in 1989 \cite{C90}, and ANSI C is
+also a U.S. Federal standard (FIPS PUB 160, March 1991).
+
+The MATH77 library of mathematical subprograms has the following
+attributes:
+\begin{itemize}
+\item[1.] Most of the subprograms in MATH77 do not require any
+modifications to function as described in this document on any computer
+system supporting the full Fortran~77 language.  The only program file
+requiring attention when moving the library to different machines is
+AMACH.  This file contains machine-dependent constants that are accessed
+by other library subprograms, and can also be accessed by user programs,
+by referencing D1MACH, R1MACH, and I1MACH.  See Chapter~19.1 for
+instructions on converting the file AMACH to different systems.
+
+\item[2.] All subprograms in MATH77 are coded in conformity to the Fortran~77
+standard. This property has been checked by use of a processor for standards
+checking and by use of the standards checking option on various compilers.
+\end{itemize}
+
+\subsection{Access to the MATH77 and {\em mathc90} Libraries}
+
+Access to the libraries is via the URL, \url{http://mathalacarte.com}.  One
+can freely browse what is available, but if you wish to download anything you
+must register.
+
+Items available include mangled ({\em i.e.}\ compiler readable only) and clean
+source code for the library codes, clean source for the demonstration drivers,
+as well as the users' manual suitable for viewing or printing with a PDF,
+PostScript, or dvi processor.  \if j\outtyp The hard copy version of the
+users' manual can be obtained, for a nominal internal JPL crosscharge, from
+the Documentation Department of the Computer Store, (4--8600, T--1704A).  \fi
+
+\subsubsection{Files containing the users' manual}
+
+Individual chapters and appendices of the users' manual are processed under
+Linux using te\TeX.
+
+Special processors can be used on the {\tt .pdf}, or {\tt .ps}, {\tt .dvi}
+files to view the manual as it appears on the printed page.  There are also
+processors that convert {\tt .dvi} files to files that can be printed (such as
+{\tt .ps} files); the {\tt .ps} and {\tt .pdf} files can usually be printed
+directly.  Most machines have public domain versions of the processors
+mentioned here.
+
+\if j\outtyp
+\subsubsection{Other Libraries}
+
+Other libraries, such as LINPACK, EISPACK, and LAPACK, are available
+starting from \url{http://math.jpl.nasa.gov/more-ftp.html}.  They can also
+be obtained by anonymous FTP from {\tt math.jpl.nasa.gov}.  The IP address
+is presently 137.78.227.106, but this may change without notice.  If you
+have trouble contacting the FTP server by using the name, make sure your
+{\tt hosts} file is up to date.  Once connected, use the user-id {\tt
+anonymous} or {\tt ftp}, and use your electronic mail address for the
+password.  If you have no electronic mail address, just use your name,
+with hyphens or underscores instead of spaces.
+
+FTP supports {\em ascii} mode set by the command {\tt ascii} or {\tt
+TYPE~A}, and {\em image} mode set by the command {\tt bin} or {\tt
+TYPE~I}. Use {\em image} mode for files with suffixes {\tt .dvi,
+.arj, .a01,..., .tar,.tar.gz, .zip,} or {\tt .Z,} and otherwise use {\em
+ascii} mode.
+
+The mathematics libraries are stored in the directory {\tt
+/dist/mathlibs}.
+
+With anonymous FTP, users can put files into the {\tt incoming} directory.
+This facility allows users to supply programs that show errors in, or
+illustrate difficulty in using, mathematics library components.  Please
+contact Fred Krogh before depositing a file in the {\tt incoming}
+directory.
+
+Links to many other sources of mathematical and statistical software are
+maintained at \url{http://math.jpl.nasa.gov/other-sw.html}.
+
+\subsubsection{Usage on JPL Supercomputers}
+
+On the JPL Cray J90 system ({\tt galaxy.jpl.nasa.gov}), the complete
+libraries are provided with the names {\tt MATH77} and {\tt mathc90}.  In
+the MATH77 version, all library subprogram arguments and function results
+that are specified in this manual as DOUBLE PRECISION will instead be of
+type REAL.  This version should be used with application code that is
+compiled using the {\tt -dp} option.  DOUBLE PRECISION on a Cray (i.e.,
+16-byte floating-point numbers) is not efficient, almost never necessary,
+and is thus not recommended.  If it is deemed necessary, contact the
+Supercomputing consultants by email at \url{consult@galaxy} to obtain a
+version of the Fortran library compiled for Cray DOUBLE PRECISION.
+
+On the Caltech/JPL Exemplar system (\url{neptune.caltech.edu}), the
+complete libraries are provided with the names {\tt MATH77} and {\tt
+mathc90}.  In order to link these libraries into your compiled code,
+follow the instructions found in: \url{
+http://www.cacr.caltech.edu/local_docs/exemplar/mini-guide.html} or
+contact the consultants by email at \url{hp-support@cacr.caltech.edu}.
+\fi
+
+\subsection{Conventions Followed in the Code and Documentation}
+
+A number of conventions are followed in the library code and its
+descriptions. All of the library subprograms, demonstration drivers,
+and test drivers exist as ANSI Fortran~77 source code.
+
+Subprograms that produce printed output use the PRINT or WRITE(*,...)
+statement to write to the standard system output unit. Exceptions are the
+message writing subroutines of Chapter~19.3 which can write to arbitrary
+user-specified Fortran I/O units. Error message writing is handled through
+subroutines described in Chapters 19.2. and~19.3.
+
+For most library subprograms we follow the convention introduced in the
+BLAS \cite{Lawson:1979:BLA} and LINPACK \cite{Dongarra:1979:LUG}, by
+which the initial letter of the name of a SUBROUTINE is C, D, I, S, or Z,
+to indicate the principal type of data with which the subprogram is
+concerned, and the initial letter of the name of a FUNCTION is C, D, I, or
+S, to indicate the type of the returned result.  These letters denote,
+respectively, COMPLEX (or CHARACTER), DOUBLE PRECISION, INTEGER, REAL, or
+double-precision complex.  The Fortran~77 standard does not directly
+support a double-precision complex type, so subprograms oriented toward
+this type of data use pairs of DOUBLE PRECISION numbers.  This
+representation is compatible with the representation used by most
+compilers that extend the Fortran~77 standard to provide a double
+precision complex data type, and is compatible with the representation
+specified by the later Fortran standards.
+
+When a DOUBLE PRECISION or COMPLEX valued FUNCTION from this library is
+used, it is essential to have the FUNCTION name appear in a DOUBLE PRECISION
+or COMPLEX type statement.
+
+Each subprogram description consists of six sections:
+\begin{tabbing}
+\hspace{.3in}\=A.\ \ \=Purpose\\
+\>B.\>Usage\\
+\>C.\>Examples and Remarks\\
+\>D.\>Functional Description\\
+\>E.\>Error Procedures and Restrictions\\
+\>F.\>Supporting Information
+\end{tabbing}
+
+The contents of each of these sections and special notational conventions
+used in the descriptions are specified below under these six headings.
+
+\introalt
+\subsection{Purpose}
+
+A brief statement of the area of application of the subprogram is given here.
+
+\subsection{Usage}
+
+A detailed explanation of how to use the subprogram is given in this
+section. Typical subsections are as follows:
+
+\subsubsection{Program Prototype}
+
+Specification statements, variables that must be initialized, calling
+sequences, and any other statements likely to be required are given here. It
+should not be difficult to use the subprogram if one follows this subsection
+line-by-line.
+
+In giving dimension information, a statement of the form
+
+{\bf REAL} {\bf A}(IDIMA, $\geq $ N){\bf , B}($\geq 5 \times \text{J} + 20)$
+
+is used to indicate that A() is a real two-dimensional array with a first
+dimension that must equal IDIMA and a second dimension that can be assigned
+any value greater than or equal to the value assigned to N, and that B()
+is a real one dimensional array with dimension $\geq 5 \times \text{J} + 20.$
+
+The calling sequence for any entry is always enclosed in a box. For FUNCTION
+subprograms, the calling sequence is always given in the form Y = FNAME(...).
+The reader should recall that Fortran syntax also permits a FUNCTION name
+to be used directly in an expression, as for instance Y = 2.0 * FNAME(...)
++ SQRT(X).
+
+\subsubsection{Argument Definitions}
+
+A detailed explanation of the parameters in the calling sequence is given
+here.  Any parameter that is an array name is followed by ``()" to call
+attention to this fact.  The intent attributes $in$, $out$, and $inout$,
+that are described in the Fortran~90 standard \cite{Fortran90}, are
+listed for each subprogram argument.  We also use intent attributes $work$
+or $scratch$, not part of the Fortran~90 standard, to describe parameters
+for which the using program must provide space, but need not provide
+initial values, and in which no meaningful results are returned.
+
+\subsubsection{Modifications}
+
+One or more {\bf Modifications} subsections may be present to describe such
+things as DOUBLE PRECISION versions of a subprogram or to describe
+significantly distinct options in the usage of a subprogram.
+
+\subsection{Examples and Remarks}
+
+This section discusses a sample (``demo") program, with
+output, illustrating the use of the subprogram.  Any listings and actual
+output are at the end of the chapter.
+
+In designing the demonstration programs, the example problems have
+purposely been kept simple. The reader should keep in mind that the
+subprograms described frequently have features and modes of usage
+that are not illustrated in the demonstration program. Thus the reader is
+encouraged to read the entire subprogram description and not judge
+the range of applicability of a subprogram on the basis of the
+demonstration programs alone.
+
+This section may also contain remarks that will help one in using the
+subprogram.
+
+\subsection{Functional Description}
+
+This section describes what the subprogram does. It also gives
+information on the methods used, and, if appropriate and available, gives
+timing, accuracy data and references.
+
+\subsection{Error Procedures and Restrictions}
+
+Information on how errors are treated, and any pertinent information
+concerning restrictions in the use of the subprogram are given here. Some
+subprograms return a flag indicating the success or failure mode.
+Some subprograms call the error message processing subroutines described in
+Chapters 19.2 and~19.3. These subroutines provide a means for the user to
+alter the action of error message processing.
+
+\subsection{Supporting Information}
+
+This section gives names of all program files needed in order to use
+the described subprograms. Those responsible for the
+development of the subprograms are also identified.
+
+\if j\outtyp
+\intro{4}
+\subsection{Subprogram Library Task Organization}
+
+The Computational Mathematics Activity responsible for the quality and scope
+of the JPL MATH77 has been disbanded.  The library is supported by Math \`a la
+Carte at \url{fkrogh@mathalacarte.com}.  The main development of this library
+was cone by Fred Krogh, Charles Lawson, and W.\ Van Snyder.
+\fi
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\end{multicols}
+\end{document}

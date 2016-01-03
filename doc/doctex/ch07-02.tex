@@ -1,0 +1,150 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 7.2 Roots of a Quadratic Polynomial
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Compute the two roots of a quadratic polynomial having real coefficients.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[\bf REAL]  \ {\bf A}$(\geq 3)$
+
+\item[\bf COMPLEX]  \ {\bf Z}$(\geq 2)$
+\end{description}
+
+Assign values to A().
+$$
+\fbox{{\bf CALL SPOLZ2(A, Z)}}
+$$
+The roots are returned in Z($).$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A()]  [in] Contains the coefficients of the polynomial%
+\begin{equation*}
+a_1x^2+a_2x+a_3
+\end{equation*}
+Require A($1)\neq 0$. The contents of the array A() are not modified by the
+subroutine.
+
+\item[Z()]  [out] Array in which the two roots are returned. The roots will
+be stored as complex numbers even in cases in which they are real.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change the subroutine name to {\bf DPOLZ2} and
+change the type statements to:
+
+{\bf DOUBLE PRECISION} \ {\bf A}($\geq 3)$
+
+{\bf DOUBLE PRECISION} \ {\bf Z}($2$, $\geq 2)$, or
+
+{~~~~\bf COMPLEX*16} \ {\bf Z}($\geq 2)$)
+
+On return the real and imaginary parts of the $j^{th}$ root will be stored
+in Z($1,j)$ and Z($2,j)$ respectively.
+
+\subsection{Examples and Remarks}
+
+The program, DRSPOLZ2, uses SPOLZ2 to compute the roots of the polynomials, $%
+x^2+x-1$, $2x^2-12x+26$, and $x^2-4x+4$. The output is shown in ODSPOLZ2.
+
+See the remark in Chapter~15.1, Section~C, concerning the use of COMPLEX*16.
+
+\subsection{Functional Description}
+
+\subparagraph{Method}
+
+We are given the real coefficients of a quadratic polynomial:%
+\begin{equation*}
+a_1x^2+a_2x+a_3
+\end{equation*}
+The case of $a_1=0$ is regarded as an error. The subroutine issues an error
+message and returns, setting both roots to zero.
+
+Compute $p = a_2/a_1$ and $q = a_3/a_1$. The cases of $p = 0$ or $q = 0$ are
+given special treatment. Otherwise we compute the roots of $x^2 + px + q$,
+knowing that $p$ and $q$ are both nonzero.
+
+Compute $u=-p/2$. Direct use of the quadratic formula would give the roots
+as $r_1=u+z$ and $r_2=u-z$, where $z= \sqrt{u^2-q}$. To extend the range of
+data for which results can be obtained without overflow or underflow, the
+expression for $z$ is evaluated differently depending on the magnitude of $u$%
+. We use thresholds, $c_1$ and $c_2$, such that $c_1^2/16$ is the underflow
+limit and $16c_2^2$ is the overflow limit. The values of $c_1$ and $c_2$ are
+set on the first call to this subroutine by use of the subprograms R1MACH or
+D1MACH from Chapter~19.1.
+
+Rather than computing $z$, we compute $f=|z|$ and a quantity, $d$, having
+the same sign as $u^2-q:$
+\begin{tabbing}
+\hspace{.2in}\=If $|u| > c_2$\\
+\>\ \ \ \ \=$d=1-(q/u)/u$\\
+\>\>$f = |u| \sqrt{|d|}$\\
+\>Elseif $|u| < c_1$\\
+\>\>$d=u(u/|q|)- \sign q$\\
+\>\>$f = \sqrt{|q|} \ \sqrt{|d|}$\\
+\>Else\\
+\>\>$d=u^2-q$\\
+\>\>$f = \sqrt{|d|}$\\
+\>Endif
+\end{tabbing}
+If $d=0$, the polynomial has the real root, $u$, with multiplicity two. If $%
+d<0$, the roots are the complex numbers, $(u,f)$ and $(u,-f).$
+
+If $d>0$, the roots are the two real numbers, $u+f$ and $u-f$, however use
+of these expressions would cause unnecessary loss of accuracy in the root of
+smaller magnitude when the magnitudes of $u$ and $f$ are nearly the same.
+Instead we use the expressions, $r_1=u+f \sign u$, and $r_2=q/r_1.$
+
+\subparagraph{Accuracy tests}
+
+A test program ran cases exercising all of the branches of the subroutine.
+Accuracy was consistent with the computer being used.
+
+\subsection{Error Procedures and Restrictions}
+
+If the high-order coefficient, A(1), is zero, the subroutine issues an error
+message via ERMSG of Chapter~19.2, with an error level of 0,
+and returns with both roots set to zero.
+
+\subsection{Supporting Information}
+
+The Source Language is ANSI Fortran~77.
+
+Designed by C. L. Lawson, JPL, May~1986.
+
+Programmed by C. L. Lawson and S. Y. Chiu, JPL, May~1986, Feb.~1987.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt}\\
+DPOLZ2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, DPOLZ2, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+SPOLZ2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ AMACH, ERFIN, ERMSG, SPOLZ2}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSPOLZ2}\vspace{10pt}
+\lstinputlisting{\codeloc{spolz2}}
+\newpage
+\vspace{30pt}\centerline{\bf \large ODSPOLZ2}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{spolz2}}
+\end{document}

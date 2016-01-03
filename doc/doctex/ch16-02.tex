@@ -1,0 +1,143 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 16.2  Character-based Graphics --- Single Print Line
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine constructs a character string that may be printed as part of a
+single line image by the user's program to give a graphical representation of
+data.  It is intended primarily for use as a supplement to ordinary tabular
+output of data as an aid in spotting trends, wild points, etc.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf NCHAR}
+
+\item[REAL] \  {\bf Y, Y1, Y2}
+
+\item[LOGICAL] \ {\bf RESET}
+
+\item[CHARACTER*{\rm 1}] \ {\bf SYMBOL}
+
+\item[CHARACTER*$n$] \ {\bf IMAGE} \ $[n \geq $ NCHAR]
+
+\end{description}
+
+Assign values to Y, SYMBOL, NCHAR, Y1, Y2, and RESET.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SPRPL (Y, SYMBOL, IMAGE,\\
+NCHAR, Y1, Y2, RESET)\\
+\end{tabular}}
+\end{center}
+
+On return the string, IMAGE, contains the character SYMBOL positioned as a
+function of the value of Y.  The user's program may then print IMAGE as part
+of a line containing Y and possibly other information.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[Y] \ [in]  Data value to be plotted.  Y should be between Y1 and Y2;
+otherwise see Section E, Error Procedures.
+\item[SYMBOL] \ [in]  A single character to be used as a plot symbol.  The character can
+be specified literally in the call statement, as for example:
+CALL SPRPL (Y, $^\prime $*$^\prime $, ...)
+\item[IMAGE] \ [inout]  Character string in which a plot image is constructed.
+\item[NCHAR] \ [in]  Number of character positions in IMAGE to be used in constructing
+the plot image.  Require NCHAR $\geq  2.$
+\item[Y1,Y2] \ [in]  Numbers that bracket the range of values of Y to be plotted in
+IMAGE.  Either Y1 $\leq $ Y2 or Y1 $\geq $ Y2 is acceptable.
+\item[RESET] \ [in]  Flag to reset the line image.  If RESET\ = .TRUE., the subroutine
+will:
+
+\begin{itemize}
+\item[1.] Store NCHAR blank characters into IMAGE, and then store the character '0' in
+the zero value position if zero is contained in the interval [$ymin$, $ymax$].  See
+Section D.
+
+\vspace{3pt}% Need to get decent column break
+
+\item[2.] Store the character specified by SYMBOL in the Y value position.
+
+\end{itemize}
+If RESET = .FALSE., the subroutine will only execute Step~2 above.
+
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double-precision usage change the REAL type statement to DOUBLE PRECISION,
+and change the subroutine name from SPRPL to DPRPL.
+
+\subsection{Examples and Remarks}
+
+Print a set of ($x$, $y$)-data.  On the right side of the page print a
+``strip chart" plot of the data with $x$ increasing downward and $y$
+increasing to the right.  See DRSPRPL and ODSPRPL for code and output
+illustrating this example.
+
+\subsection{Functional Description}
+
+\begin{itemize}
+\item[1.] The subroutine will compute $ymin = \min$(Y1, Y2) and $ymax
+= \max$(Y1, Y2).  Then, if $ymin = ymax$ these numbers will be
+replaced by $ymin = 0.9 \times ymin$ and $ymax = 1.1 \times ymax$
+if $ymin \neq 0.$, or by $ymin = -1$, and $ymax = +1$, if $ymin = 0$.
+
+\item[2.] If zero is not in the interval [$ymin$, $ymax$], then the
+scaling will be such that $ymin$ corresponds to the center of the
+leftmost character position and $ymax$ corresponds to the center of
+the rightmost character position.  If zero is in the interval
+[$ymin$, $ymax$], and does not correspond to the first or last
+character position in IMAGE(), then scaling will be adjusted so the
+value zero corresponds to the center of a character position.  This
+adjustment guarantees that values located symmetrically with respect
+to zero will be plotted in character positions symmetrically located
+with respect to the zero character position.
+\end{itemize}
+
+\subsection{Error Procedures and Restrictions}
+
+A Y value outside the stated data range, [Y1, Y2], (plus a small tolerance)
+will not be plotted, but the message 'OUT' is placed in either the left or
+right end of IMAGE() as appropriate.  This message will be suppressed if
+NCHAR $< 6.$
+\enlargethispage*{40pt}
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Based on 1969 code by C.L. Lawson, JPL.  Adapted for MATH77 by C.L. Lawson and
+S. Chiu, JPL, 1983.  At MATH77 Release~2.2, Nov.~1988, introduced DPRPL, and changed the
+name of the previous PRPL to SPRPL.  Programs that were using PRPL should be
+changed to use the name SPRPL.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.2in} {\bf Required Files}\vspace{2pt} \\
+DPRPL & \hspace{.35in} DPRPL\rule[-5pt]{0pt}{8pt}\\
+SPRPL & \hspace{.35in} SPRPL\\\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSPRPL}\vspace{10pt}
+\lstinputlisting{\codeloc{sprpl}}
+
+\vspace{20pt}\centerline{\bf \large ODSPRPL}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sprpl}}
+\end{document}

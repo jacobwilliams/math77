@@ -1,0 +1,160 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 2.13 Inverse Error Function and Inverse \hbox{Complementary Error Function}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Given $x$, this pair of subprograms computes the value $t$ such that%
+\begin{equation*}
+x=\text{erf}(t)=\frac 2{\sqrt{\pi }}\int_0^te^{-s^2}ds
+\end{equation*}
+for the Inverse Error Function, or%
+\begin{equation*}
+x=\text{erfc}(t)=\frac 2{\sqrt{\pi }}\int_t^\infty e^{-s^2}ds
+\end{equation*}
+for the Inverse Complementary Error Function.
+
+Procedures in Chapter~15.2 may be used to calculate the inverse of
+the Gaussian or normal probability integral.
+
+Reference \cite{ams55:erf} provides further discussion of the properties
+of the error function.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf X, SERFI, SERFCI, T}
+\end{description}
+
+Assign a value to X and use one of the following function references.
+
+To compute the Inverse Error Function:
+$$
+\fbox{{\bf T = SERFI(X)}}
+$$
+To compute the Inverse Complementary Error Function:
+$$
+\fbox{{\bf T = SERFCI(X)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] Argument of function. Require $-1<\text{X}<1$ for SERFI, $0<%
+\text{X}<2$ for SERFCI.
+\end{description}
+
+\subsubsection{Modification for Double Precision}
+
+For double precision usage change the REAL type statement to DOUBLE
+PRECISION and change the function names to DERFI and DERFCI respectively.
+
+\subsection{Examples and Remarks}
+
+See DRDERFI and ODDERFI for an example of the usage of these subprograms.
+
+$|\frac{\text{d}}{\text{dx}}\text{erf}^{-1}(x)|$ and
+$|\frac{\text{d}}{\text{dx}}\text{erfc}^{-1}(x)|$ are $\frac{\sqrt{\pi}}2
+e^{x^2}$.  Therefore, the relative accuracy to be expected in evaluating
+these functions decreases rapidly as $x$ increases.  For example, when using
+IEEE single-precision arithmetic, one should expect no more than one digit of
+the result to be correct when $x > \approx 3.6$
+
+\subsection{Functional Description}
+
+The computer approximations for these functions were developed by A.
+Strecok, \cite{Strecok:1968:OCI}, using Chebyshev polynomial expansions.
+
+These subprograms were tested on the IBM PC/AT, which uses IEEE
+arithmetic with precision, $\rho \approx 1.19 \times 10^{-7}$ in single precision and
+$\rho \approx 2.22 \times 10^{-16}$ in double precision.  We checked how well the
+Error Function subprograms (SERF and SERFC or DERF and DERFC) and the
+present subprograms are inverses. Two sets of relative error tests were
+performed:
+\begin{gather*}
+\varepsilon _1 = |\erf(\erfi(x))/x - 1|\ /\ \rho,\ \ \text{and}\\
+\varepsilon _2 = |\erfi(\erf(x))/x - 1|\ /\ \rho
+\end{gather*}
+
+and similarly for the complementary functions. The latter test does not
+measure relative error precisely for the complementary functions, and was
+not carried out in the range 1.0E$-$35 $\leq x \leq $ 1.0E$-$5 (1.0E$-$300 $%
+\leq x \leq $ 1.0E$-$5 in double precision). The results are summarized below.
+
+\begin{tabular}{llll}
+ & \bf Argument & \bf Max. & \bf Max.\\
+\bf Function & \bf \ \,Interval & \bf \ \ \ $\varepsilon _1$ &
+\bf \ \ \ $\varepsilon _2$\\
+SERFI & [0.1E$-$2, 0.8] & 0.956 & 0.993\\
+ & [0.8, 0.9975] & 0.625 & 1.66\\
+ & [.9975, .99999] & 0.0 & 1.50\\
+SERFCI & [1.0E$-$35, 1.0E$-$5] & 113\\
+ & [1.E$-$5, 2.5E$-$3] & 16.3 & 1.91E+4\\
+ & [2.5E$-$3, 0.2] & 14.2 & 86.7\\
+ & [0.2, 0.999] & 2.14 & 1.92\\
+DERFI & [0.1E$-$2, 0.8] & 0.896 & 0.973\\
+ &[0.8, 0.9975] & 0.625 & 1.59\\
+ &[.9975, .99999] & 0.0 & 1.50\\
+DERFCI & [1.0E$-$300, 1.0E$-$5] & 964\\
+ & [1.E$-$5, 2.5E$-$3] & 13.6 & 1.90E+4\\
+ &[2.5E$-$3, 0.2] & 8.29 & 64.6\\
+ &[0.2, 0.999] & 1.69 & 1.60
+\end{tabular}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+These subprograms issue an error message and terminate execution if
+
+\hspace{.4in}(a) \ \ X $\leq -1$ or X $\geq 1$ for SERFI, or
+
+\hspace{.4in}(b) \ \ X $\leq 0$ or X $\geq 2$ for SERFCI.
+
+The error message is issued by way of the error message processor at level 0,
+and the returned function value is 0.0.  If it is desired, in the event an error
+occurs, to issue the error message and then terminate program execution
+
+\hspace{.4in}CALL ERMSET (2)
+
+before invoking SERFI or SERFCI.
+
+See Chapter~19.2 for further description of the error message processor.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Subprograms designed and developed by W. V. Snyder, JPL, 1986.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DERFCI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERFI, DERM1, DERV1, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\DERFI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERFI, DERM1, DERV1, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\SERFCI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERFI, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\SERFI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERFI, SERM1, SERV1}\\\end{tabular}
+
+\begcode
+
+\bigskip
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDERFI}\vspace{10pt}
+\lstinputlisting{\codeloc{derfi}}
+
+\vspace{30pt}\centerline{\bf \large ODDERFI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{derfi}}
+
+\end{document}

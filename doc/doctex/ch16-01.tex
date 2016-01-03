@@ -1,0 +1,299 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\usepackage{moreverb}
+\begin{document}
+\begmath 16.1  Character-based Graphics --- One or More XY Graphs
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subroutines produce an image in a character array that the user can
+print to produce a printer plot of one or more {\em xy} data sets with
+titles and numeric grid-line labels. The size of the image is user-specified.
+SPRPL1/DPRPL1 will process a single {\em xy} data set, whereas SPRPL2/DPRPL2
+will process multiple {\em xy} data sets.
+
+\subsection{Usage}
+
+\subsubsection{Usage to plot a single {\em xy} data set}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf NP, NLINES, NCHARS, IERR}
+
+\item[REAL] \ {\bf X}($\geq $NP){\bf , Y}($\geq $NP)
+
+\item[CHARACTER*$n_1$] \ {\bf TITLE} \ [1 $\leq  n_1 \leq $ NCHARS]
+
+\item[CHARACTER*$n_2$] \ {\bf XNAME} \ [1 $\leq n_2 \leq $ NCHARS]
+
+\item[CHARACTER*$n_3$] \ {\bf YNAME} \ [1 $\leq n_3 \leq $ NLINES]
+
+\item[CHARACTER*$n_4$] \ {\bf IMAGE}($\geq $NLINES)\\ $[n_4 \geq $ NCHARS]
+
+\end{description}
+
+Assign values to all arguments except IMAGE() and IERR.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c@{}}
+CALL SPRPL1 (X, Y, NP, TITLE, XNAME,\rule{6pt}{0pt}\\
+YNAME, NLINES, NCHARS, IMAGE, IERR)\\
+\end{tabular}}
+\end{center}
+
+The printer plot image is returned in IMAGE() and the termination status in
+IERR.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[X(), Y()] \ [in] Arrays of $(x$, $y)$ coordinate pairs defining the curve
+to be plotted.
+
+\item[NP] \ [in] Number of $(x$, $y)$ points to be plotted.
+
+\item[TITLE] \ [in] Character string to be placed above the plot frame as a
+title for the graph.
+
+\item[XNAME] \ [in] Character string to be placed below the plot frame to
+identify the abscissa variable.
+
+\item[YNAME] \ [in] Character string to be placed in a vertical column to the
+left of the plot frame to identify the ordinate variable.
+
+\item[NLINES] \ [in] Number of lines of a plot image to be built in IMAGE().
+The array IMAGE() must be dimensioned at least NLINES.
+
+\item[NCHARS] \ [in] Number of character positions to be used in each line in
+building the plot image in IMAGE(). The declared character length of each
+element of IMAGE() must be at least NCHARS.
+
+\item[IMAGE()] \ [out] Character array in which the printer plot image is
+built. The image will use NLINES positions in the vertical direction and
+NCHARS positions in the horizontal direction.
+
+\item[IERR] \ [out] Termination status indicator.
+\begin{itemize}
+\item[0] \ No errors.
+\item[1] \ NCHARS is too small.
+\item[2] \ NLINES is too small.
+\end{itemize}
+\end{description}
+
+\subsubsection{Usage to plot multiple {\em xy} data sets}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf IDIM, KC, NR, JX}($\geq $KC){\bf , JY}($\geq $KC){\bf,
+NP}($\geq $KC)
+
+\item[INTEGER] \ {\bf NLINES, NCHARS, IERR}
+
+\item[REAL] \ {\bf XY}(IDIM, $m)$\ ${\displaystyle [m \geq \max_{1 \leq k \leq
+\text{KC}} \{\text{JX}(k), \text{JY}(k)\}}$]
+
+\item[CHARACTER*1] \ {\bf SYMBOL}($\geq $KC)
+
+\item[CHARACTER*$n_1$] \ {\bf TITLE} \ [1 $\leq n_1 \leq $ NCHARS]
+
+\item[CHARACTER*$n_2$] \ {\bf XNAME} \ [1 $\leq n_2 \leq $ NCHARS]
+
+\item[CHARACTER*$n_3$] \ {\bf YNAME} \ [1 $\leq n_3 \leq $ NLINES]
+
+\item[CHARACTER*$n_4$] \ {\bf IMAGE}($\geq $NLINES)\\
+$[n_4 \geq $ NCHARS]
+
+\end{description}
+
+Assign values to all arguments except IMAGE() and IERR.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c@{}}
+CALL SPRPL2 (XY, IDIM, KC, JX, JY, NP,\\
+SYMBOL, TITLE, XNAME, YNAME,\\
+NLINES, NCHARS, IMAGE, IERR)\\
+\end{tabular}}
+\end{center}
+
+The printer plot image is returned in IMAGE() and the termination status in
+IERR.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[XY(,)] \ [in] Array of values from which $(x,\ y)$ coordinates of points
+to be placed will be obtained under control of the parameters JX(), JY(),
+and NP().
+
+\item[IDIM] \ [in] Dimension of the first subscript in the XY array. Require
+IDIM ${\displaystyle \geq \max_{1 \leq k \leq \text{KC}}\{\text{NP}(k)\}}$.
+
+\item[KC] \ [in] Number of {\em xy} sets to be plotted. If KC $\leq$ 0
+the subroutine will return taking no action.
+
+\item[JX()] \ [in] JX($k)$ specifies the column (second subscript) of XY(,)
+to be used as the $x$ coordinates for the $k^{th}$ {\em xy} set.
+
+\item[JY()] \ [in] JY($k)$ specifies the column (second subscript) of XY(,)
+to be used as the $y$ coordinates for the $k^{th}$ {\em xy} set.
+
+\item[NP()] \ [in] NP($k)$ specifies the number of {\em xy} pairs from XY(,)
+in the $k^{th}$ set to be plotted.
+
+\item[SYMBOL()] \ [in] SYMBOL$(k)$ is the single character to be used for
+point-plotting the $k^{th}$ data set.
+
+\item[TITLE,]{\bf XNAME, YNAME, NLINES, NCHARS,\newline
+IMAGE, IERR} \ Same as in Section B.1 above.
+
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change the names SPRPL1 and SPRPL2 to DPRPL1 and DPRPL2, respectively, and
+change the REAL declarations to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+It is permissible, and generally most convenient, to give the arguments
+TITLE, XNAME, and YNAME as character literals directly in the CALL
+statement. We suggest that no leading or trailing blanks be included in
+these strings, since each of these strings will be centered in the image
+based on its length.
+
+The program DRSPRPL1 and its output ODSPRPL1 illustrate the use of SPRPL1 to
+obtain printer-plots in two different resolutions. The first plot uses
+NLINES = 45 and NCHARS = 110, producing a plot that can be displayed on
+8.5 inch wide paper using compressed printing, $i.e.$, 16.67 characters per
+inch. The second plot uses NLINES = 22 and NCHARS = 79, producing a plot
+that can be displayed on the $25 \times 80$ character display frequently
+used with personal computers. Similarly the use of SPRPL2 is illustrated by
+the program DRSPRPL2 and its output ODSPRPL2.
+
+\subsection{Functional Description}
+
+The subroutine first scans the given {\em xy} data to determine maximum and
+minimum values. It then determines end-values for the $x$-axis and a
+subdivision of the $x$-axis into~3 to~10 equal-length subintervals, such
+that the values at the ends and subdivision points will be representable in
+decimal with a small number of nonzero digits, and the span of the $x$-axis
+will encompass the given $x$ data. This same process is applied to the $y$
+data.
+
+The subroutine establishes integer values, {\em top}, {\em bottom},
+{\em left}, and {\em right}, such that the plot grid will extend vertically
+from index {\em top} to index {\em bottom} in the IMAGE() array, inclusive
+of the top and bottom grid lines, and horizontally from character position
+{\em left} to {\em right}, inclusive of the left and right grid lines. These
+values will satisfy 1 $\leq$ {\em top} $<$ {\em bottom} $\leq  \text{NLINES}
+- 1,$ and $1 <$ {\em left} $<$ {\em right} = NCHARS $-$ 1.  If TITLE is
+nonblank, it will be copied into IMAGE(1) and {\em top} is set to~2,
+otherwise {\em top} = 1. If XNAME is nonblank, it will be copied into
+IMAGE(NLINES) and {\em bottom} is set to NLINES $-$ 2, otherwise {\em bottom}
+= NLINES $-$ 1. {\em left} is set large enough to allow for YNAME, if
+nonblank, to be placed vertically at the left edge of the plot image, for
+the numeric $y$-axis labels to be positioned to the left of the plot grid,
+and for the leftmost numeric $x$-axis label to extend partially to the left
+of the plot grid. The width of the numeric $x$-axis labels, and $y$-axis
+labels are data-dependent.
+
+For minimal useful resolution one should probably arrange to have
+({\em bottom} $-$ {\em top}) $\geq $ 20 and ({\em right} $-$ {\em left})
+$\geq 20$, however the subroutine imposes the less stringent requirement
+that these extents each be at least~10. The subroutine abandons the effort
+and returns with IERR $\neq 0$ if either of these extents is less than~10.
+
+It is possible that there will not be enough space to place a numeric label
+below each subdivision point of the $x$-axis. The subroutine first places
+one centered under the left end of the $x$-axis. This is assured to be
+possible by the way {\em left} is defined. It next attempts to place one for
+the right end of the $x$-axis, right justified in the available space. It then
+sequentially tries to place labels centered under the second, third,
+etc., $x$-axis subdivision points. It is acceptable if not all $x$-axis labels
+can be placed.
+
+\subsection{Error Procedures and Restrictions}
+
+If the character variable TITLE or XNAME has length greater than NCHARS,
+only the first NCHARS characters are placed in the image. If YNAME has
+length greater than NLINES, only the first NLINES characters are placed in
+the image.
+
+This subroutine requires at least enough space for the plot grid boundary
+indices, defined above in Section D, to satisfy ({\em bottom} $-$
+{\em top}) $\geq 10$ and ({\em right} $-$ {\em left}) $\geq 10$. If this is not
+satisfied the subroutine abandons the image-building effort, issues an error
+message using the error message package of Chapter~19.2 at error
+level 0, and returns with IERR = 1 or~2.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.  At Release~4.0 of MATH77 the
+subroutines of this Chapter were introduced and previous similar but
+less general subroutines PRPL1 and PRPL2 were deleted.
+
+Based on 1967 code by C. L. Lawson, and J.\ Hatfield, JPL.
+
+Current version by C. L. Lawson, 1992.
+
+\pagebreak
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DPRPL1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DPRPL1, DPRPL3, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DPRPL2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DPRPL2, DPRPL3, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+SPRPL1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SPRPL1, SPRPL3\rule[-5pt]{0pt}{8pt}}\\
+SPRPL2 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SPRPL2, SPRPL3}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSPRPL1}\vspace{10pt}
+\lstinputlisting{\codeloc{sprpl1}}
+
+\newpage
+{\scriptsize
+\centerline{\bf \large ODSPRPL1}\vspace{10pt}
+\lstset{language={}}
+\hspace{-1.6in}\vbox{
+{\ttfamily
+\lstinputlisting{\outputloc{sprpl1}}
+}
+}
+\newpage
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+\enlargethispage*{10pt}
+\centerline{\bf \large DRSPRPL2}\vspace{5pt}
+\lstinputlisting{\codeloc{sprpl2}}
+\newpage
+{\scriptsize
+\centerline{\bf \large ODSPRPL2}\vspace{10pt}
+\hspace{-1.6in}\vbox{
+{\ttfamily
+\lstinputlisting{\outputloc{sprpl2}}
+}
+}
+\end{document}

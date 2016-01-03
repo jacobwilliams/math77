@@ -1,0 +1,25 @@
+\documentclass[twoside]{MATH77}
+\usepackage{supertabular}
+\begin{document}
+\begapp A Files Required by Each Entry
+
+{\normalsize The following tabulation shows for each user-callable procedure
+name in the MATH77 library the set of program files needed to support the use
+of that procedure name. A program file contains one or more Fortran program
+units. A program unit contains the code for one or more procedures (more
+than one if ENTRY statements are present).  Files are listed in lower
+case, entries in upper case.  If an entry uses an entry that is
+not in a MATH77 file, it is listed with the files, but in upper case.}
+
+{\normalsize The term ``file" is used here as it is used in most operating
+systems. For the UNISYS (UNIVAC) system replace the term ``file" with
+``element."}\vspace{5pt}
+
+\tablehead{\large \bf Entry  & \multicolumn{7}{c}{\large
+\bf Necessary files\qquad \rule[-6pt]{0pt}{8pt}}\\}
+\tabletail{}
+\begin{supertabular}{@{}l@{\ }*{12}{@{ }l}}
+\input{appa}
+\end{supertabular}
+
+\end{document}

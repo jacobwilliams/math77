@@ -1,0 +1,166 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 5.1 Eigenvalues and Eigenvectors of a Symmetric Matrix
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Compute the N eigenvalues and eigenvectors of an N $\times $ N symmetric matrix $A$.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf A}(LDA,$\geq $N) [LDA $\geq $ N]{\bf , EVAL}($\geq N)$%
+{\bf ,\newline
+WORK}($\geq N)$
+
+\item[INTEGER]  \ {\bf LDA, N, IERR}
+\end{description}
+
+Assign values to A(,), LDA, and N.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SSYMQL(A, LDA, N, EVAL,\\
+WORK, IERR)\\
+\end{tabular}}
+\end{center}
+
+Results are returned in A(,) and EVAL().
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A(,)]  \ [inout] On entry the locations on and below the diagonal of
+this array must contain the lower-triangular elements of the N $\times $ N
+symmetric matrix $A$. On return the eigenvectors of $A$ will be stored as
+column vectors in the array A(,). These N eigenvectors will be mutually
+orthogonal and of unit Euclidean length. The eigenvector stored in column
+J will be associated with the eigenvalue stored in EVAL(J).
+
+\item[LDA]  \ [in] Dimension of the first subscript of the array A(,). Require
+LDA $\geq $ N.
+
+\item[N]  \ [in] Order of the symmetric matrix $A$. N $\geq 1.$
+
+\item[EVAL()]  \ [out] Array in which the N eigenvalues of $A$ will be stored
+by the subroutine. The eigenvalues will be sorted with the algebraically
+smallest eigenvalue first.
+
+\item[WORK()]  \ [scratch] An array of at least N locations used as
+temporary space.
+
+\item[IERR]  \ [out] On exit this is set to~0 if the QL algorithm converges,
+otherwise see Section E.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change SSYMQL to DSYMQL, and the REAL type statement to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+The following symmetric matrix $A$ is
+given on page~55 of~\cite{Gregory:1969:ACM}.
+\begin{equation*}
+A=\left[
+\begin{array}{rrrr}
+5 & 4 & 1 & 1 \\
+4 & 5 & 1 & 1 \\
+1 & 1 & 4 & 2 \\
+1 & 1 & 2 & 4
+\end{array}
+\right]
+\end{equation*}
+The eigenvalues of this matrix are 1, 2, 5, and 10. Unnormalized
+eigenvectors associated with these eigenvalues are (1, -1, 0, 0),
+(0, 0, -1, 1), (-1, -1, 2, 2), and (2, 2, 1, 1), respectively.
+
+The code in DRSSYMQL, given below, computes the eigenvalues and eigenvectors
+of this matrix. Output from this program is given in the file ODSSYMQL.
+
+Before the call to SSYMQL, the matrix is saved in an array ASAV() in order
+to compute the relative residual matrix $D$ defined as%
+\begin{equation*}
+D=\left( AW-W\Lambda \right) /\gamma
+\end{equation*}
+where $W$ is the matrix whose columns are the computed eigenvectors
+of $A$, $\Lambda $ is the diagonal matrix of eigenvalues,
+and $\gamma $ is the maximum-row-sum norm of $A$.
+
+Recall that if ${\bf v}$ is an eigenvector, then so is $\alpha {\bf
+v}$ for any nonzero scalar $\alpha$.  More generally, if an
+eigenvalue, $\lambda$, of a symmetric matrix occurs with multiplicity
+$k$, there will be an associated  $k$-dimensional subspace in which
+every vector is an eigenvector for $\lambda$.  This subroutine will
+return eigenvectors constituting an orthogonal basis for such an
+eigenspace.
+
+\subsection{Functional Description}
+
+The implicit-shift QL algorithm implemented in this subroutine is based on
+the Algol procedure given in \cite{Dubrelle:1968:IQR}, pp.~337--383.  The
+code combines slightly modified EISPACK routines TRED2, and IMTQL2, see
+\cite{Smith:1974:MER}.  Modifications made are minor changes to convert
+the code to take advantage of Fortran~77; they should not affect results.
+TRED2 uses Householder orthogonal similarity transformations to transform
+the matrix $A$ to tridiagonal form.  IMTQL2 uses the QL algorithm with
+implicit shifts to reduce the off-diagonal elements of the tridiagonal
+matrix to a magnitude of approximately the last bit of the largest element
+of $A$.
+
+The resulting diagonal elements are the eigenvalues of $A$. The matrix of
+eigenvectors is computed as the product of the orthogonal transformation
+matrices used in transforming $A$ first to tridiagonal form and then to
+(almost) diagonal form.
+
+The eigenvalues are sorted in nondecreasing algebraic order and the
+eigenvectors are permuted as necessary to correspond to the ordered
+eigenvalues.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If the QL algorithm fails to converge in 30~iterations on the $J^{th}$
+eigenvalue the subroutine sets IERR $= J.$ In this case $J-1$ eigenvalues
+and eigenvectors are computed correctly but the eigenvalues are not ordered.
+If N $\leq $ 0 on entry, IERR is set to $-$1.  In either case an error
+message is printed using IERM1 of Chapter 19.2 with an error level of 0,
+before the return.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DSYMQL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DIMQL, DSYMQL, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SSYMQL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SIMQL, SSYMQL}\\
+\end{tabular}
+
+Converted by: F. T. Krogh, JPL, October~1991.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSSYMQL}\vspace{10pt}
+\lstinputlisting{\codeloc{ssymql}}
+
+\vspace{30pt}\centerline{\bf \large ODSSYMQL}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{ssymql}}
+
+\end{document}

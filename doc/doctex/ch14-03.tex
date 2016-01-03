@@ -1,0 +1,1463 @@
+\documentclass[twoside]{MATH77}
+% Time-stamp: <2009-10-21 10:39:36 m>
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags,tbtags]{amsmath}
+\usepackage{graphicx}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{url}
+
+\begin{document}
+\begmath 14.3 Solve a Differential/Algebraic System
+
+\subsection{Purpose}
+This routine solves a system of differential/algebraic equations of
+the form $\mathbf{g}(t,\mathbf{y},\mathbf{y}^{\prime})=0.$ Backward
+differentiation formulas, see \cite{Brenan:1996:DAE}, and a projection
+algorithm are used to solve for $\mathbf{y}$ and $\mathbf{y}^{\prime}$
+as $t$ varies from an initial \textbf{T} to \textbf{TOUT}.  The system
+$\mathbf{g()}=0$ consists of \textbf{NEQ} component functions
+$\mathbf{F}(t,\mathbf{y},\mathbf{y}^{\prime})=0$ of index 1 or index
+0, followed by constraint functions $\mathbf{G(t,y)}=0.$ Details are
+provided in the report, \cite{Hanson:2008:DAS}.
+The code here is a modification of Petzold's code \textbf{DASSL}.
+
+
+\subsection{Usage}
+
+Described below under B.1 through B.x are:
+
+\begin{tabular*}{3.3in}{@{}l@{~~}l}
+  B.1 & \hspace{-20pt} Setting up for double precision usage\dotfill
+  \pageref{PPSP}\\
+  \quad B.1.a & The Calling Routine\dotfill \pageref{Calling}\\
+  \quad B.1.b & Argument Definitions\dotfill \pageref{ArgDefs}\\
+  B.2 & \hspace{-20pt} The user supplied subroutine for\rule{.9in}{0pt}\\
+  & computing problem data\dotfill \pageref{DDASF}\\
+  B.3 & \hspace{-20pt} Setting options using the array \textbf{INFO}\dotfill
+  \pageref{INFO}\\
+  B.4 & \hspace{-20pt} Using Reverse Communication\dotfill \pageref{revcom}\\
+  B.5 & \hspace{-20pt} Modifications for single precision\dotfill
+  \pageref{Sngl}\\
+  B.6 & \hspace{-20pt} Optional Norm Routine\dotfill
+  \pageref{NORM}\\
+  B.7 & \hspace{-20pt} Values of \textbf{IDID} on Return from DDASLX\dotfill
+  \pageref{IDID_vals}\\
+  B.8 & \hspace{-20pt} Values of \textbf{RWORK} and \textbf{IWORK} on
+  exit\dotfill\pageref{WORKS_val}\\
+  B.9 & \hspace{-20pt} Getting Debug Print After Starting\dotfill\pageref{debug}\\
+  B.10 & \hspace{-20pt} Computing Starting Values for Derivatives
+  \dotfill \pageref{starting} 
+\end{tabular*}
+
+The code provides a number of options specified by an array INFO.  The
+following summary gives the index in INFO and the page number,
+followed by very brief description of the option.
+
+\begin{tabular}{rl}
+  2 \pageref{info2}& Type of error control\\
+  3 \pageref{info3} & Intermediate output\\
+  4 \pageref{info4} & no evaluations past TSTOP\\
+  5 \pageref{info5} & Type of matrix\\
+  6 \pageref{info6} & Level of debug print\\
+  7 \pageref{info7} & Maximum step size\\
+  8 \pageref{info8} & Initial step size\\
+  9 \pageref{info9} & Restrict integration order\\
+  10 \pageref{info10} & Constraints to project onto\\
+  11 \pageref{info11} & Integrator solves for initial derivatives\\
+  12 \pageref{info12} & Max. number steps between output points\\
+  13 \pageref{info13} & Step size control algorithm\\
+\end{tabular}
+
+The example codes illustrate features added to \textbf{DASSL}. The
+additional features include:
+\begin{description}
+\item[$\bullet$] Optionally provide a linear equation solver tailored for
+  this application
+\item[$\bullet$] Optionally project onto constraints after a successful
+  integration step.  This feature is primarily intended for
+  application to constraints which are differentiated to reduce the
+  index of the problem.  Differentiating is required to reduce the
+  index to 1 (0 is even better) and we recommend this option when this
+  is done.
+\item[$\bullet$] Use step selection logic that provides smoother error control
+\item[$\bullet$] Provide all problem data (partials, residuals, linear solver)
+  in one user-written evaluation routine.
+\item[$\bullet$] Optionally provide problem data with a
+  ``$reverse$ communication'' interface
+\end{description}
+The routine uses forward \emph{or reverse} communication to obtain required
+values of $\mathbf{g}(t,\mathbf{y},\mathbf{y}^{\prime})$, partial derivative
+information, and to perform user-defined linear algebra computations.  There
+is a default dense or banded matrix solver used -- Linpack
+\cite{Dongarra:1979:LUG} -- unless a replacement is provided.  The projection algorithm
+by default uses Givens rotations to solve an under determined system.
+
+\subsubsection{Program Prototype for DDASLX, Double Precision\label{PPSP}}
+\paragraph{The Calling Routine\label{Calling}}
+\begin{description}
+\item [EXTERNAL]\raggedright
+  \textbf{DDASF}
+\item[DOUBLE PRECISION] \quad\raggedright
+  \textbf{T, Y(}$\mathbf{\geq}$\textbf{NEQ), YPRIME(}$\mathbf{\geq}%
+  $\textbf{NEQ), TOUT, RTOL(}$\geq$1 or $NEQ)$\textbf{, ATOL(}$\geq$1 or
+  $NEQ$)\textbf{, RWORK(=LRW)}
+\item[INTEGER]\quad\raggedright
+  \textbf{NEQ, INFO(}$\mathbf{N \geq}$\textbf{16), IDID, LRW, IWORK(=LIW),LIW}
+\end{description}
+The user must assign values to \textbf{T, Y(1:NEQ), YPRIME(1:NEQ)} and
+\textbf{TOUT}.  Set flags in array \textbf{INFO(:)} and assign values of
+\textbf{ATOL(:)} and \textbf{RTOL(:)}.
+
+\fbox{\begin{tabular}{l}
+    \bf DO\\
+    \quad \bf CALL DDASLX(DDASF, NEQ, T, Y,\\
+    \qquad \bf YPRIME, TOUT, INFO, RTOL, ATOL,\\
+    \qquad \bf IDID, RWORK, LRW, IWORK, LIW)\\
+    \quad \{\bf Exit when finished.\}\\
+    \bf END DO\\
+  \end{tabular}}
+
+Computed quantities are returned in \textbf{T, Y(:)}, and \textbf{YPRIME(:).}
+\paragraph{Argument Definitions \label{ArgDefs}}
+\begin{description}
+\item[DDASF][external] The name of the routine providing system information,
+  $\mathbf{g}(t,\mathbf{y},\mathbf{y}^{\prime})$, system derivative
+  information (optional), $D=(\partial \mathbf{g}/\partial \mathbf{y})+c
+  (\partial \mathbf{g}/\partial \mathbf{y}^{\prime})$, and (optionally)
+  solving systems of linear equations.  The integrator-provided value $c$
+  depends on the stepsize and method.  A description of this interface is
+  given below.  Use this dummy name when reverse communication is used for all
+  system information.
+
+\item[NEQ]  [in] The number of equations to be solved.
+
+\item[T]  [inout] The current value of the independent variable $t$.
+  Initially this is set to the starting $t.$
+  
+\item[Y(1:NEQ)] [inout] This array contains the solution components
+  $\mathbf{y}$ at $t$.  Set to the initial values for $\mathbf{y}$ as input.
+  
+\item[YPRIME(1:NEQ)] [inout] This array contains the derivatives
+  $\mathbf{y}^{\prime}$ of the solution components at $t$.  Set initial values
+  for $\mathbf{y}^{\prime}$, as input.  It is \emph{not necessary} to begin
+  with $\mathbf{y}^{\prime}$ such that
+  $\mathbf{g}(t,\mathbf{y},\mathbf{y}^{\prime})=0.$ See \textbf{INFO(11)},
+  below.
+
+\item[TOUT] [in] This is a point where a solution $(t,\mathbf{y},\mathbf{y}^{\prime})$ is
+  desired.  A value of \textbf{TOUT} less than the initial value of $t$ causes
+  the integration to go from larger to smaller values.  Otherwise the
+  integration increases from the initial $t$ to the value \textbf{TOUT}.  The
+  integration is likely to proceed a small distance past \textbf{TOUT} unless
+  \textbf{INFO(4)} has been used, see below.
+
+\item[INFO(1:N)] [in] . The basic task of the code is to solve the system from
+  the initial $t$ to \textbf{TOUT} and return an answer at \textbf{TOUT}. The
+  parameters \textbf{INFO(1:N)} are an integer array that communicates exactly
+  how this task is carried out. (See page~\pageref{INFO} below for details.)  
+  The size \textbf{N} of this array must be at least \textbf{16}.
+  
+\item[RTOL(:), ATOL(:)] You must assign relative (\textbf{RTOL}) and absolute
+  (\textbf{ATOL}) error tolerances to tell the code how accurately you want
+  the solution to be computed.  They must be defined as variables because the
+  code may change them.  You have two choices: Both are arrays of
+  size 1, (\textbf{INFO(2)=0}), or both are arrays of size \textbf{NEQ},
+  (\textbf{INFO(2)=1}). In either case all components must be non-negative.
+  The tolerances are used by the code in a local error test at each step which
+  requires roughly that $|local$ $error|$ $\leq$ $RTOL |y|+ATOL,$ for each
+  vector component.  (More specifically, a root-mean-square norm is used to
+  measure the size of vectors, and the error test uses the magnitude of the
+  solution at the beginning of the step.)  The true (global) error is the
+  difference between the true solution of the initial value problem and the
+  computed approximation.  This code only controls the local error at each
+  step.  Frequently, the true accuracy of the computed \textbf{Y} is
+  comparable to the error tolerances. This code will usually, but not always,
+  deliver a more accurate solution if you reduce the tolerances and integrate
+  again. By comparing two such solutions you can get an idea of the true error
+  in the solution at the bigger tolerances. Setting \textbf{ATOL=0}.  results
+  in a pure relative error test on that component.  Setting \textbf{RTOL=0}.
+  results in a pure absolute error test on that component.  A mixed test with
+  non-zero \textbf{RTOL} and \textbf{ATOL} corresponds roughly to a relative
+  error test when the solution component is much bigger than \textbf{ATOL} and
+  to an absolute error test when the solution component is smaller than the
+  threshold \textbf{ATOL}.  The code will not attempt to compute a solution at
+  an unreasonable accuracy. It will advise you if you ask for too much
+  accuracy and inform you as to the maximum accuracy it believes possible.
+
+\item[IDID] [out] This integer reports what the code did. You must monitor
+  this variable to decide what action to take next, see page~\pageref{IDID_vals}.
+
+\item[RWORK(:)] Dimension this work array of size \textbf{LRW} in your calling
+  program.
+\item[LRW] The declared size of the \textbf{RWORK} array.  You must have ({\bf
+    MAXORD} = 5 unless changed by {\bf INFO}(9)) \textbf{LRW} $\geq 45+({\bf
+    MAXORD}+2*{\bf INFO}(10)+4)*{\bf NEQ} +$\vspace{-5pt}
+  \begin{description}
+  \item[$|$INFO(5)$|$ = 1, 2, 7, 8, 11, 12:] + {\bf NEQ}$^2$, dense Jacobian
+    case, or
+  \item[$|$INFO(5)$|$ = 3, 9, 13:]  + (2*ML+MU+1)*{\bf NEQ}, banded
+    user-defined Jacobian case, or
+  \item[ $|$INFO(5)$|$ = 4, 10, 14:] + (2*ML+MU+1)*{\bf NEQ} + 2*({\bf
+      NEQ}/(ML+MU+1)+1), banded finite-difference-generated Jacobian case, or
+  \item[$|$INFO(5)$|$ = 5 or 6:] + 0, the Jacobian is stored in the calling
+    program or subroutine \textbf{DDASF}.
+  \end{description}
+
+\item[IWORK(:)] Dimension this integer work array of size
+  \textbf{LIW} in your calling program.
+
+\item[LIW] Set it to the declared size of the \textbf{IWORK} array:
+  \textbf{LIW }$\geq$\textbf{ 30+NEQ.}
+
+\end{description}
+
+\subsubsection{The user supplied subroutine for computing problem data
+  \label{DDASF}}
+
+This user defined subroutine defines the system of differential/algebraic
+equations and related linear algebra operations.  It has the form
+
+\fbox{\begin{tabular}{l}
+    \textbf{SUBROUTINE DDASF (T, Y, YPRIME,}\\
+    \textbf{~~DELTA, D, LDD, C, IRES, RWORK,}\\
+    \textbf{~~IWORK)}
+      \end{tabular}}
+
+For the given values of \textbf{T}, \textbf{Y} and \textbf{YPRIME}, the
+routine normally returns the residual of the differential/algebraic system
+\textbf{DELTA = }$\mathbf{g}(t,\mathbf{y},\mathbf{y}^{\prime }) .$ The array
+\textbf{DELTA(1:NEQ+INFO(10))} is a vector which contains the output
+for \textbf{DDASF}.  The array \textbf{D(1:LDD,1:NEQ)} is normally
+used for providing partial derivatives of the system and constraint equations
+that arise from differentiation and reduction of the system index to
+\textbf{1} or \textbf{0}. 
+
+You must declare the name \textbf{DDASF} in an
+\textbf{EXTERNAL} statement in your program unit that calls \textbf{DDASLX}.
+If you use reverse communication, \textbf{INFO(5)} $<$ 0, and
+$|$\textbf{INFO(5)}$| < 6$, just use the name \textbf{DDASF}.  This provided
+routine is a ``stub'' which is not called when using using reverse
+communication and will print an error message if called.
+Declare \textbf{Y(:)}, \textbf{YPRIME(:)} and \textbf{DELTA(:)} as arrays in routine
+\textbf{DDASF}.  Respond to requests using the value of \textbf{IRES}.  Use a
+\textbf{SAVE} statement for the local variables that are required to maintain
+their values between calls.  These variables can also be stored in open
+locations of \textbf{RWORK, IWORK)}.  If you have declared \textbf{LRW} $> lrw$,
+where $lrw$ is the required lower bound for \textbf{LRW}, and similarly for
+\textbf{LIW}, then locations \textbf{RWORK($lrw$+1:LRW)} and 
+\textbf{IWORK($liw$+1:LIW)} are available to pass data between your
+main program and \textbf{DDASF}.\\[-5pt]
+\begin{description}
+\item[IRES=0] Initialize subroutine parameters or any storage
+  requirements.  If this does not apply, then ignore this value and
+  return without any further action.  Do not alter \textbf{DELTA, D or
+    C} when \textbf{IRES = 0}, but y values can be set.
+\item[IRES=1] Evaluate the residual of the
+  differential/algebraic system.  Place values in the array \textbf{DELTA(1:NEQ) =}
+  $\mathbf{F}(t,\mathbf{y},\mathbf{y}^{\prime})$.
+
+\item[IRES=2] This case occurs for $|$\textbf{INFO(5)$|$} = 2, 4, 5, 6,
+  8, and 10.  Evaluate the partial derivatives, \textbf{D}($i,j$) = $(\partial
+  F_{i}/\partial y_{j}) +c (\partial F_{i}/\partial y_{j}^{\prime}),$ The
+  scalar $c$ is an input argument to \textbf{DDASF}.  For the given values of
+  \textbf{T, Y, YPRIME,} the routine must evaluate the non-zero partial
+  derivatives for each equation, and store these values in the matrix
+  \textbf{D.} For dense or banded matrices, stored in the work space
+  \textbf{RWORK(:)}, the elements of \textbf{D} are set to zero before each
+  call to \textbf{DDASF} so only non-zero elements need to be defined.  Do not
+  alter \textbf{T, Y, YPRIME}, or \textbf{C}.  The
+  way you must store the elements into \textbf{D} depends on the structure of
+  the matrix, indicated by \textbf{INFO(5)}:
+  \begin{description}\vspace{-5pt}
+  \item[INFO(5)=2, 8, and 12] Full (dense) matrix.  When you evaluate the
+    (non-zero) partial derivative of equation $i$ with respect to variable $j$,
+    you must store it in \textbf{D} according to \textbf{D}($i,j$) = $(\partial
+    F_{i}/\partial y_{j})+c (\partial F_{i}/\partial y_{j}^{\prime})$.
+  \item[INFO(5)=4, 10, and 14] Banded Jacobian with \textbf{ML} lower and
+    \textbf{MU} upper diagonal bands (refer to \textbf{INFO(6) }description of
+    \textbf{ML} and \textbf{MU}). Give \textbf{D} a first dimension of
+    \textbf{2*ML+MU+1}.  When you evaluate the (non-zero) partial derivative of
+    equation $i$ with respect to variable $j$, you must store it in \textbf{D}
+    according to $irow=i-j+$ \textbf{ML+MU+1}, \textbf{D}($irow,j$) = $(\partial
+    F_{i}/\partial y_{j})+c (\partial F_{i}/\partial y_{j}^{\prime}).$
+  \item[INFO(5) = 5 and 6] The array \textbf{D} is a dummy argument and is not
+    used.  Save the partials $(\partial F_{i}/\partial y_{j})+c (\partial
+    F_{i}/\partial y_{j}^{\prime})$ in the subroutine \textbf{DDASF}.  This case
+    requires that you factor the matrix (if you ever do) at this time as the
+    value \textbf{IRES}=3 is not provided in this case.  As for that case you
+    should set \textbf{IRES} = 0 to flag the fact that there were no problems in
+    obtaining the factorization.
+  \end{description}
+
+\item[IRES=3] This case occurs for $|$\textbf{INFO(5)}$| > 6$. Factor the
+  matrix of partials.  Prepare to solve systems involving the matrix
+  $D=(\partial F_{i}/\partial y_{j})+c (\partial F_{i}/\partial
+  y_{j}^{\prime}).$ The solution method can be a convenient one of the user's
+  choice.  If the matrix is non-singular it is important to return
+  \textbf{IRES=0} as a signal.  Otherwise return \textbf{IRES=3}, if the
+  system is numerically singular.
+  
+\item[IRES=4] Solve a linear algebraic system using the matrix of partials
+  $D$, {\em i.e.}\ solve $Dw=r$ for $w$.  The vector $r$ is input in array
+  \textbf{DELTA(:)}.  The solution $w$ overwrites \textbf{DELTA(:)}.  If for
+  any reason the system cannot be solved, return $w=r$ as the approximate
+  solution.  This may cause the integrator to take corrective action such as
+  reducing the step-size or the order of the formulas used.  This situation
+  may occur when iteratively solving a linear system, but requiring an
+  excessive number of iterations.
+  
+\item[IRES=5] This occurs only if $\textbf{INFO(10)} \neq 0$. Compute
+  the residual and partials for projecting the solution \textbf{Y(:)}
+  onto the constraints $\mathbf{G(t,y)}=0$ after a step has been
+  computed and the corrector equation has converged.  Compute the
+  partial derivatives $\partial G / \partial \mathbf{y}$ in
+  \textbf{D(NEQ+1:NEQ+INFO(10),1:NEQ)} and the residual of the
+  constraints $\mathbf{G(t,y)}$ in \textbf{DELTA(NEQ+1:NEQ+INFO(10))}.
+
+  If you are handling the linear algebra ($|$\textbf{INFO(5)}$| \geq 5$)
+  then you should also compute the projection and residual vector norm
+  and store it in \textbf{DELTA(1:NEQ+INFO(10))}.  The \textbf{DDASLX} code applies
+  the projection,
+  \textbf{Y(:)=Y(:) $-$ DELTA(:)}.  (Note that the flag is given to
+  \textbf{DDASF} if \textbf{INFO(5)} $\geq$ 0, and else is provided using
+  reverse communication.  If for example you are using forward communication
+  for derivatives and doing you own linear algebra using reverse
+  communication, you will need to either deal with the linear algebra in
+  \textbf{DDASF}, or call a routine from there that will do the job.)
+
+  The remaining cases \textbf{IRES=6,7,8} occur when using the routine \textbf{DDASLS}
+  for computing starting values of $\mathbf{y^{\prime}}$.  Code does not have to be provided for these
+  values of \textbf{IRES} if \textbf{DDASLS} is not being used.  For systems
+  of \textbf{index 0} the evaluation cases \textbf{[IRES=6,8]} will not occur, i.e. only code for 
+  \textbf{[IRES=7]} must be provided.
+
+\item[IRES=6] Evaluate the partial with respect to $t$ of the
+  differential/algebraic system.  Place values in the array \textbf{DELTA(1:NEQ) =}
+  $\mathbf{F_t}(t_0,\mathbf{y_0},\mathbf{y}^{\prime})$.  This case occurs if the system
+  has \textbf{index 1} or higher.
+
+\item[IRES=7] This case occurs with either \textbf{[INFO(5) = 2, 4]}.
+  Evaluate the partial derivatives, \textbf{D(i,j)} = $\mathbf{\partial F_{i}/\partial y_{j}^{\prime}}$.
+ For the values of  \textbf{T, Y, YPRIME,} the routine must evaluate the non-zero partial
+  derivatives for each equation, and store these values in the array
+  \textbf{D(1:NEQ,1:NEQ}.  It is not necessary to store zero values.  The
+  way you must store the elements into \textbf{D(:,:)} depends on the structure of
+  the matrix, indicated by \textbf{INFO(5)}.  This structure is either a dense or banded representation.
+
+\item[IRES=8] This case occurs with either \textbf{[INFO(5) = 2, 4]}.
+  Evaluate the partial derivatives, \textbf{D(i,j)} = $\mathbf{\partial F_{i}/\partial y_{j}}$.
+ For the values of  \textbf{T, Y, YPRIME}, the routine must evaluate the non-zero partial
+  derivatives for each equation, and store these values in the array
+  \textbf{D(1:NEQ,1:NEQ}.  The way you store the elements in 
+  \textbf{D(:,:)} depends on whether this is a dense or banded representation.
+
+\end{description}
+
+Ordinarily subroutine \textbf{DDASF} should not change the value of
+\textbf{IRES}.  The following values can be set for special cases.
+Do not return these values  when using the routine \textbf{DDASLS}.
+
+\vspace{-8pt}
+\begin{description}
+\item[\phantom{$-$}0] This {\em must} be set if you are factoring the
+  iteration matrix, to let \textbf{DDASLX} know that your matrix is not
+  singular.
+\item[$\mathbf{-1}$] Some kind of difficulty has been encountered. This
+  causes \textbf{DDASLX} to reduce the stepsize or order which may cure the
+  problem.
+\item[$\mathbf{-2}$] Return immediately to the main program, for one reason
+  or the other it is time to quit.
+\item[$\mathbf{<\!-2}$] This has the same effect as setting \textbf{INFO(6)}
+  to the negative of this number.  It provides a way of turning on debug
+  print at any time.
+\end{description}
+
+\subsubsection{Setting options using the array \textbf{INFO}\label{INFO}}
+Use the \textbf{INFO(:)} array to give the code more details about how
+you want your problem solved.  This array should be dimensioned of size
+\textbf{16}. You must set all of the following items.
+The simplest use of the code corresponds to setting all values of
+\textbf{INFO} to 0, which gives the default actions.\vspace{-8pt}
+\begin{description}
+\item[INFO(1)] \label{info1} Must be set by the user at the beginning
+  of a new problem.  Set by \textbf{DDASLX} to nonzero values as the
+  integration proceeds.  Set \textbf{INFO(1) = 0 }at the first call
+  for this problem.  For continuation or reverse
+  communication calls this will have a value \textbf{INFO(1) = 1}.
+\item[INFO(2)] \label{info2} How much accuracy you want of your
+  solution is specified by the error tolerances \textbf{RTOL} and
+  \textbf{ATOL}. If \textbf{INFO(2) = 0,} \textbf{RTOL} and
+  \textbf{ATOL }are scalars and these values are used for error
+  control on all equations.  If \textbf{INFO(2) = 1, RTOL(:)} and
+  \textbf{ATOL(:) }are arrays of size \textbf{NEQ}.  The $i^{th}$
+  entries are used on the $i^{th}$ equation.
+  
+\item[INFO(3)] \label{info3} The code integrates from \textbf{T} in
+  the direction of \textbf{TOUT} by signed steps.  If you wish, it
+  will return the computed solution and derivative at the next
+  intermediate step (the intermediate-output mode) or \textbf{TOUT},
+  whichever comes first.  This is a good way to proceed if you want to
+  see the behavior of the solution.  If you must have solutions at a
+  great many nonspecific \textbf{TOUT} points,
+  this  code will compute them efficiently.\\
+  Set \textbf{INFO(3) = 0 }to return the solution only at
+  \textbf{TOUT} (and not at the next intermediate
+  step).\\
+  Set \textbf{INFO(3) = 1 }to return the solution at the next
+  intermediate step.
+\item[INFO(4)] \label{info4} To efficiently handle solutions at many
+  values \textbf{TOUT}, this code may integrate past \textbf{TOUT} and
+  interpolate to obtain the result at \textbf{TOUT}. Sometimes it is
+  not possible to integrate beyond some point \textbf{TSTOP} because
+  the equation changes there or it is not defined past that point.
+  Then you must tell the code not to go past this
+  point.\\
+  Set \textbf{INFO(4)=0} so the integration can proceed without any
+  restrictions on the independent variable \textbf{T.}\\
+  Set \textbf{INFO(4)=1} and define the stopping point \textbf{TSTOP}
+  by setting \textbf{RWORK(2)=TSTOP.}
+\item[INFO(5)] \label{info5} To solve differential/algebraic problems
+  it is necessary to use a matrix of partial derivatives for the
+  system of differential equations.  This flag must be set to give
+  information about your matrix.  The first column in the following
+  table gives the value to use for the cases as checked in later
+  columns.  The later columns are defined by:
+  \begin{description}
+  \item[A] Full dense matrix.
+  \item[B] Banded matrix.
+  \item[C] Matrix with structure unknown to \textbf{DDASLX}.
+  \item[D] Partials computed using differences.
+  \item[E] Partial computed by the user's code.
+  \item[F] User does linear algebra in \textbf{DDASF}.
+  \item[G] User does linear algebra using reverse communication.
+  \end{description}
+
+  \begin{tabular}{r*7{c}}
+    & {\bf A} & {\bf B} & {\bf C} & {\bf D} & {\bf E} & {\bf F} & {\bf G}\\
+    % A   B   C   D   E   F   G
+    {\bf 1}  & x &   &   & x\\
+    {\bf 2}  & x &   &   &   & x\\
+    {\bf 3}  &   & x &   & x\\
+    {\bf 4}  &   & x &   &   & x\\
+    {\bf 5}  &   &   & x &   &   & x &\\ 
+    {\bf 6}  &   &   & x &   &   &   & x\\ 
+    {\bf 7}  & x &   &   & x &   & x\\
+    {\bf 8}  & x &   &   &   & x & x\\
+    {\bf 9}  &   & x &   & x &   & x\\
+    {\bf 10} &   & x &   &   & x & x &\\
+    {\bf 11} & x &   &   & x &   &   & x\\
+    {\bf 12} & x &   &   &   & x &   & x\\
+    {\bf 13} &   & x &   & x &   &   & x\\
+    {\bf 14} &   & x &   &   & x &   & x\\
+  \end{tabular}
+
+  If \textbf{INFO(5)} $<$ 0 all is as above, except instead of calling
+  \textbf{DDASF} to compute $\mathbf{g}$ and all partials, reverse communication
+  is used.  The value 0 is treated the same as 1.
+
+  Although it is less trouble for you to have the code compute derivatives by
+  numerical differencing, the solution will be more reliable and efficient 
+  if you provide the derivatives using formulas.
+
+  When B is checked, $D=(\partial \mathbf{F}/\partial \mathbf{y})+c
+  (\partial \mathbf{F}/\partial \mathbf{y}^{\prime})$, is banded. Here $c$ is a
+  factor determined by \textbf{DDASLX}.  The differential equation is said to
+  have half-bandwidths \textbf{ML} (lower) and \textbf{MU} (upper) if $D$
+  involves only some of the unknowns $y_{j}$ with
+  $i\mathbf{-}\text{\textbf{ML}}) $ $\leq$ \textbf{j}$\leq$ $(
+  i\mathbf{+}\text{\textbf{MU}}) $ for all $i=1,...,$\textbf{NEQ}.  Thus,
+  \textbf{ML} and \textbf{MU} are the widths of the lower and upper parts of the
+  band, with the main diagonal being excluded.  If the matrix is stored in the
+  \textbf{RWORK(:)} array and you do not indicate that the equation has a banded
+  matrix of partial derivatives, the code works with a full array of
+  \textbf{NEQ$^\mathbf{2}$} elements, stored in the conventional Fortran array
+  style.  Computations with banded matrices typically require less time and
+  storage than with full matrices, if \textbf{2*ML+MU} $<$ \textbf{NEQ}.  If you
+  tell the code that the matrix of partial derivatives has a banded structure
+  and you want to provide subroutine \textbf{DDASF} to compute the partial
+  derivatives, then you must store the elements of the matrix in the Linpack
+  band-matrix specification, indicated in the description of \textbf{DDASF}.\\
+  Provide the lower \textbf{ML} and upper \textbf{MU} bandwidths by setting
+  \textbf{IWORK(1)=ML} and \textbf{IWORK(2)=MU}.
+
+\item[INFO(6)] \label{info6} Set the level of debugging print.  A
+  value of 0 gives no print.  Debug print can also be specified by
+  setting negative value for \textbf{IRES} after starting.  This is a
+  7 digit number $d_6d_5d_4d_3d_2d_1d_0$ defining what to print as
+  follows.
+  \begin{description}
+  \item[$d_0$]Print on entry to \textbf{DDASLX}
+    \begin{enumerate}\setcounter{enumi}{-1}
+    \item No print
+    \item IDID, INFO(1), NEQ, T, TOUT
+    \item The above + $\mathbf{y},\ \mathbf{y}^{\prime}$
+    \item The above + Tolerances
+    \item The above + INFO(1:12)
+    \end{enumerate}
+  \item[$d_1$] Print on exit from \textbf{DDASLX}. Print is as for $d_0$.
+  \item[$d_2$] Before a call to \textbf{DDASF} (or return for reverse communication
+    that would ordinarily call \textbf{DDASF}).
+    \begin{enumerate}\setcounter{enumi}{-1}
+    \item  No print.
+    \item  Print T, IDID (which is IRES in this case)
+    \item  The above + anything vectors used in the computations,
+      except for $\mathbf{y}$, and $\mathbf{y^\prime}$.
+    \item  Print $\mathbf{y}$, and $\mathbf{y^\prime}$.
+    \item  Print matrix if used in computation.
+    \end{enumerate}
+  \item[$d_3$] As for the case above, except print is for what is in the
+    locations recently changed.
+  \item[$d_4$] Internal print inside subroutine \textbf{DDASTP}.
+    \begin{enumerate}\setcounter{enumi}{-1}
+    \item No print
+    \item $\mathbf{y}$, $\mathbf{y}^{\prime}$ and corrections.
+    \item The above + error weights
+    \item The above + difference tables
+    \item The above + integration coefficients
+    \end{enumerate}
+  \item[$d_5$] Determines how much of WORK and IWORK are printed, when there
+    is other print.
+    \begin{enumerate}\setcounter{enumi}{-1}
+    \item No print
+    \item Always print \textbf{IWORK(1:22)}
+    \item Always print \textbf{WORK(1:10)}
+    \item Always print both of the above.
+    \end{enumerate}
+  \item[$d_6$] For turning off, or limiting the amount of print.
+    \begin{enumerate}\setcounter{enumi}{-1}
+    \item No effect
+    \item No effect, but gives a way to specify a value of 0, 1 or 2 when passing
+      a negative value of IRES after starting.
+    \item[$> 1.$] Print data for just this many of the first variables, and
+      just this many of the first rows in matrices when variables or matrices
+      are printed.
+    \end{enumerate}
+  \end{description}
+\item[INFO(7)] \label{info7} You can specify a maximum stepsize, so
+  that the code
+  will avoid passing over very large regions.\\
+  Set \textbf{INFO(7)=0 }for the code to decide on its own maximum
+  stepsize.\\
+  Set \textbf{INFO(7)=1} and define the maximum stepsize \textbf{HMAX}
+  by setting \textbf{RWORK(3)=HMAX}.
+\item[INFO(8)] \label{info8}  Differential/algebraic problems may occasionally suffer from
+  severe scaling difficulties on the first step. If you know the scaling of
+  your problem, you can help avoid this problem by specifying an initial
+  stepsize \textbf{H0}.\\
+  Set \textbf{INFO(8)=0} for the code to
+  define its own initial stepsize.\\
+  Set \textbf{INFO(8)=1} and define the initial stepsize \textbf{H0} by
+  setting \textbf{RWORK(4)=H0.}
+\item[INFO(9)] \label{info9} If lack of storage is an issue, or if the
+  problem itself should use lower order formulas, one can restrict the
+  maximum order of the backward differentiation formulas,
+  \textbf{MAXORD}.  The default value is 5.  For each order decrease
+  below 5, the code requires \textbf{NEQ} fewer locations.  However
+  lowering \textbf{MAXORD} may slow the code. In any case,
+  you must have 1 $\leq$ \textbf{MAXORD} $\leq$ 5.\\
+  Set \textbf{INFO(9)=0 }for the maximum order to default to 5.\\
+  Set \textbf{INFO(9)=$k$} to set the maximum order to $k \leq 5$.
+\item[INFO(10)] \label{info10} Set this to the number of constraints
+  you wish to impose on the solution. This option should be used when
+  the problem has an \textbf{index $>1$} and constraints are differentiated to
+  reduce the index.  The code will perform better if the index is
+  reduced to 0.  This option must not be used when \textbf{[INFO(5) =
+  3,4]}.  The calculation of the residuals on the
+  constraints for $\mathbf{G}$ are stored in positions \textbf{[NEQ+1:NEQ+INFO(10)]}
+  of \textbf{DELTA(:)}. The partials $\mathbf{\partial G/ \partial y}$
+ are stored in rows \textbf{[NEQ+1:NEQ+INFO(10)]} of \textbf{D}.
+
+\item[INFO(11)] \label{info11} \textbf{DDASLX} normally requires the
+  initial \textbf{T}, \textbf{Y}, and \textbf{YPRIME} to be
+  consistent.  That is, you must have
+  $\mathbf{F}(t,\mathbf{y},\mathbf{y}^{\prime}) = 0$ at the initial
+  time. If you do not know the initial derivative or
+  $\mathbf{y}^{\prime}$, you can let \textbf{DDASLX} compute it.\\
+  Set \textbf{INFO(11) = 0 }if the initial \textbf{T, Y, YPRIME} are
+  consistent.  If the initial $\mathbf{y}^{\prime}$ values are not known we
+ suggest using the provided starting routine
+ \textbf{DDASLS} ~\pageref{starting}.\\
+  Set \textbf{INFO(11) = 1}, and set \textbf{YPRIME} to an initial
+  approximation.  If you have no idea what \textbf{YPRIME} should be,
+  set it to zero. Note that the initial $y$ should be such that there
+  must exist a $\mathbf{y}^{\prime}$ so that $\mathbf{F}(
+  t,\mathbf{y},\mathbf{y}^{\prime }) =0.$
+\item[INFO(12)] \label{info12} \textbf{DDASLX} normally allows up to
+  500 internal steps
+  between output points.\\
+  Set \textbf{INFO(12)=0} for the code to use up to 500 internal
+  steps between output points.\\
+  Set \textbf{INFO(12)=$k$} and the code will use up to $k$ internal
+  steps between output points.
+\item[INFO(13)] \label{info13} \textbf{DDASLX} normally
+  uses the smoothed step control algorithm described in
+  \cite{Soderlind:2003:DFA}. \\
+  Set \textbf{INFO(13)=0} for the code to the step control method of
+  S{\"o}derlind.
+  We consider this superior to the logic used by the original Petzold code \textbf{DASSL}.\\
+  Set \textbf{INFO(13)=1} and the code will use the original step
+  control logic.
+
+\item[INFO(14:16)] Not used currently by the code, but must be set to 0.
+\end{description}
+
+\subsubsection{Using Reverse Communication\label{revcom}}
+
+When reverse communication is used certain arguments ordinarily passed to
+\textbf{DDASF}, are stored in \textbf{IWORK} and \textbf{RWORK} as follows.
+\begin{description}
+\item[IRES] is in \textbf{IWORK(3)}.
+\item[DELTA()] starts in \textbf{RWORK(IWORK(4))}.
+\item[D()] start in \textbf{RWORK(IWORK(5))}.
+\item[C] is in \textbf{RWORK(1)}
+\end{description}
+A return to the user's code with \textbf{IDID=4} is a signal that what is
+computed in \textbf{DDASF} when using forward communication should be computed
+at this time using the above replacements for the arguments to \textbf{DDASF}.
+
+\subsubsection{Modifications for single precision \label{Sngl}}
+
+Change names starting with \textbf{DDASLX} and \textbf{DDASF} to start with
+\textbf{SDASLX} and \textbf{SDASF}.
+Change all DOUBLE PRECISION type statements to REAL.
+
+
+\subsubsection{Optional Norm Routine\label{NORM}}
+The \textbf{DDASLX} package provides a weighted norm \textbf{DDASNM} to
+measure the size of vectors such as the estimated error in each step.  A
+subprogram may be exchanged for this routine: \raggedright\textbf{DOUBLE
+  PRECISION FUNCTION DDASNM (NEQ, V, WT, RWORK, IWORK)} Arrays
+\textbf{V(1:NEQ),WT(1:NEQ)} are used with this norm. Here, \textbf{V(:)} is
+the vector whose norm is to be computed, and \textbf{WT(:)} is a vector of
+weights. The routine \textbf{DDASNM }is included with \textbf{DDASLX,} and
+computes the weighted root-mean-square norm given by the formula
+\textbf{DDASNM} = \textbf{SQRT((1./NEQ)*SUM(V(:)/WT(:))**2).}  This norm is
+suitable for most problems.  In special cases, it may be more convenient or
+efficient to define your own norm by writing a replacement function
+subprogram.
+
+\subsubsection{Values of \textbf{IDID} on Return from DDASLX\label{IDID_vals}}
+
+\begin{tabular}{rp{2.8in}}
+  \multicolumn{2}{l}{\bf IDID \hspace{.4in}  Task Completed or Ongoing}\\
+  \phantom{$-2$}1 & A step was successfully taken in the intermediate-output
+  mode. The code has not yet reached \textbf{TOUT}.\\
+  2 & The integration to \textbf{TSTOP} was successfully
+  completed (\textbf{T=TSTOP}) by stepping exactly to \textbf{TSTOP}.\\
+  3 & The integration to \textbf{TOUT} was successfully
+  completed (\textbf{T=TOUT}) by stepping past \textbf{TOUT}.  \textbf{Y(:)} is
+  obtained by interpolation. \textbf{YPRIME(:)} is obtained by interpolation.\\
+\end{tabular}
+
+\begin{tabular}{rp{2.8in}}
+  \multicolumn{2}{l}{\bf IDID \hspace{.4in}  Task Completed or Ongoing}\\
+  \phantom{-2}4 & The integration has paused for reverse
+  communication.  Respond based on the values of IWORK(3).\\
+  \multicolumn{2}{l}{\bf IDID \hspace{.4in} Task Interrupted}\label{task_int}\\
+  $-1$ & IRES set to $-2$ by the user.\\
+  $-2$ & Accuracy requested exceeds machine precision.  RTOL and ATOL have
+  been increased.\\
+  $-3$ & There have been too many steps between output points.\\
+  \multicolumn{2}{l}{\hspace{.4in} Quit or Restart Integration}\\
+  $-4$ & No convergence due to IRES being set to $-1$.\\
+  $-5$ & A weight for computing error norms is $\leq 0$.\\
+  $-6$ & The error test has failed repeatedly.\\
+  \multicolumn{2}{l}{\bf IDID \hspace{.4in}  Invalid input}\\
+  $-7$ & Repeated failure of the corrector to converge.\\
+  $-8$ & The iteration matrix is singular.\\
+  $-9$ & Repeated corrector convergence failures, with singular matrices
+  flagged.\\
+  $-10$ & Could not solve for the initial $\mathbf{y}^\prime$.\\
+  $-11$ & An \textbf{INFO} entry has a value not allowed for that option.\\
+  $-12$ & The number of equations was set $\leq 0$.\\
+  $-13$ & The maximum order does not have a value from 1 to 5.\\
+  $-14$ & The size of \textbf{RWORK} is too small.\\
+  $-15$ & The size of \textbf{IWORK} is too small.\\ %
+  $-16$ & An entry of \textbf{RTOL} is $< 0$.\\
+  $-17$ & An entry of \textbf{ATOL} is $< 0$.\\
+  $-18$ & All entries of \textbf{RTOL} and \textbf{ATOL} are 0.\\
+  $-19$ & The value of \textbf{TOUT} is $>$ \textbf{TSTOP}.\\
+  $-20$ & The maximum stepsize is set $\leq 0$.\\
+  $-21$ & The current \textbf{TOUT} is behind \textbf{T}.\\
+  $-22$ & The initial stepsize has been set to 0.\\
+  $-23$ & \textbf{TOUT} is too close to the starting \textbf{T}.\\
+  $-24$ & \textbf{TSTOP} is not consistent with the current \textbf{T}.\\
+  $-25$ & An illegal bandwidth.\\
+  $-26$ & The current \textbf{T} and \textbf{TOUT} are equal.\\
+  $-27$ & Constraints used with band matrices.\\
+  $-28$ & When solving constraints for a user defined matrix, IRES was not set
+  to 0.\\
+  $-29$ & Constraints being projected onto appear inconsistent at the
+  initial point.\\
+  $-30$ & Constraints being projected onto appear inconsistent during
+  the integration.\\
+  $-31$ & No appropriate action was taken when code returned with \textbf{IDID}
+  $< 0$.\\
+\end{tabular}
+
+\subsubsection{Values of \textbf{RWORK} and \textbf{IWORK} on
+  exit\label{WORKS_val}}
+
+\begin{description}
+\item[RWORK(:), IWORK(:)] Contain information which is often of no
+  interest to the user but is necessary for subsequent calls. However, you may
+  find use for the following.
+\item[RWORK(4)] The step size \textbf{H} to be attempted on the next step;
+\item[RWORK(5)] The current value of the independent variable, i.e., the
+  farthest point integration has reached. This will be different from
+  \textbf{T} only when interpolation has been performed (\textbf{IDID=3}).
+\item[RWORK(7)] The stepsize used on the last successful step.
+\item[IWORK(7)] The order of the method to be attempted on the next step.
+\item[IWORK(8)] The order of the method used on the last step.
+\item[IWORK(13)] The number of steps taken so far.
+\item[IWORK(14)] The number of evaluations of the residual function so far.
+\item[IWORK(15)] The number of evaluations of the matrix of partial
+  derivatives needed so far.
+\item[IWORK(16)] The total number of error test failures so far.
+\item[IWORK(17)] The total number of convergence test failures so far.  This
+  includes singular iteration matrix or related failures.
+\end{description}
+
+\subsubsection{Getting Debug Print After Starting\label{debug}}
+
+When debugging print is desired, it is frequently inconvenient to have lots of
+such output prior to the place where problems are known to occur.  If you want
+to start debug print at a place where \textbf{INFO} is available, you can
+simply set \textbf{INFO(6)} to the value you would ordinarily set it too when
+starting. But in \textbf{DDASF}, \textbf{INFO} is not available.  In this case
+you can set the return value of \textbf{IRES} to the negative of the value you
+would ordinarily set \textbf{INFO(6)} to.  If this negative value is not $< -
+2$, you will need to set $d_6$ to get the desired result.
+
+In addition is also possible for you to make a direct call to get debug print.
+This call has the form
+
+\fbox{\begin{tabular}{l}
+    \bf CALL DDASDB (KASE, NEQ, T, Y,\\
+    \quad \bf YPRIME, INFO, RWORK, IWORK,\\
+    \quad \bf IRES, ATOL, RTOL)
+  \end{tabular}}
+
+\textbf{KASE} is used to specify the type of print desired.  It must be a
+negative two digit number $-d_1d_0$, where $d_1$ is the value for one of the
+digits given in the description of \textbf{INFO(6)}, and $d_0$ gives the digit
+that this is supposed to correspond to.  If you have not made a nonsense
+choice, this print will be as if \textbf{INFO(6)} had $d_{d_0} = d_1$.
+
+If you are not getting this print in \textbf{DDASF} or in reverse
+communication that would ordinarily call \textbf{DDASF}, then the
+\textbf{IRES} in the calling sequence should be replaced by \textbf{IDID}.
+Also you can replace \textbf{INFO} with \textbf{IWORK} when \textbf{INFO} is
+not available, and similarly can replace \textbf{ATOL} and \textbf{RTOL} with
+\textbf{RWORK}.
+
+\subsubsection{Computing Starting Values for Derivatives\label{starting}}
+When the integration starts it is often true that initial values for
+$\mathbf{y(t_0)=y_0}$ are known.  It may be necessary to solve for
+initial derivative values $\mathbf{y^{\prime}(t_0)=y^{\prime}_0}$ that
+achieve consistent conditions $\mathbf{F(t_0,y_0,y^{\prime}_0)=0}$.
+The routine \textbf{DDASLS} is provided for this.  The integrator
+\textbf{DDASLX} provides an alternative method that
+is used when \textbf{INFO(11)=1} ~\pageref{info11}.\\
+
+The assumptions for our starting algorithm are:
+
+\begin{itemize}
+\item The system has index 0 or index 1
+\item Initial values $\mathbf{t_0, y_0}$ are known but maybe not all
+  values $\mathbf{y^{\prime}_0}$
+\item All estimated values of $\mathbf{y^{\prime}_0}$ are meaningful
+  to the problem
+\item The partials $\partial \mathbf{F}/\partial \mathbf{t}= \mathbf{F_t}$,
+$\mathbf{F_y}$, and  $\mathbf{F_{y^{\prime}}}$ are computable and
+continuous at $\mathbf{t_0, y_0, y_0^{\prime}}$.  The rank 
+of $\mathbf{F_{y^{\prime}}}$ must be positive.
+\item Any values for $\mathbf{y^{\prime}}$ are allowed to change to
+  achieve $\mathbf{F(t_0,y_0,y^{\prime}_0)=0}$
+\item Any consistent set of values obtained that satisfy
+  $\mathbf{F(t_0,y_0,y^{\prime}_0)=0}$ satisfy the constraints
+  $\mathbf{G(t_0,y_0)=0}$.
+\end{itemize}
+
+ 
+The routine \textbf{DDASLS} is organized so that a user can add
+additional cases in the evaluation routine \textbf{DDASF} written for
+\textbf{DDASLX} that separately compute $\mathbf{F_t}$, $\mathbf{F_y}$
+and $\mathbf{F_{y^{\prime}}}$.  The evaluation of
+$\mathbf{F(t_0,y_0,y_0^{\prime})}$ uses the same flag value
+\textbf{[IRES=1]} as \textbf{DDASLX}.  Reverse communication is also
+supported.
+
+
+\subsubsection{Program Prototype for Starting Routine DDASLS, Double Precision\label{PPGS}}
+\paragraph{The Calling Routine\label{Calling1}}
+\begin{description}
+\item [EXTERNAL]\raggedright
+  \textbf{DDASF}
+\item[DOUBLE PRECISION] \quad\raggedright
+  \textbf{T, Y(}$\mathbf{\geq}$\textbf{NEQ), YPRIME(}$\mathbf{\geq}$
+  \textbf{NEQ), FTOL, RNKTOL,}
+  \textbf{ RWORK(=LRW)}
+\item[INTEGER]\quad\raggedright
+  \textbf{NEQ, INFO(}$\mathbf{N \geq}$\textbf{16), IDID, LRW, IWORK(=LIW),LIW}
+\end{description}
+The user must assign values to \textbf{T, Y(1:NEQ), and YPRIME(1:NEQ)}.
+  Set flags in array \textbf{INFO(:)} and assign values of
+\textbf{FTOL} and \textbf{RNKTOL}.
+
+\fbox{\begin{tabular}{l}
+
+    \quad  \bf CALL DDASLS(DDASF, NEQ, T, Y, \& \\
+    \qquad \bf ~YPRIME, INFO, FTOL, RNKTOL, \&\\
+    \qquad \bf ~C, LDC, LTD, IDID, \& \\
+    \qquad \bf ~RWORK, LRW, IWORK, LIW)
+  
+  \end{tabular}}
+
+Computed quantities are returned in \textbf{YPRIME(:).}
+\paragraph{Argument Definitions \label{ArgDefs2}}
+
+
+
+\begin{description}
+\item[DDASF][external] The name of the routine providing system
+  information, described above, ~\pageref{DDASF} Use this dummy name
+  when reverse communication provides system information.  When using
+  reverse communication, a single initialization call to
+  \textbf{DDASF} is made with \textbf{IRES=0}.  One can use this to do
+  any special setup that may be desired, or to set the initial y values.
+
+\item[NEQ]  [in] The number of equations to be solved.
+
+\item[T]  [in] The value of the independent variable $t$.
+  This is set to the starting $t=t_0.$
+  
+\item[Y(1:NEQ)] [in] Set to the initial values for $\mathbf{y=y_0}$ as input.
+  
+\item[YPRIME(1:NEQ)] [inout] This array contains the derivatives
+  $\mathbf{y}^{\prime}$ of the solution components at $t_0$.  Set some
+  approximate initial values for $\mathbf{y}^{\prime}$, as input.  It
+  is \emph{not necessary} to begin with $\mathbf{y}^{\prime}$ such
+  that $\mathbf{F}(t,\mathbf{y},\mathbf{y}^{\prime})=0.$
+
+
+\item[INFO(1:N)] [in] . The only task of the code is to solve for
+  initial values of $\mathbf{y}^{\prime}$ that satisfy
+  $\mathbf{F(t_0,y_0,y^{\prime}_0)=0}$. The parameter
+  \textbf{INFO(1:N)} is an integer array that communicates how this
+  task is carried out. (See page~\pageref{INFO} above for details.)
+  The size \textbf{N} of this array must be at least \textbf{16}.
+  Values of INFO(:) used have the same meanings as will occur when
+  integrating the system using \textbf{DDASLX}. Only the entries
+  \textbf{INFO(I), I=1,5,14} are used in the code.  \textbf{INFO(1)}
+  must be 0 when starting, and is 1 when doing reverse communication.
+  It is set to 0 on all exits.
+
+     If the Jacobians are dense matrices set \textbf{$|$INFO(5)$|$=2}.
+     When the Jacobians are banded matrices, set \textbf{$|$INFO(5)$|$=4}.
+  To use reverse communication have \textbf{INFO(5)$<$ 0}.  
+
+  For banded Jacobians and index 1,  a regularization parameter is required.  For this use
+     \textbf{INFO(14) = 0} to have the default parameter with value $\mathbf{macheps^{(2./3.)}}$.
+     To use other values set \textbf{INFO(14) $>$ 0} and place the regularization
+     parameter in location \textbf{RWORK(INFO(14))}.
+  
+   \item[FTOL, RNKTOL][in] You must assign absolute (\textbf{FTOL})
+     and relative (\textbf{RNKTOL}) tolerances to tell the code how
+     accurately you want the initial conditions to be computed and how
+     to determine rank deficiencies.  The code computes $y^{\prime}_0$
+     such that $||F(t_0,y_0,y^{\prime}_0)||_1 \leq \mathbf{FTOL}$.  A
+     diagonal term, $j$, of an intermediate upper triangular matrix,
+     with column vector $a_j$, is classified as near zero if
+     $|a_{j,j}| \leq \mathbf{RNKTOL} \times ||a_j||_1$.
+
+  Suggestion: \textbf{RNKTOL} $= \mathbf{macheps^{(2./3.)}}$.
+  
+\item[C(1:LDC, 1:LTD)][inout] This is the working array where the partial
+     derivative matrices $F_{y^{\prime}}$ and $F_y$ will be returned after
+     evaluation by \textbf{DDASF} or reverse communication.
+
+\item[LDC][in] 
+ This is the leading dimension of the array $\mathbf{C(:,:)}$.  
+For dense Jacobian matrices it has
+ a value $\mathbf{LDC \geq NEQ}$ when $F_{y^{\prime}}$ has full rank.  This occurs with
+  an index 0 problem.  When $F_{y^{\prime}}$ is rank deficient, 
+  $\mathbf{LDC \geq 2*NEQ}$.
+
+  When $F_{y^{\prime}}$ is rank deficient and the Jacobian matrices are banded,  $\mathbf{LDC \geq 4*ML+2*MU+4}$.
+    This occurs when the problem has index 1.
+
+\item[LTD][in] 
+This is the second dimension of the array $\mathbf{C(:,:)}$.
+For dense Jacobian matrices it has
+ a value $\mathbf{LTD \geq NEQ}$.
+   This occurs with
+     an index 0  or index 1 problems.
+
+  When $F_{y^{\prime}}$ is rank deficient,
+ and the Jacobian matrices are banded,  $\mathbf{LTD \geq 2*NEQ}$
+  is required.  This occurs when the problem has index 1.
+
+
+\item[IDID] [out] This integer reports what the code did or
+ if evaluations are requested using reverse communication. 
+
+\textbf{IDID=0} The system has index 0 or 1 and values for $y^{\prime}_0$ were computed.
+
+\textbf{IDID=-1} An error or exceptional condition was noted.  Details and reasons are
+      flagged by various values in \textbf{IWORK(1)}.\pageref{EXCS}
+
+\textbf{IDID $\geq$ 1} Compute requested value using reverse communication.
+Use the values \textbf{IRES = IWORK(3)} and \textbf{IR = IWORK(4)}:
+\begin{description}
+\item[IRES=1] Evaluate and place $F(t_0,y_0,y^{\prime}_0)$ in
+  \textbf{RWORK(IR+1:IR+NEQ)}.
+\item[IRES=6] Evaluate and place $F_t$ in \textbf{RWORK(IR+1:IR+NEQ)}.
+\item[IRES=7] Evaluate and place $F_{y^{\prime}}$ in
+  \textbf{C(:,1:NEQ)} based on the storage mode used for dense or
+  banded Jacobians.
+\item[IRES=8] Evaluate and place $F_y$ in \textbf{C(:,1:NEQ)} based on
+  the storage mode used for dense or banded Jacobians.
+\end{description}
+Re-enter the routine \textbf{DDASLS} and continue computation. 
+
+\item[RWORK(:)][inout] Dimension this work array of size \textbf{LRW} in your calling
+  program.
+\item[LRW][in] The declared size of the \textbf{RWORK} array.  
+\textbf{LRW}$\geq$\textbf{2*NEQ+2} for dense Jacobians or
+\textbf{LRW}$\geq$\textbf{7*NEQ+2} for banded Jacobians.
+
+\item[IWORK(:)][out] Dimension this integer work array of size
+  \textbf{LIW} in your calling program.
+
+\item[LIW][in] The declared size of the \textbf{RWORK} array:
+  \textbf{LIW }$\geq$\textbf{ 2*NEQ+8.}
+
+\subsubsection{Flag IDID=0,$\mathbf{-1}$: \textbf{IWORK(1)} \label{EXCS}}
+\begin{enumerate}
+\item[0] The system has index 0 and consistent initial values for $y^{\prime}$
+       were computed.
+\item[1] The system has index 1 and consistent initial values for $y^{\prime}$
+       were computed.
+\item[2] The system has index 0 but the system $F(t,y,y^{\prime})$ is
+       not consistent using the tolerance \textbf{FTOL}. It should
+       be consistent so \textbf{FTOL} may be too small for this problem.
+       Iterations are done while the $l_1$ norm of $F$ is $<$
+       1/4 the $l_1$ norm of $F$ from the previous iteration.
+\item[3] The system has index 1 but the system $F(t,y,y^{\prime})$ is
+       not consistent using the tolerance \textbf{FTOL}.
+\item[4] The system appears to have an index $>$ 1.  The use of 
+      \textbf{DDASLX} does not apply to this system.
+\item[5] The system has rank $F_{y^{\prime}} = 0$.  This is not a DAE.
+\item[6] The value $\mathbf{NEQ} \leq 0$, i.e. no system.
+\item[7] The value \textbf{LDC} is too small.  Must be $\geq \mathbf{NEQ}$
+ for index 0 problems and dense Jacobians.
+
+        Must be $\geq \mathbf{(2*ML+MU+1)}$, for banded Jacobians, index 0.
+
+       Here \textbf{ML, MU} are the lower and upper band widths.
+       Provide the lower \textbf{ML} and upper \textbf{MU} bandwidths by setting \textbf{IWORK(1)=ML} and
+       \textbf{IWORK(2)=MU}.
+
+       
+\item[8] The value \textbf{LDC} is too small.  Must be $\geq \mathbf{2*NEQ}$
+ for index 1 problems and dense Jacobians.
+
+Must be $\geq \mathbf{4*ML+2*MU+4}$ if problem is banded with index 1.
+
+\item[9] The value \textbf{LRW} is too small.  Must be $\geq
+  \mathbf{2*NEQ+2}$ for dense systems and $\geq \mathbf{7*NEQ+2}$ for
+  banded systems. 
+\item[10] The value \textbf{LIW} is too small.  Must be $\geq \mathbf{2*NEQ+8}$.
+\item[11] Must have $\mathbf{|INFO(5)|=2,4}$.  Routine supports dense
+  or banded matrices only. The user computes derivatives in forward
+  $\mathbf{INFO(5) > 0}$ or reverse communication $\mathbf{INFO(5) <
+    0}$.
+\item[12] Must have $\mathbf{FTOL > 0}$. Now $ \leq 0$.
+\item[13] Must have $\mathbf{RNKTOL \geq 0}$. Now $ < 0$.
+\item[14] Must have the number of sub- and super- bandwidth parameters
+  $\mathbf{ML, MU \geq 0}$.  Now one of them is $< 0$.
+\item[15] Must have second dimension \textbf{LTD} of
+  \textbf{C(:,:)} $ \geq \mathbf{NEQ}$ for dense or banded
+  systems. Value is now $< \mathbf{NEQ}$.
+
+
+         For banded systems of index 1 $\mathbf{LTD} \geq 2*NEQ$.  This
+         is checked when the index is $> 0$, or $F_{y^{\prime}}$ is singular.
+\end{enumerate}
+
+There are calls made to \textbf{DDASLS} in Examples 1,2,3 and 5 that
+solve for initial values of $y^{\prime}$.    
+\end{description}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Examples and Remarks}
+
+\subsubsection{An Index 2 DAE Solved Using Constraints}
+Gear and Petzold, see \cite{Gear:1988:CWG}, discuss the index 2 DAE system
+\begin{align*}
+  y_{1}^{\prime}+\eta t y_{2}^{\prime}+(1+\eta)y_2-sin(t)&=0 \\
+  y_1+\eta t y_2-cos(t)&=0 \\
+\end{align*}
+with $y_1(0)=1; y_2(0)=0;  \eta =10;  0 \leq t \leq 10$.
+
+Since \textbf{DDASLX} solves ``index 0'' or ``index 1'' problems, the problem must
+be transformed to one of ``index 1''.  Differentiating the last equation results in an
+``index 1'' system, so the
+integrator applies.  The given equation must remain satisfied, so it is added as
+a $constraint$.  Without this step the solution may seriously drift
+away from the given equation.  Thus the example
+uses a  program option, and provides derivative and residual information for the index 1
+system and the constraint.
+
+Differentiating the last equation twice results in an ``index 0'' system.
+The equations for the ``index 2'' and ``index 1''
+systems are added as constraints and the integration is done once again.
+The results agree within the tolerances requested, as expected.
+This ``index 1'' problem, with the requested accuracy, takes more
+residual evaluations than the ``index 0'' problem.
+However, obtaining the ``index 0'' problem requires two derivative computations
+(analytic), whereas the ``index 1'' problem requires one derivative.
+
+This example illustrates a mathematical change of the problem so that
+\textbf{DDASLX} applies.  Then constraints are added to the stated
+problem, in two ways.  The two initial derivative values $y^{\prime}_1,
+y^{\prime}_2;$ are computed using the routine \textbf{DDASLS}.  Otherwise
+the integrator uses default values and linear solver code.  The file
+used, \textbf{drddasl1.f} and the result of running this problem are
+given at the end of this chapter.
+
+\subsubsection{A Stiff ODE Test Problem\label{stiff_ode}}
+Problem E5 of Enright and Pryce, see \cite{Enright:1987:TFP},
+is an explicit stiff ODE, which we express as
+\begin{align*}
+  \mathbf{g}&=
+  \begin{bmatrix}
+    -b_{1}y_{1}-b_{2}y_{1}y_{3}-y_{1}^{\prime}\\
+    b_{1}y_{1}-b_{3}y_{2}y_{3}-y_{2}^{\prime}\\
+    b_{1}y_{1}-b_{2}y_{1}y_{3}+b_{4}y_{4}-b_{3}y_{2}y_{3}-y_{3}^{\prime}\\
+    b_{2}y_{1}y_{3}-b_{4}y_{4}-y_{4}^{\prime}
+  \end{bmatrix}\\
+  \mathbf{y}(0)&=
+  \begin{bmatrix}
+    b_{0}=1.76\times10^{-3}\\
+    0\\
+    0\\
+    0
+  \end{bmatrix}\\
+  \mathbf{b}&=
+  \begin{bmatrix}
+    b_{1}=7.89\times10^{-10}\\
+    b_{2}=1.1\times10^{7}\\
+    b_{3}=1.13\times10^{9}\\
+    b_{4}=1.13\times10^{3}
+  \end{bmatrix}
+\end{align*}
+The derivative matrix required by \textbf{DDASLX} is
+\begin{multline*}
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}}+c_{j}
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}^{\prime}}
+  =\frac{\partial \mathbf{g}}{\partial \mathbf{y}}-c_{j}I_{4}=\\
+  {\small
+    \hspace{-15pt}\left[
+      \begin{array}{*{4}{@{}c}}
+        -b_{1}-b_{2}y_{3}-c_{j} & 0 & -b_{2}y_{1} & 0\\
+        b_{1} & -b_{3}y_{3}-c_{j} & -b_{3}y_{2} & 0\\
+        b_{1}-b_{2}y_{3} & -b_{3}y_{3} & -b_{2}y_{1}-b_{3}y_{2}-c_{j} & b_{4}\\
+        b_{2}y_{3} & 0 & b_{2}y_{1} & -b_{4}-c_{j}
+      \end{array}
+    \right]
+  }
+\end{multline*}
+
+We integrate between each value of a list of output points $t_{j}%
+,\;j=1,...,k.$  In Example 4 below we will show how to efficiently integrate
+variational equations with respect to the parameters $b_{i},\;i=0,1,2,3,4.$
+The subroutine \textbf{DDASSF2} defines the required system information of
+this problem.  The main program \textbf{DRDDASL2} integrates the system over
+the sequence of intervals $\left[  t_{i-1},t_{i}\right]  ,\;i=1,...,k.$  The
+partial derivative formulas are used \textbf{(INFO(5)=1)} in the first
+integration, while finite differences \textbf{(INFO(5)=0)} are used instead
+of the formulas for the second integration.  This usage of \textbf{DDASLX}
+illustrates a simple form for integrating a system of DAEs.  Due to the fact that the
+upper triangle for the derivative matrix has three non-zeros, a special method is used for
+this  problem.  Three plane rotations are constructed from the right to obtain a lower
+triangular matrix.  The solving step uses this decomposition.  Both of these steps are
+added to the subroutine \textbf{DDASSF2}, indicated by the option \textbf{INFO(16)=2}.
+[The code and output listing are available in the download.]
+
+\subsubsection{A DAE Problem, the Swinging Pendulum\label{swing1}}
+This material is found in \cite[p. 154]{Brenan:1996:DAE}.  A ball of mass
+$m,$ swinging on a thin bar, with dynamic tension $y_{5}$, of length $l$ under
+the influence of gravity $g,$ is expressed as the first order system
+\begin{align*}
+  y_{1}^{\prime}&=y_{3}\\
+  y_{2}^{\prime}&=y_{4}\\
+  m y_{3}^{\prime}&=-y_{1}y_{5}\\
+  m y_{4}^{\prime}&=-y_{2}y_{5}-mg\\
+  y_{1}^{2}+y_{2}^{2}&=l^{2}.
+\end{align*}
+This system cannot be solved by \textbf{DDASLX}, since it is
+an ``index 3'' problem.  By differentiating the last equation twice and
+substituting from the other equations, one obtains two additional algebraic
+equations $y_{1}y_{3}+y_{2}y_{4}=0$ and $m(y_{3}^{2}+y_{4}^{2})%
+-mgy_{2}-l^{2}y_{5}=0$.  Use of only the final equation, in place of the given
+constraint, results in an ``index 1'' problem.  Thus \textbf{DDASLX} can be
+used to integrate the system.  As noted in Petzold, page 155--156, there is a
+tendency for the integrated system to drift from the two
+alternate constraints.  These residuals become large particularly after long
+integration times.  In Section~\ref{swing2} below we show how to stay on these
+constraints.  The system is expressed by
+\begin{equation*}
+  \mathbf{g}=
+  \begin{bmatrix}
+    y_{3}-y_{1}^{\prime}\\
+    y_{4}-y_{2}^{\prime}\\
+    -y_{1}y_{5}-my_{3}^{\prime}\\
+    -y_{2}y_{5}-my_{4}^{\prime}-mg\\
+    m( y_{3}^{2}+y_{4}^{2})  -mgy_{2}-l^{2}y_{5}
+  \end{bmatrix}.
+\end{equation*}
+
+The partial derivatives are
+\begin{equation*}\hspace{-10pt}
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}}+c_{j}\frac{\partial
+    \mathbf{g}}{\partial \mathbf{y}^{\prime}} =
+  \begin{bmatrix}
+    -c_{j} & 0 & 1 & 0 & 0\\
+    0 & -c_{j} & 0 & 1 & 0\\
+    -y_{5} & 0 & -mc_{j} & 0 & -y_{1}\\
+    0 & -y_{5} & 0 & -mc_{j} & -y_{2}\\
+    0 & -mg & 2my_{3} & 2my_{4} & -l^{2}
+  \end{bmatrix}.
+\end{equation*}
+
+Our main program \textbf{DRDDASL3} integrates this system over the
+interval $0\leq t\leq10$.  The subroutine \textbf{DDASSF3} illustrates
+additional features that our software permits.  For the values
+\textbf{IRES=1} and \textbf{IRES=2,} function and partial derivative
+information is provided.  For \textbf{IRES=3} and \textbf{IRES=4} we
+factor and then solve a system of five algebraic equations.  In this
+example the matrix is reduced to upper triangular form using five
+plane rotations.  The rotation data that eliminates the entry at row
+3, column 1 also eliminates the entry at row 4, column 2.  Thus the
+first rotation does double duty.  The triangularization requires three
+more plane rotations, applied between the main diagonal and row 5,
+columns 2, 3, and 4.  To avoids divides in the solving step, signaled
+by \textbf{IRES=4}, we reciprocate the diagonals of the upper
+triangular matrix during the decomposition.  It it not required that a
+solution of the linear system be provided in the routine
+\textbf{DDASS3}.  We override the default solver to give an example of
+this feature applied to this special problem.  [The code and output
+listing are available in the download.]
+
+\subsubsection{Variational Equations with an ODE Test Problem}
+The test problem E5, see Section~\ref{stiff_ode} on page~\pageref{stiff_ode},
+involves the vector of parameters $\mathbf{p}=[b_{0},\ b_{1},\ b_{2}, b_{3},
+b_{4}]^T$.  In applications where this vector itself must be varied, one often
+needs to compute the variational equations $\partial \mathbf{y}/\partial
+p_{i},\ i$ = 0, 1, 2, 3, 4. Total differentiation of the DAE system
+$\mathbf{g}(t,\mathbf{y}, \mathbf{y}^{\prime}) =\mathbf{0}$ with respect to
+$\mathbf{p}$ results in the variational DAE system
+\begin{equation*}
+  \frac{d \mathbf{g}}{d\mathbf{p}}\equiv\frac{\partial \mathbf{g}}{\partial
+    \mathbf{y}}\frac{\partial \mathbf{y}}{\partial \mathbf{p}}
+  +\frac{\partial \mathbf{g}}{\partial
+    \mathbf{y}^{\prime}}\frac{\partial \mathbf{y}^{\prime}}{\partial \mathbf{p}}
+  +\frac{\partial \mathbf{g}}{\partial \mathbf{p}}=0.
+\end{equation*}
+In this ODE example note that
+\begin{align*}
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}}&=
+  \begin{bmatrix}
+    -b_{1}-b_{2}y_{3} & 0 & -b_{2}y_{1} & 0\\
+    b_{1} & -b_{3}y_{3} & -b_{3}y_{2} & 0\\
+    b_{1}-b_{2}y_{3} & -b_{3}y_{3} & -b_{2}y_{1}-b_{3}y_{2} & b_{4}\\
+    b_{2}y_{3} & 0 & b_{2}y_{1} & -b_{4}
+  \end{bmatrix}\\
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}^{\prime}}&=-I_{4,}\text{ and}\\
+  \frac{\partial \mathbf{g}}{\partial \mathbf{p}}&=
+  \begin{bmatrix}
+    0 & -y_{1} & -y_{1}y_{3} & 0 & 0\\
+    0 & y_{1} & 0 & -y_{2}y_{3} & 0\\
+    0 & y_{1} & -y_{1}y_{3} & -y_{2}y_{3} & y_{4}\\
+    0 & 0 & y_{1}y_{3} & 0 & -y_{4}
+  \end{bmatrix}
+\end{align*}
+
+Thus the variational part of the DAE system is
+\begin{equation*}
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}}
+  \frac{\partial \mathbf{y}}{\partial \mathbf{p}}-\frac{\partial
+    \mathbf{y}^{\prime}}{\partial \mathbf{p}}+
+  \frac{\partial \mathbf{g}}{\partial \mathbf{p}}=0.
+\end{equation*}
+The initial conditions are
+\begin{equation*}
+  \frac{\partial \mathbf{y}}{\partial \mathbf{p}}\rfloor_{t=0}=
+  \begin{bmatrix}
+    1 & 0 & 0 & 0 & 0\\
+    0 & 0 & 0 & 0 & 0\\
+    0 & 0 & 0 & 0 & 0\\
+    0 & 0 & 0 & 0 & 0
+  \end{bmatrix}.
+\end{equation*}
+The twenty-four unknowns for \textbf{DDASLX} are the four state equations for
+$\mathbf{y}$ and $\mathbf{y}^{\prime}$, followed by the twenty variational
+equations involving $\partial \mathbf{y}/\partial \mathbf{p}$ and $\partial
+\mathbf{y}^{\prime}/\partial \mathbf{p}$.  However, this combined system has a
+simple derivative matrix structure: There are six diagonal blocks each with
+the same $4\times4$ matrix, namely $(\partial \mathbf{g}/\partial
+\mathbf{y})-c_{j}I_{4}$.  The right-hand sides are different for each block.
+This observation obviates the need to deal with a $24\times24$ matrix.
+Instead we store and factor the $4\times4$ matrix.  With each request to solve
+a system, we have reduced the problem to the same $4\times4$ matrix and six
+different right-hand sides.  Thus the functionality we have provided within
+\textbf{DDASLX} for storing derivatives and solving systems has saved storage
+and work when dealing with variational equations.  This is implemented within
+the main program using reverse communication.  The main program
+\textbf{DRDDASL4} integrates the system and variational equations over the
+sequence of intervals $\left[ t_{i-1},t_{i}\right] ,\;i=1,...,k$.  Partial
+derivative formulas are used \textbf{(INFO(5)=1)} in the integration.  [The
+code and output listing are available in the download.]
+
+\subsubsection{Swinging Pendulum Problem and Higher Index
+  Constraints\label{swing2}}
+
+Here we deal with the drift issue mentioned in Section~\ref{swing1}.  To this
+end we consider the ``index 1'' and ``index 0''  problem with the additional
+constraints, including the constraint of total energy,
+\begin{equation*}
+  \mathbf{g}=
+  \begin{bmatrix}
+    y_{3}-y_{1}^{\prime}\\
+    y_{4}-y_{2}^{\prime}\\
+    -y_{1}y_{5}-my_{3}^{\prime}\\
+    -y_{2}y_{5}-my_{4}^{\prime}-mg\\
+    m(y_{3}^{2}+y_{4}^{2})  -mgy_{2}-l^{2}y_{5}\\
+    y_{1}y_{3}+y_{2}y_{4}\\
+    y_{1}^{2}+y_{2}^{2}-l^{2}\\
+    (1/2)(y_{3}^{2}+y_{4}^{2})+gy_{2}
+  \end{bmatrix} = 0.
+\end{equation*}
+The first five rows of this $\mathbf{g}=\mathbf{F}$ are provided as part of the DAE.  The
+last three rows  or $\mathbf{G}=0$ are satisfied using the option to project onto constraints.
+The $8 \times 5$ derivative matrix is
+\begin{equation*}\hspace{-10pt}
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}}+c_{j}
+  \frac{\partial \mathbf{g}}{\partial \mathbf{y}^{\prime}}=
+  \begin{bmatrix}
+    -c_{j} & 0 & 1 & 0 & 0\\
+    0 & -c_{j} & 0 & 1 & 0\\
+    -y_{5} & 0 & -mc_{j} & 0 & -y_{1}\\
+    0 & -y_{5} & 0 & -mc_{j} & -y_{2}\\
+    0 & -mg & 2my_{3} & 2my_{4} & -l^{2}\\
+    y_{3} & y_{4} & y_{1} & y_{2} & 0\\
+    2y_{1} & 2y_{2} & 0 & 0 & 0 \\
+    0      &g       &y_{3} & y_{2} & 0
+  \end{bmatrix}.
+\end{equation*}
+
+The main program \textbf{DRDDASL5} and subroutines, \textbf{DDASSFA} for ``index 1'' and
+\textbf{DDASSFB} for ``index 0'', combine to use forward communication
+to evaluate $\mathbf{g}$ and required partial derivatives.
+See Section~\ref{swing3} for
+the equivalent simulation but with numerical differentiation used
+in place of analytic partial derivatives.
+
+[The code and output listing are available in the download.]
+
+\subsubsection{A Nonlinear Elliptic PDE Using an Iterative Linear Solver}
+
+This example shows how \textbf{DDASLX} can be applied to a system of ODEs, but
+with a large number of unknowns.  The linear solve step required by the
+integrator is implemented with a ``GMRES'' iterative solver,
+\cite{Golub:1996:GVL}.  The code for the solver is located in the file
+\textbf{drddasl6.f} that evaluates the residual function and the partial
+derivatives.
+
+This example primarily illustrates setting program options that allow
+replacement of the default linear solver and eliminating the dense partial
+derivative matrix storage requirements.  The problem, see
+\cite{Hayder:1997:HKM}, is a nonlinear, elliptic equation on the unit square,
+\begin{equation*}
+  F(u)=\nabla^2 u+\lambda e^u=0.
+\end{equation*}
+We use the boundary condition is $u=0$ on the edge of the square, and
+$\lambda=6$ for the parameter.  For illustration, we solve for an approximate
+solution $F(u)=0$ by ``continuation.''
+
+That is, we introduce the artificial continuation variable $t$ and integrate
+the equation $F(u)=\partial u/\partial t$, with the initial values
+$u=0$.  We continue integrating in $t>0$ as $\partial u/\partial t
+\rightarrow 0$.  When we fix a sufficiently large $t>0$, $F(u)=0$,
+approximately.
+
+Our conversion to a discrete problem uses a nine-point formula.  This formula
+is based on a novel blending of the difference approximations $(1/3)\Delta_h
+U$ plus the rotated formula $(2/3)\Delta_h^\times U$.  This development is
+found on pages 192--194, \cite{Forsythe:1960:FWW}. The blending parameters are
+reversed from those found on page 194.  This strong second order difference
+scheme relies on a uniform grid, in both space dimensions.  This yields the
+following system of ODEs, using the well-known Method of Lines:
+
+Define
+\begin{equation*}
+  u_{i,j}=u(x_i,y_j), x_i=ih, i=0,1,\ldots, n+1;
+\end{equation*}
+\begin{equation*}
+  y_j=jh,\ j=0,1,\ldots,n+1;\ h=1/(n+1)
+\end{equation*}
+The ODE system becomes
+\begin{multline*}
+  g_{i,j} = -8u_{i,j} + u_{i-1,j-1} + u_{i-1,j} + u_{i-1,j+1}\\
+  + u_{i,j-1} + u_{i,j+1} + u_{i+1,j-1} + u_{i+1,j} + u_{i+1,j+1}\\
+  + 3h^2\lambda e^{u_{i,j}}-3h^2 \frac{\partial u_{i,j}}{\partial t}=0.
+\end{multline*}
+
+This system has $n^2$ components, and the initial values are set to
+$u_{i,j}=0$ for all $i,j$.  The edge values for $u_{i,j}$ remain fixed at the
+value zero, while the interior values assume non-zero values as the integration
+proceeds.
+
+[The code and output listing are available in the download.]
+
+\subsubsection{A Banded Linear System}
+This example illustrates using \textbf{DDASLX} in the case of banded
+matrices $D=(\partial \mathbf{g}/\partial \mathbf{y})+c
+(\partial \mathbf{g}/\partial \mathbf{y}^{\prime})$.
+
+Define the linear system as $\mathbf{g}=
+\mathbf{A}\mathbf{y}-\mathbf{y}^{\prime}$. The $n \times n$ matrix $\mathbf{A}$
+is constant, and lower triangular.  It is also banded. The respective
+lower and upper
+bandwidths are $ml=5$ and $mu=0$.  These are defined in the same way as
+found in  Linpack, \cite{Dongarra:1979:LUG}.
+
+The matrix size is $n=25$ and the initial value
+is  $\mathbf{y}(0)=\mathbf{y}_{0}=\mathbf{e}_{1}$, the first column of
+the $n \times n$ identity matrix, $\mathbf{I}_{n}$.
+
+All diagonal values of $\mathbf{A}$ are real and negative, so the analytic
+solution
+$\mathbf{y}(t)=e^{\mathbf{A}t}\mathbf{y}_0$ is bounded for $t>0$. Note that
+$D=\mathbf{A}-c\mathbf{I}_{n}$ has the same bandwidth dimensions as $\mathbf{A}$.
+
+This problem is integrated over a sequence of intervals $[t_{i-1},t_{i}]$,
+$i=1,\ldots,k$, $(k=6)$.  Starting with $t_0=0$ and $t_1=0.01$, each $t_i=10t_{i-1}$,
+$i=2,\ldots,k$.  All  intervals are essentially an order of magnitude
+longer than the previous one.  An absolute error tolerance is used.
+
+The main program \textbf{DRDDASL7} first integrates this system with forward communication
+to define the residual function $\mathbf{g}$ and the banded partial matrix $D$.
+The Linpack banded solver that comes with  \textbf{DDASLX} is used for the linear algebra
+in this first case.
+
+A second integration  uses reverse communication to define everything.
+This includes evaluating the residual function,
+the partial matrix, and  solving linear
+systems with this partial matrix.
+
+[The code and output listing are available in the download.]
+
+\subsubsection{Swinging Pendulum Problem and Higher Index
+  Constraints - Numerical Differentiation\label{swing3}}
+This example is identical to Section~\ref{swing2} except for the use of 
+numerical instead of analytic derivatives.  The numerical differentiation
+routine {\bf DJACG}, Chapter 8.4, is used.  This example may serve as a guide for 
+a DAE integration when analytic derivatives of ${\bf g}$, including constraint
+equations,  must be computed numerically.
+
+[The code and output listing are available in the download if the option for
+numerical differentiation is included.  The documentation for the numerical
+differentiation can be found at
+\url{http://mathalacarte.com/cb/mom.fcg/ya89}.]
+
+\subsection{Functional Description}
+Subroutine \textbf{DDASLX} uses the backward differentiation formulas of
+orders one through five, as described in \cite[pp. 115--129]{Brenan:1996:DAE}
+or \cite{Petzold:1982:DAS}, to solve a system of the above form for $y$ and
+$y^{\prime}$. Values for $y$ and $y^{\prime}$ at the initial time must be
+given as input in arrays \textbf{Y(1:NEQ)} and \textbf{YPRIME(1:NEQ)}.  These
+values must be consistent.  Thus if $t,y,y^{\prime}$ are the given initial
+values, they must satisfy $\mathbf{F}(t,y,y^{\prime}) =0$.  However, see
+\textbf{INFO(11)} above.  The routine solves the system from \textbf{T} to
+\textbf{TOUT}.  One can continue the solution to get results at additional
+values of \textbf{TOUT}.  This is the \emph{interval} mode of operation.
+Intermediate results can also be obtained by using the
+\emph{intermediate-output} capability.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+The routine \textbf{DDASLX} is not ``thread safe.''  Nor is it permitted to
+use the routine recursively.  For example you must not call \textbf{DDASLX} in
+the routine \textbf{DDASF}.  See page~\pageref{task_int} for error conditions
+and the flags returned in \textbf{IDID}.
+
+All error diagnostics and messages are handled by calls to the library
+subroutines MESS and DMESS or SMESS of Chapter~19.3. The user can change the
+printing and/or stopping actions taken by the error message program or change
+the file to which such messages are sent by calling MESS.
+
+
+\subsection{Supporting Information}
+The source language is ANSI Fortran~77.  The original code author is
+L. R.  Petzold.  Changes include a subroutine name change, using one
+external subprogram for system information, installation of reverse
+communication, handling constraints, computing initial derivative
+values, adding S\"oderlind's stepsize selection algorithm, and writing
+this document.  These were made by R. J.  Hanson during the period
+1998--2008, with advice from F. T. Krogh.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+  \bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+  DDASLX & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+    amach, daxpy, dcopy, ddas1, ddasco, ddasdb, ddasf, ddasgh,
+    ddasin, ddasj, ddaslv, ddaslx, ddasnm, ddastp, ddaswt, ddot,
+    dgbfa, dgbsl, dgefa, dgesl, dmess, dnrm2, drot, drotg,
+    dscal, dswap, idamax, mess\rule[-8pt]{0pt}{10pt}}\\
+  DDASLS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+    d1mach, daxpy, dcopy, dscal, dswap, dasum, dgbfa, dgbsl,
+    dgefa, dgesl\rule[-8pt]{0pt}{10pt}}\\
+  SDASLX & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+    amach, dcopy, dnrm2, isamax, mess, saxpy, scopy, sdas1, sdasco,
+    sdasdb, sdasf, sdasgh, sdasin, sdasj, sdaslv, sdaslx, sdasnm,
+    sdastp, sdaswt, sdot, sgbfa, sgbsl, sgefa, sgesl, smess, snrm2,
+    srot, srotg, sscal, sswap\rule[-8pt]{0pt}{10pt}}\\
+  SDASLS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+    r1mach, saxpy, scopy, sscal, sswap, sasum, sgbfa, sgbsl,
+    sgefa, sgesl}\\
+\end{tabular}
+
+\begcode
+\medskip
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDDASL1}\vspace{10pt}
+\lstinputlisting{\codeloc{ddasl1}}
+
+
+\centerline{\bf \large ODDDASL1}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{ddasl1}}
+
+
+\end{document}

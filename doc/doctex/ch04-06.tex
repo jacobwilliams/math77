@@ -1,0 +1,261 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 4.6 Solution of a Positive-Definite System \hbox{with Cholesky Factorization}
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine computes the solution vector ${\bf x}$ for a system of
+equations of the form
+\begin{equation}
+\label{O1}P{\bf x}={\bf d},
+\end{equation}
+where $P$ is an N$\times $N positive-definite symmetric matrix, and ${\bf d}$ is an
+N-vector. This subroutine also returns the Cholesky factor of $P$ and thus is
+applicable where computing the Cholesky factor is the objective.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Double Precision}
+
+\begin{description}
+\item[DOUBLE PRECISION]  {\bf P}(LDP, $\geq $N) [LDP $\geq $ N]{\bf , D}($%
+\geq $N$)${\bf , U, TOL}
+
+\item[INTEGER]  \ {\bf LDP, N, IERR}
+\end{description}
+
+Assign values to P(,), LDP, N, D(), U, and TOL.
+$$
+\fbox{{\bf CALL DCHOL (P, LDP, N, D, U, TOL, IERR)}}
+$$
+The solution vector ${\bf x}$ will be stored in D(). Additional computed
+quantities that may be of interest to the user in some situations will be
+stored in P(,) and U.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[P(,)]  \ [inout] On entry this array must contain the N$\times $N
+symmetric positive-definite matrix $P$ of Eq.\,(1). It suffices to provide only
+the elements on and above the diagonal. On return this array will contain the
+N$\times $N upper triangular matrix F defined by Eq.\,(2) on and above the diagonal
+positions of the array P(,). Locations of the array P(,) below the diagonal
+will not be referenced or modified by this subroutine.
+
+\item[LDP]  \ [in] Dimension of the first subscript of the storage array
+P(,). Require LDP $\geq $ N.
+
+\item[N]  \ [in] Order of the matrix $P$. Require N $\geq 1.$
+
+\item[D()]  \ [inout] On entry D() must contain the vector ${\bf d}$ of Eq.
+(1). On return D() contains the solution vector ${\bf x}$ for Eq.\,(1).
+
+\item[U]  \ [inout] If U contains the number ${\bf u}$ of Eq.\,(10) or (15)
+respectively on entry, then on return U will contain the number $\rho $ of
+Eq.\,(11) or (16) respectively. If the user is not interested in having the
+number $\rho $ computed, U should be zero on entry and will be unchanged on
+return.
+
+\item[TOL]  \ [in] A user-provided relative tolerance parameter to be used
+in the conditioning test of Eq.\,(17). We suggest setting TOL to a value of $%
+10^{-(k+1)}$ where $k=\min (k_A$, $k_b)$. Here $k_A$ is the user's estimate
+of the number of significant decimal digits in the elements of the matrix $A$
+and $k_b$ is the corresponding estimate for ${\bf b}$. See Eq.\,(7) or (12)
+for the definitions of $A$ and ${\bf b}$. If the TOL input is $<\varepsilon $,
+where $\varepsilon $ is the relative machine precision $(i.e$. the smallest
+positive number such that $1.0+\varepsilon \neq 1.0$ in the machine's
+floating point arithmetic), then $\varepsilon $ is used for TOL internally.
+
+\item[IERR]  \ [out] On return this is set to~0 if $t_{\min }$ defined in
+Eq.\,(17) is greater than~0. Otherwise results are of
+questionable validity and $|$IERR$|$ will equal the index of the equation
+that resulted in the value for $t_{\min }$. See Section E for more details.
+\end{description}
+
+\subsubsection{Modifications for Single Precision}
+
+We recommend the use of double precision for this computation except on
+machines such as the Cray that have $10^{-14}$ precision in single
+precision. To use single precision change DCHOL to SCHOL, and the DOUBLE
+PRECISION type statement to REAL.
+
+\subsection{Examples and Remarks}
+
+Consider the least-squares problem $A{\bf x}\simeq {\bf b}$ where $A$ is the
+3~by~2 matrix and ${\bf b}$ is the 3-vector defined by the DATA statements
+in the program DRDCHOL below. This program forms normal equations by
+computing $P=A^TA$ and ${\bf d}=A^T{\bf b}$. It also computes u $={\bf b}^T%
+{\bf b}$. It uses the subroutine DCHOL to solve the normal equations $P{\bf x%
+}={\bf d}$, and to compute the quantity RNORM $=\rho =\Vert {\bf b}-A{\bf x}%
+\Vert $. Output from this program is given in the file ODDCHOL.
+
+For programming convenience one may prefer to store the matrix $A$ and the
+vector ${\bf b}$ together in the same array. The code in DRDCHOL2 shows how
+this example can be programmed storing $A$ and ${\bf b}$ together in the
+array AB() and using the array PDU() to hold $P$, ${\bf d}$, and $u.$
+
+\subsection{Functional Description}
+
+Given the problem $P{\bf x}={\bf d}$, where $P$ is an N$\times $N
+positive-definite symmetric matrix, there exists an upper triangular
+N$\times $N matrix $F$ satisfying
+\begin{equation}
+\label{O2}F^TF=P
+\end{equation}
+Eq.\,(2) defines the Cholesky decomposition of $P$. The upper triangular
+elements of $F$ will be computed from those of $P$ by the following
+equations, where $i=1$, ..., N.
+\begin{align}
+\label{O3}g_i&=p_{i,i}-\sum_{k=1}^{i-1}f_{k,i}^2\\
+\label{O4}f_{i,i}&=g_{i}^{1/2}\\
+\label{O5}f_{i,j}&=\frac{\displaystyle p_{i,j}-\sum_{k=1}^{i-1}f_{k,i}f_{k,j}%
+}{f_{i,i}},\ \ j=i+1,...,\text{N}\hspace{-2in}
+\end{align}
+In these formulas the summation is to be skipped when $i=1.$
+
+After computing $F$ the subroutine solves the lower triangular system of
+equations,%
+\begin{equation*}
+F^T{\bf y}={\bf d}
+\end{equation*}
+and then computes the vector ${\bf x}$ which satisfies $P{\bf x}={\bf d}$ by
+solving the upper triangular system%
+\begin{equation*}
+F{\bf x}={\bf y}
+\end{equation*}
+Besides computing the solution vector ${\bf x}$ this subroutine uses the
+input number $u$ given in the Fortran variable U to compute
+\begin{equation}
+\label{O6}\rho =\left[ \max (0,u-{\bf y}^T{\bf y})\right] ^{1/2}
+\end{equation}
+This number $\rho $ is stored in U on return. If the problem $P{\bf x}={\bf d%
+}$ arose as the system of normal equations for a least-squares problem and
+if $u$ was computed appropriately by the user then $\rho $ represents the
+norm of the residual vector for the least-squares problem.
+
+Specifically if the user wishes to solve the least-squares problem of
+minimizing
+\begin{equation}
+\label{O7}\left\| {\bf b}-A{\bf x}\right\| =\left[ \left( {\bf b}-A{\bf x}%
+\right) ^T\left( {\bf b}-A{\bf x}\right) \right] ^{1/2}
+\end{equation}
+then $P$, ${\bf d}$, and $u$ should be initialized as
+\begin{align}
+\label{O8}P&=A^TA\\
+\label{O9}{\bf d}&=A^T{\bf b}\\
+\label{O10}u&={\bf b}^T{\bf b}
+\end{align}
+Then theoretically, the quantity, $u-{\bf y}^T{\bf y}$ of Eq.\,(6) will be
+nonnegative and the number $\rho $ of Eq.\,(6) will have the interpretation
+\begin{equation}
+\label{O11}\rho =\left\| {\bf b}-A{\bf x}\right\|
+\end{equation}
+More generally, if the user is solving the weighted least-squares problem of
+minimizing
+\begin{equation}
+\label{O12}\left[ \left( {\bf b}-A{\bf x}\right) ^TW\left( {\bf b}-A{\bf x}%
+\right) \right] ^{1/2}
+\end{equation}
+where $W$ is a positive definite symmetric matrix, then $P$, ${\bf d}$, and $%
+u$ should be initialized as
+\begin{align}
+\label{O13}P&=A^TWA\\
+\label{O14}{\bf d}&=A^TW{\bf b}\\
+\label{O15}u&={\bf b}^TW{\bf b}
+\end{align}
+Then, theoretically, the quantity $u-{\bf y}^T{\bf y}$ of Eq.\,(6) will be
+nonnegative and the number $\rho $ of Eq.\,(6) will have the interpretation
+\begin{equation}
+\label{O16}\rho =\left[ \left( {\bf b}-A{\bf x}\right) ^TW\left( {\bf b}-A%
+{\bf x}\right) \right] ^{1/2}
+\end{equation}
+The Cholesky factor matrix $F$ will appear in the upper triangular portion
+of the array P(,) on return. If IERR $\geq 0$, the user can input this
+matrix $F$ to the library subroutine DCOV2 of Chapter~4.2 to compute the
+unscaled covariance matrix for the associated least-squares problem. This
+requires building the IP() array: IP(I) = I, for I $=1$, ..., N.
+
+Theoretically the numbers $g_i$ of Eq.\,(3) will be strictly positive for all
+$i$ if and only if the symmetric matrix $P$ is positive-definite. If all $%
+g_i $ are positive but the ratio $g_i/p_{i,i}$ is very small for some $i$
+this is an indication that the problem is ill-conditioned. The square of the
+relative tolerance parameter TOL is used to test this ratio. Let
+\begin{equation}
+\label{o17}t_{\min }=\min _{1\leq i\leq \text{N}}\left\{ g_i-(TOL)^2\times
+|p_{i,i}|\right\} .
+\end{equation}
+If $t_{\min }\geq 0$, then IERR is set to~0. Otherwise let $m$ be a value of
+$i$ that gives the minimum value in Eq.\,(17). Then IERR is set to $m$ if $%
+g_m>0$, and is set to $-m$ otherwise. See Section E below for more details.
+
+If one knows or suspects that the least-squares problem is ill-conditioned
+it is suggested that the Singular Value Analysis subroutine, Chapter~4.3, be
+used to obtain a more complete analysis and a more reliable solution for the
+problem.
+
+A nonnegative definite symmetric matrix has a Cholesky factor even if it is
+singular. In computing a Cholesky factor for such matrices this subroutine
+does the following: If $g_i$ of Eq.\,(3) is nonpositive, Eqs.~(4--5) are
+replaced by
+\begin{equation}
+\label{O18}f_{i,j}=0,\quad j=i,i+1,...,\text{N}
+\end{equation}
+When solving the triangular systems below Eq.\,(5), if $f_{i,i}=0$ the
+solution components $y_i$ and $x_i$ are set to zero. If $P$ is a singular
+nonnegative definite matrix, the matrix $F$ produced in this way is its
+(nonunique) Cholesky factor, $i.e.$, it satisfies Eq.\,(2). In such a case
+Eq.\,(1) may or may not have a solution and the vector ${\bf x}$ produced in
+this way is the solution only if a solution exists.
+
+\subsection{Error Procedures and Restrictions}
+
+If $t_{\min }<0$ in Eq.\,(17), the subroutine sets IERR nonzero as
+indicated above. When IERR $< 0$, at least one row of the augmented
+matrix [upper triangle of $P$, $D$] will have been set to zero.
+
+If IERR $\neq 0$ we suggest that the user apply the Singular Value Analysis
+subroutine, Chapter~4.3, to the associated least-squares problem.\vfill
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCHOL & \hspace{.3in} AMACH, DCHOL\rule[-5pt]{0pt}{8pt}\\
+SCHOL & \hspace{.3in} AMACH, SCHOL\\
+\end{tabular}
+
+Programmed by: C. L. Lawson, JPL, May~1969.
+
+Program Revised by: F. T. Krogh, JPL, September~1991.
+
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDCHOL}\vspace{10pt}
+\lstinputlisting{\codeloc{dchol}}
+
+\vspace{30pt}\centerline{\bf \large ODDCHOL}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dchol}}
+
+\newpage\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDCHOL2}\vspace{10pt}
+\lstinputlisting{\codeloc{dchol2}}
+
+\vspace{30pt}\centerline{\bf \large ODDCHOL2}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dchol2}}
+\end{document}

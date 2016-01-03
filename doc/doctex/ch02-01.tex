@@ -1,0 +1,164 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 2.1 Inverse Hyperbolic Functions
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms compute the inverse hyperbolic functions.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf X, U, SASINH, SACOSH, SATANH, SACTNH, SASECH, SACSCH}
+\end{description}
+
+Assign a value to X and obtain the desired value of an inverse hyperbolic
+function using one of the following:
+\begin{center}
+\begin{tabular}{l@{\hspace{.3in}}l}
+\fbox{\bf U = SASINH(X)} & \fbox{\bf U = SACOSH(X)}\\\\
+\fbox{\bf U = SATANH(X)} & \fbox{\bf U = SACSCH(X)}\\\\
+\fbox{\bf U = SASECH(X)} & \fbox{\bf U = SACTNH(X)}
+\end{tabular}
+\end{center}
+where the functions SASINH, ..., SACTNH compute respectively, the inverse
+hyperbolic: sine, cosine, tangent, cosecant, secant, and cotangent.
+
+\subsubsection{Program Prototype, Double Precision}
+
+For double precision computation use the function names DASINH, DACOSH,
+DATANH, DACSCH, DASECH, and DACTNH and type the argument, function name and
+result double precision.
+
+\subsection{Example and Remarks}
+
+See DRSASINH and ODSASINH for an example of the usage of these subprograms.
+
+\subsection{Functional Description}
+
+\subsubsection{Method}
+
+The basic formulas and valid argument domains are
+\begin{equation*}
+\hspace{-15pt}\begin{array}{ll}
+\asinh(x) = \sgn (x) \ln (|x| + \sqrt {x^2+1})& \text{all }x\\
+\acosh(x) = \ln (x + \sqrt {x^2-1})& x \geq 1\\
+\atanh(x) = \frac{1}{2} \sgn (x) \ln ((1+|x|)/(1-|x|))& |x| < 1\\
+\acsch(x) = \asinh(1/x)& x \neq 0\\
+\asech(x) = \acosh(1/x)& 0 < x \leq 1\\
+\actnh(x) = \atanh(1/x)& |x| > 1
+\end{array}
+\end{equation*}
+To avoid unnecessary loss of relative accuracy as function values approach
+zero, a different method is used whenever the argument of the logarithm
+function would be in the range [1.0,~2.718]. In this range the argument for
+acosh or atanh is converted to an argument for asinh, and asinh is computed
+by argument reduction to the interval [0.0,~0.125326] followed by evaluation
+of its Taylor series. The number of terms needed in this series is
+determined by use of the System Parameters subprogram, Chapter~19.1. The
+prestored coefficients will support accuracy to about 25 significant decimal
+digits.
+
+For large arguments the formulas involving $x^2$ are reformulated to avoid
+unnecessary overflow. Specifically, when $x > 10^{16}$ it is presumed that $%
+x^2 \pm 1$ will not be distinguishable from $x^2$, and thus the formulas
+given above for asinh and acosh are replaced by
+\begin{align*}
+\asinh(x) &= \sgn (x) [\ln (2) + \ln (|x|)], \quad \text{and}\\
+\acosh(x) &= \ln (2) + \ln (x)
+\end{align*}
+Let $\Omega $ denote the machine overflow limit and $\rho $ denote
+the difference between $1.0$ and the next smaller machine number. Define $a
+= \frac{1}{2} \ln (2/\rho )$ and $b = \ln (2\Omega )$. Then the
+ranges of the computed function values are
+\begin{equation*}
+\begin{array}{l@{\qquad }l}
+|\asinh(x)\,| < b & 0 \leq \acosh(x) < b\\
+|\atanh(x)\,| \leq a & 0 < |\acsch(x)\,| < b\\
+0 \leq \asech(x) < b & 0 < |\actnh(x)\,| \leq a
+\end{array}
+\end{equation*}
+\subsubsection{Accuracy Tests}
+
+The single precision subprograms were tested on an IBM compatible PC
+by comparison with the double precision subprograms at 300,000 to
+800,000 points in the domain of each function.
+Using $\rho = 2^{-23} \approx 0.119 \times 10^{-6}$, which is the relative
+precision of IEEE single precision arithmetic, these tests may be
+summarized as follows:
+\begin{center}
+\begin{tabular}{lcr}
+& \multicolumn{1}{c}{\bf Argument} & \multicolumn{1}{c}{\bf Max. Rel.}\\
+\multicolumn{1}{c}{\bf Function} & \multicolumn{1}{c}{\bf Range} &
+\multicolumn{1}{c}{\bf Error}\\
+SASINH & All $x$ & 0.9 $\rho $\rule[-7pt]{0pt}{8pt}\phantom{~el.}\\
+SACOSH & [1.00, 1.21] & 1.6 $\rho $\phantom{~el.}\\
+ & $x \geq 1.21$ & 0.5 $\rho $\rule[-7pt]{0pt}{8pt}\phantom{~el.}\\
+SATANH & [$-$0.44, 0.44] & 1.3 $\rho $\phantom{~el.}\\
+ & [0.44, 0.92] & 1.3 $\rho $\phantom{~el.}\\
+ & [0.92, 1.0] & 0.5 $\rho $\rule[-7pt]{0pt}{8pt}\phantom{~el.}\\
+SACSCH & $x \neq 0$  & 0.9 $\rho $\rule[-7pt]{0pt}{8pt}\phantom{~el.}\\
+SASECH & [0.0, 0.24]  & 0.8 $\rho $\phantom{~el.}\\
+ & [0.24, 0.68] & 1.2 $\rho $\phantom{~el.}\\
+ & [0.68, 0.88] & 3.2 $\rho $\phantom{~el.}\\
+ & [0.88, 1.] & 989.1 $\rho $\rule[-7pt]{0pt}{8pt}\phantom{~el.}\\
+SACTNH & [1.0, 1.16] & 153.5 $\rho $\phantom{~el.}\\
+ & [1.16, 2.2] & 1.7 $\rho $\phantom{~el.}\\
+ & $x \geq 2.2$ & 1.6 $\rho $\phantom{~el.}
+\end{tabular}
+\end{center}
+The instances of very large relative errors in this table are in regions
+where the slope of the graph of the function is becoming vertical.
+Note that relative errors may be significantly larger on machines
+that do not have proplerly rounded arithmetic.
+
+The functions were tested using identities of the form $x - \sinh(\asinh(x)) =
+0$.  When scaled by the precision of the arithmetic used, the double precision
+and single precision functions had similar perfomance.
+
+\subsection{Error Procedures and Restrictions}
+
+If an argument is outside the valid domain, an error message will be
+issued, and the value zero will be returned.  Error messages are
+processed using the subroutines of Chapter~19.2 with an error level of zero.
+
+\subsection{Supporting Information}
+
+The source language for these subroutines is ANSI Fortran 77.
+
+All double precision entries are in the file DASINH, which also needs
+files: AMACH, DERM1, DERV1, ERFIN, and ERMSG.
+
+All single precision entries are in the file SASINH, which also needs
+files: AMACH, ERFIN, ERMSG, SERM1, and SERV1.
+
+Designed and programmed by C. Lawson and S. Chiu, JPL, 1983. Modified Nov.,
+1988 to use R1MACH and D1MACH.
+
+
+\begin{tabular}{ll@{\hspace{.3in}}ll}
+\multicolumn{4}{c}{\bf Entries\rule[-6pt]{0pt}{8pt}}\\
+DACOSH & DACSCH & SACOSH & SACSCH\\
+DACTNH & DASECH & SACTNH & SASECH\\
+DASINH & DATANH & SASINH & SATANH\\
+\end{tabular}
+
+\begcodenp
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSASINH}\vspace{10pt}
+\lstinputlisting{\codeloc{sasinh}}
+
+\vspace{30pt}\centerline{\bf \large ODSASINH}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sasinh}}
+\end{document}

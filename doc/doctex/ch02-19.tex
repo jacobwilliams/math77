@@ -1,0 +1,693 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-19}
+\begmath 2.19 Incomplete Gamma Function Ratio
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The subroutines described here compute the incomplete gamma function ratios,
+defined by the equations%
+\begin{align*}
+P(a,x)&=\frac 1{\Gamma (a)}\int_0^x e^{-t}t^{a-1}dt\\
+Q(a,x)&=\frac 1{\Gamma (a)}\int_x^\infty e^{-t}t^{a-1}dt
+\end{align*}
+\begin{equation*}
+P(a,x)+Q(a,x)=1.
+\end{equation*}
+These functions are related to several other functions, $viz.$
+
+Chi-squared distribution and complementary Chi-squared distribution
+(see Chapter~15.3):
+\begin{equation*}
+P(\chi ^2|\nu )=P(\nu /2,\chi ^2/2),\quad Q(\chi ^2|\nu )=Q(\nu /2,\chi ^2/2).
+\end{equation*}
+The incomplete gamma functions, when $a>0$:
+\begin{equation*}
+\gamma (a,x)=\Gamma (a)P(a,x),\quad \Gamma (a,x)=\Gamma (a)Q(a,x).
+\end{equation*}
+Tricomi's incomplete gamma function:
+\begin{equation*}
+\gamma ^*(a,x)=x^{-a}P(a,x).
+\end{equation*}
+When $a$ is a small integer or half-integer, incomplete gamma
+functions reduce to simpler special functions, or elementary
+functions, which ought to, and sometimes must be, used in place of
+$P(a,x)$ or $Q(a,x)$ for computation:
+
+\begin{description}
+\item[$\Gamma (0,x) = E_1(x)$] \ \ (See Chapter~2.10.)  Notice this
+cannot be computed as $\Gamma (0) Q(0,x)$.
+
+\item[$P(\frac 12,x) = \erf (\sqrt x),\quad Q(\frac 12,x) = \erfc (\sqrt x)$]%
+ \ \ See Chapters 2.2 and~2.16; SGAMI uses this relation.)
+
+\item[$Q(1,x) = \Gamma (1,x) = e^{-x}.$] \
+\end{description}
+
+The recurrence relation $P(a+1,x) = P(a,x)-x^a e^{-x} / \Gamma (a+1)$
+may be used with the above relations, but errors will accumulate if
+$a$ is large.
+
+Consult [1] for additional relations and mathematical properties.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf A, X, P, Q}
+
+\item[INTEGER]  \ {\bf IERR}
+\end{description}
+
+Assign values to A and X, and obtain P $= P(a,x)$ and Q $=Q(a,x)$ by using
+$$
+\fbox{{\bf CALL SGAMI (A, X, P, Q, IERR)}}
+$$
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A]  \ [in] The parameter of the incomplete gamma function ratio, $a$
+above.
+
+\item[X]  \ [in] The argument of the incomplete gamma function ratio, $x$
+above.  Require ($x > 0$ and $a \geq 0$) or ($x \geq 0$ and $a > 0$).
+
+\item[P]  \ [out] The incomplete gamma function ratio P($a,x).$
+
+\item[Q]  \ [out] The complementary incomplete gamma function ratio Q($a,x).$
+
+\item[IERR]  \ [out] is a status flag that is zero upon return if
+computation was successful. See Section E for description of nonzero values.
+\end{description}
+
+\subsubsection{Program Prototype, Single Precision, Specify Options}
+
+\begin{description}
+\item[REAL]  \ {\bf PTOL, QTOL, XERR}
+
+\item[INTEGER]  \ {\bf MSGOFF}
+\end{description}
+
+Assign values to PTOL, QTOL, XERR and MSGOFF, and specify options for SGAMI
+by using
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SGAMIK (PTOL, QTOL,\\
+XERR, MSGOFF)\\
+\end{tabular}}
+\end{center}
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[PTOL, QTOL]  \ [in] Error tolerances for P and Q, respectively. When
+positive, they indicate relative error tolerances. When negative, they
+indicate the negative of an absolute tolerance. When zero, they indicate the
+default, a relative error tolerance equal to four times the round-off level,
+should be used.
+
+\item[XERR]  \ [in] If non-negative, XERR provides the estimated relative
+error in X. If negative, XERR indicates the default error estimate for X,
+the round-off level, should be used.
+
+\item[MSGOFF]  \ [in] MSGOFF is added onto the error message level before an
+error message is produced by using the error message processor described in
+Chapter~19.2.
+\end{description}
+
+If SGAMIK is not called, the effect is as though CALL SGAMIK~(0.0, 0.0, $-$%
+1.0,~0) had been executed.
+
+\subsubsection{Program Prototype, Single Precision, Determine Error}
+
+\begin{description}
+\item[REAL]  \ {\bf PQERR}
+\end{description}
+
+Retrieve the absolute error committed by the last call to SGAMI by using
+$$
+\fbox{{\bf CALL SGAMIE (PQERR)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[PQERR]  \ [out] reports the absolute error committed by the last call
+to SGAMI. If SGAMI has not been called, PQERR is returned with the value $-$%
+1.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change the REAL statement to DOUBLE PRECISION and change the prefix of the
+subroutine names from SGAMI to DGAMI.
+
+\subsection{Examples and Remarks}
+
+DRDGAMI uses DGAMI to evaluate the identities $P(\frac 12,x) = \erf \sqrt x$
+and $Q(\frac 12,x) = \erfc \sqrt x$ for several values of $x.$
+Results are in ODDGAMI.
+
+SGAMI computes an estimate for the absolute error = (relative error in X$)
+\times \text{X} \times |\partial \text{P}/\partial \text{X}| = ($relative
+error in X$) \times \text{X} \times |\partial \text{Q}/\partial \text{X}|$.
+When A and X are large and A $\approx $ X, X\ $|\partial \text{P}/\partial
+\text{X}| \approx \text{A}\ |\partial \text{P}/\partial \text{A}| \approx (%
+\text{A}/2\pi )^{\frac 12}$ and $P(\text{A},\text{X}) \approx Q(\text{A},%
+\text{X}) \approx 0.5$. Thus as A and X increase the relative error in either
+of them is magnified in the result in proportion to the square root of their
+values. When A or X is exactly zero, X$\ \partial P/\partial \text{X} =
+\text{A}\ \partial P/\partial \text{A} = 0$. Otherwise, it is more expensive
+to estimate A$\ \partial P/\partial \text{A}$ than to estimate $P$(A, X) (A
+Meijer G function is required), but A$\ \partial P/\partial \text{A}$ is
+usually less than MAX(1.0, X$\ \partial P/\partial \text{X})$. In many
+applications, furthermore, A is known exactly, and is exactly representable,
+so A $\partial P/\partial \text{A} \times ($relative error in A) is
+identically zero.
+
+When A and X are both large and nearly equal, the relative error in P and Q
+is approximately (A$/2\pi )^{\frac 12} \times \max (\varepsilon
+_A,\varepsilon _X)$, where $\varepsilon _A$ and $\varepsilon _X$ are the
+relative errors in A and X, respectively. If $\max (\varepsilon
+_A,\varepsilon _X) \approx \rho $, where $\rho $ is the round-off level for
+the arithmetic, the relative error in P or Q is approximately~1.0, that is,
+no precision remains, when A $> 2\pi \rho ^{-2}.$
+
+The function P (Q) decreases approximately as $e^{x-a} (e^{a-x})$. A
+first-order approximation to $e^{|x-a|}$ shows that the relative error in P
+(Q) is approximately equal to the absolute error in $|x-a|$ when $|x-a|$ is
+large. The representation of $P(Q)$ underflows when $|x-a|$ is greater
+than approximately $\ln (\Omega )$, where $\Omega $ is the largest
+representable floating point number.
+
+\subsection{Functional Description}
+
+The incomplete gamma function ratios enjoy the relations $0 \leq P(a,x)$, $%
+Q(a,x) \leq 1$ and $P(a,x) +Q(a,x) = 1$. Furthermore, $P(a,x) \rightarrow 1$
+and $Q(a,x) \rightarrow 0$ when $a \rightarrow 0$ with $x > 0$. SGAMI and
+DGAMI define $P(0,x) = 1$ and $Q(0,x) = 0$ when $x > 0$. We also have $%
+P(a,x) \rightarrow \frac 12 + \frac 12 \erf y$, $Q(a,x) \rightarrow
+\frac 12 \erfc y, P(a,a) \rightarrow \frac 12$, $Q(a,a)
+\rightarrow \frac 12$ when $a \rightarrow \infty $, $x$ fixed, $y = \sqrt
+2(x-a)/2\sqrt a$.
+%
+% \input prepic.tex
+% \input pictex.tex
+% \input postpic.tex
+% \beginpicture \ninepoint
+% \setcoordinatesystem units <   .300in,   .280in>
+% \setplotarea x from    .000 to  10.000, y from    .000 to  10.000
+% \axis bottom
+%  ticks in numbered from   0.     to  10.     by   2.     /
+% \axis left label {$a$\hspace{-6pt}}
+%  ticks in numbered from   0.     to  10.     by   2.     /
+% \axis top ticks in quantity  6 /
+% \axis right ticks in quantity  6 /
+% \put {$10^{-8}$} at    .500  9.000
+% \put {$10^{-6}$} at    .870  8.000
+% \put {$10^{-4}$} at   1.080  7.000
+% \put {.01} at   2.000  6.500
+% \put {.1} at   2.730  5.490
+% \put {.4} at   6.500  7.500
+% \put {.7} at   7.850  6.750
+% \put {.95} at   5.500  2.500
+% \put {$10^{-6}$} at   9.000   .400
+% \put {$10^{-4}$} at   8.000  1.000
+% \put {.01} at   7.950  2.720
+% \put {.1} at   6.170  3.700
+% \put {.4} at   5.900  5.670
+% \put {.7} at   4.500  6.000
+% \put {.95} at   3.220  7.000
+%  \setsolid
+% \setquadratic \plot
+%   .0500   .02123   .1000   .02817   .2000   .04112   .2672   .05000
+%   .3500   .0620   .5000   .0856   .6000   .1035   .7500   .1332
+%    .9000   .1669   1.0311   .2000   1.1500   .2323   1.2104   .2500
+%   1.3500   .2926   1.4500   .3251   1.5500   .3595   1.6500   .3955
+%   1.7500   .4326   1.8000   .4521   1.9211   .5000   2.0422   .5500
+%   2.1500   .5960   2.2500   .6398   2.3500   .6847   2.4500   .7308
+%   2.5953   .8000   2.6981   .8500   2.7990   .9000   2.8982   .9500
+%   2.9958  1.0000   3.1000  1.0542   3.2500  1.1335   3.3500  1.1874
+%   3.4643  1.2500   3.5545  1.3000   3.7000  1.3813   3.8000  1.4382
+%   3.9075  1.5000   4.0500  1.5826   4.1646  1.6500   4.3000  1.7303
+%   4.4500  1.8203   4.5810  1.9000   4.7440  2.0000   4.8500  2.0655
+%   5.0000  2.1591   5.1000  2.2219   5.2000  2.2852
+% /
+% \setquadratic \plot
+%   5.8000  2.6719   5.9500  2.7703   6.1000  2.8694   6.2500  2.9692
+%   6.4000  3.0696   6.5500  3.1705   6.7409  3.3000   6.9000  3.4084
+%   7.1000  3.5456   7.2500  3.6491   7.4000  3.7530   7.6000  3.8923
+%   7.7537  4.0000   7.9500  4.1380   8.1083  4.2500   8.3000  4.3861
+%   8.4596  4.5000   8.6500  4.6363   8.8500  4.7802   9.0500  4.9248
+%   9.2500  5.0699   9.4500  5.2157   9.6500  5.3621   9.8377  5.5000
+%   10.000  5.6195
+% /
+% \setquadratic \plot
+%   8.0500  6.9446   8.2763  7.1500   8.5500  7.3991   8.8000  7.6268
+%   9.0995  7.9000   9.3500  8.1289   9.6463  8.4000   9.8101  8.5500
+%   10.000  8.7240
+% /
+% \setquadratic \plot
+%   8.9044  10.000   8.6647   9.750   8.4000   9.474   8.1500   9.213
+%   7.9000  8.9513   7.7000  8.7421   7.4686  8.5000   7.2299  8.2500
+%   6.9914  8.0000   6.8483  7.8500   6.7000  7.6944
+% /
+% \setquadratic \plot
+%   6.3000  7.2743   6.1000  7.0640   5.8967  6.8500   5.7000  6.6428
+%   5.4698  6.4000   5.2803  6.2000   5.0910  6.0000   4.9019  5.8000
+%   4.7500  5.6392   4.5500  5.4273   4.3500  5.2150   4.2000  5.0556
+%   4.0500  4.8960   3.8660  4.7000   3.7000  4.5230   3.5500  4.3627
+%   3.4000  4.2022   3.2580  4.0500   3.1182  3.9000   2.9786  3.7500
+%   2.8393  3.6000   2.7003  3.4500   2.6000  3.3416   2.4693  3.2000
+%   2.3311  3.0500   2.2392  2.9500   2.1016  2.8000   2.0101  2.7000
+%   1.9000  2.5795   1.8000  2.4696   1.7000  2.3593   1.6012  2.2500
+%   1.5111  2.1500   1.4213  2.0500   1.3318  1.9500   1.2500  1.8584
+%   1.1540  1.7500   1.1000  1.6890   1.0000  1.5751    .9347  1.5000
+%   .8500  1.4024   .8000  1.3444   .7197  1.2500   .6773  1.2000
+%   .6000  1.1082   .5519  1.0500   .5110  1.0000   .4705   .9500
+%   .4000   .8624   .3515   .8000   .3136   .7500   .2763   .7000
+%   .2041   .6000   .1709   .5500   .1386   .5000   .1000   .4380
+%   .05586   .3500   .04460   .3000   .03371   .2000   .02944   .1500
+%   .02267   .0500
+% /
+% \setlinear \plot    .0000   .1500    .0000   .2000 /
+% \setlinear \plot    .0000   .3500    .0000   .4000 /
+% \setlinear \plot    .0000   .5500    .0000   .6000 /
+% \setlinear \plot   .000000005960   .7500   .000000005960   .8000 /
+% \setquadratic \plot
+%   .00000000596   .8500   .00000000596   .8500   .00000000596   .9000   .00000001788  1.1500
+%   .00000001788  1.2000   .00000002980  1.3000   .00000005364  1.4500   .00000007153  1.5500
+%   .0000001073  1.6500   .0000001550  1.7500   .0000002325  1.8500   .0000003397  1.9500
+%   .000000614  2.1000   .000000912  2.2000   .000001365  2.3000   .000002044  2.4000
+%   .00000378  2.5500   .00000572  2.6500   .00001070  2.8000   .00001630  2.9000
+%   .0000308  3.0500   .0000473  3.1500   .0000904  3.3000   .0001397  3.4000
+%   .000269  3.5500   .000419  3.6500   .000815  3.8000   .001275  3.9000
+%   .00250  4.0500   .00394  4.1500   .00779  4.3000   .01232  4.4000
+%   .02457  4.5500   .03903  4.6500   .05049  4.7500   .05272  4.9000
+%   .05849  5.1000   .06697  5.2500   .08247  5.4000   .09952  5.5000
+%   .1013  5.5500   .1072  5.7000   .1220  5.9000   .1428  6.0500
+%   .1529  6.1500   .1673  6.3500   .1958  6.5500   .2090  6.7000
+%   .2327  6.9000   .2500  6.9926   .2589  7.1000   .2774  7.2500
+%   .3025  7.4000   .3269  7.6000   .3530  7.7500   .3806  7.9500
+%   .4065  8.1000   .4292  8.2500   .4565  8.4000   .4809  8.5500
+%   .5087  8.7000
+% /
+% \setquadratic \plot
+%   .7999  8.3000   .8109  8.3500   .8365  8.4500   .8752  8.6000
+%   .9154  8.7500   .9435  8.8500   .9696  8.9500   .9993  9.0500
+%   1.0252  9.1500   1.0548  9.2500   1.0983  9.4000   1.1255  9.5000
+%   1.1696   9.650   1.2146   9.800   1.2749  10.000
+% /
+% \setquadratic \plot
+%   .7665  10.000   .7500   9.909   .7347   9.850   .7045   9.700
+%   .6820  9.6000   .6535  9.4500   .6209  9.3000
+% /
+% \setquadratic \plot
+%   2.1974  10.000   2.1500   9.890   2.0894   9.750   2.0253   9.600
+%   1.9624  9.4500   1.9204  9.3500   1.8587  9.2000   1.8173  9.1000
+%   1.7568  8.9500   1.7160  8.8500   1.6566  8.7000   1.6165  8.6000
+%   1.5582  8.4500   1.5189  8.3500   1.4616  8.2000   1.4233  8.1000
+%   1.3671  7.9500   1.3300  7.8500   1.2749  7.7000   1.2391  7.6000
+%   1.2000  7.4889   1.1673  7.4000   1.1322  7.3000
+% /
+% \setquadratic \plot
+%   .6531  7.7000   .6406  7.6500   .6166  7.5500   .6000  7.4651
+%   .5830  7.4000   .5612  7.3000   .5401  7.2000   .5082  7.0500
+%   .4871  6.9500   .4572  6.8000   .4369  6.7000   .4083  6.5500
+%   .3896  6.4500   .3615  6.3000   .3460  6.2000   .3171  6.0500
+%   .2952  5.9000   .2611  5.7000   .2395  5.5500   .2100  5.3500
+%   .1911  5.2000   .1630  5.0000   .1426  4.8000   .1160  4.6000
+%   .10000  4.3500   .07666  4.2000   .06042  4.0000   .05255  3.8000
+%   .04189  3.6500   .02163  3.5000   .00904  3.3000   .00473  3.1500
+%   .002015  2.9500   .001070  2.8000   .000572  2.6500   .000308  2.5000
+%   .0001671  2.3500   .0000913  2.2000   .0000503  2.0500   .0000280  1.9000
+%   .00001570  1.7500   .00001074  1.6500   .00000613  1.5000   .00000353  1.3500
+%   .000002062  1.2000   .000001448  1.1000   .000000864   .9500   .000000620   .8500
+%   .0000003755   .7000   .0000002742   .6000   .0000002027   .5000   .0000001490   .4000
+%   .0000001132   .3000   .0000000834   .2000   .0000000596   .0500
+% /
+% \setquadratic \plot
+%   .00000567   .0500   .00000645   .1000   .00000843   .2000   .00001115   .3000
+%   .00001491   .4000   .00002015   .5000   .00002747   .6000   .00003775   .7000
+%   .0000523   .8000   .0000730   .9000   .0001025  1.0000   .0001449  1.1000
+%   .0002061  1.2000   .0002948  1.3000   .0004239  1.4000   .0006126  1.5000
+%   .001074  1.6500   .001570  1.7500   .002799  1.9000   .004135  2.0000
+%   .00748  2.1500   .01116  2.2500   .02047  2.4000   .03080  2.5000
+%   .05000  2.6187   .05670  2.7500   .06825  2.9000   .08703  3.0500
+%   .1022  3.1500   .1170  3.3000   .1500  3.5000   .1684  3.6500
+%   .2000  3.8189   .2282  4.0000   .2577  4.1500   .2866  4.3000
+%   .3077  4.4000   .3393  4.5500   .3610  4.6500   .3832  4.7500
+%   .4073  4.8500   .4434  5.0000   .4668  5.1000   .4931  5.2000
+%   .5176  5.3000   .5452  5.4000   .5705  5.5000   .5998  5.6000
+%   .6256  5.7000   .6500  5.7801   .6829  5.9000   .7000  5.9533
+%   .7267  6.0500   .7500  6.1226   .7875  6.2500   .8180  6.3500
+%   .8652  6.5000   .8984  6.6000   .9294  6.7000
+% /
+% \setquadratic \plot
+%   1.9177  6.2500   1.8500  6.1226   1.7848  6.0000   1.7323  5.9000
+%   1.6545  5.7500   1.6031  5.6500   1.5500  5.5459   1.5000  5.4472
+%   1.4500  5.3476   1.4000  5.2471   1.3500  5.1457   1.3000  5.0433
+%   1.2500  4.9399   1.2000  4.8353   1.1500  4.7295   1.1000  4.6223
+%   1.0436  4.5000    .9985  4.4000    .9309  4.2500    .8872  4.1500
+%   .8443  4.0500   .8019  3.9500   .7597  3.8500   .7183  3.7500
+%   .6583  3.6000   .6186  3.5000   .5615  3.3500   .5240  3.2500
+%   .4699  3.1000   .4500  3.0407   .4179  2.9500   .4000  2.8939
+%   .3681  2.8000   .3500  2.7403   .3207  2.6500   .3000  2.5783
+%   .2758  2.5000   .2500  2.4046   .2338  2.3500   .2078  2.2500
+%   .1820  2.1500   .1589  2.0500   .1361  1.9500   .1063  1.8000
+%   .08712  1.7000   .06291  1.5500   .04239  1.4000   .02463  1.2500
+%   .01449  1.1000   .01025  1.0000   .00617   .8500   .00444   .7500
+%   .002747   .6000   .002015   .5000   .001491   .4000   .001115   .3000
+%   .000843   .2000   .000736   .1500   .000567   .0500
+% /
+% \setquadratic \plot
+%   .00567   .0500   .00645   .1000   .00843   .2000   .01115   .3000
+%   .01491   .4000   .02015   .5000   .02747   .6000   .03776   .7000
+%   .0500   .7871   .0779   .9000   .1055  1.0000   .1371  1.1000
+%   .1719  1.2000   .2000  1.2759   .2497  1.4000   .2921  1.5000
+%   .3500  1.6296   .4000  1.7360   .4556  1.8500   .5316  2.0000
+%   .6000  2.1301   .6648  2.2500   .7500  2.4030   .8500  2.5782
+%    .9500  2.7482   1.0410  2.9000   1.1326  3.0500   1.2258  3.2000
+%   1.3500  3.3962   1.4500  3.5519   1.5789  3.7500   1.7000  3.9331
+%   1.8454  4.1500   1.9500  4.3043   2.1000  4.5234   2.2500  4.7397
+%   2.3973  4.9500   2.5000  5.0955   2.6097  5.2500
+% /
+% \setquadratic \plot
+%   2.9000  5.6540   3.0786  5.9000   3.2500  6.1339   3.4465  6.4000
+%   3.6323  6.6500   3.8194  6.9000   4.0078  7.1500   4.2000  7.4036
+%   4.4259  7.7000   4.6500  7.9921   4.8500  8.2514   5.0813  8.5500
+%   5.3151  8.8500   5.5000  9.0863   5.7000  9.3409   5.9500  9.6578
+%   6.2212  10.000
+% /
+% \setquadratic \plot
+%   4.1299  10.000   4.0353   9.850   3.9098   9.650   3.8160   9.500
+%   3.7228  9.3500   3.6300  9.2000   3.5378  9.0500   3.4462  8.9000
+%   3.3500  8.7420   3.2638  8.6000   3.1734  8.4500   3.1000  8.3270
+%   3.0000  8.1589   2.9353  8.0500   2.8472  7.9000   2.7593  7.7500
+%   2.6720  7.6000   2.6000  7.4748   2.5000  7.3000   2.4429  7.2000
+%   2.3500  7.0355   2.2737  6.9000   2.1905  6.7500
+% /
+% \setquadratic \plot
+%   7.6500  6.5820   7.4000  6.3559   7.1720  6.1500   7.0500  6.0400
+%   6.8945  5.9000   6.6722  5.7000   6.4493  5.5000   6.2262  5.3000
+%   6.0000  5.0979   5.7783  4.9000   5.5535  4.7000   5.3500  4.5193
+%   5.1500  4.3422   4.9500  4.1654   4.7500  3.9892   4.5500  3.8135
+%   4.3635  3.6500   4.2000  3.5072   4.0196  3.3500   3.8500  3.2028
+%   3.7000  3.0729   3.5577  2.9500   3.4000  2.8144   3.2667  2.7000
+%   3.1000  2.5577   2.9736  2.4500   2.8500  2.3453   2.7000  2.2187
+%   2.5589  2.1000   2.4500  2.0090   2.3193  1.9000   2.2000  1.8013
+%   2.1000  1.7187   2.0000  1.6366   1.8940  1.5500   1.7710  1.4500
+%   1.6500  1.3526   1.5845  1.3000   1.4589  1.2000   1.3956  1.1500
+%   1.2684  1.0500   1.2000   .9969   1.1000   .9196   1.0500   .8812
+%   .9500   .8051   .9000   .7674   .8103   .7000   .7500   .6554
+%   .6752   .6000   .6065   .5500   .5500   .5093   .5000   .4734
+%   .4000   .4020   .3500   .3666   .3000   .3311   .2500   .2954
+%   .1500   .2226   .0648   .1500   .0397   .0500
+% /
+%  \setdashes
+% \setquadratic \plot
+%    .0500   .0000004   2.1000   .0000217   4.1500   .0002851   5.1500   .0009243
+%   6.2000   .003083   6.4500   .004093   6.7000   .005428   6.9500   .007190
+%   7.2000   .00951   7.4500   .01258   7.7000   .01661   7.9500   .02193
+%   8.2000   .02891   8.4500   .03810   8.7000   .05013   8.9500   .06238
+%   9.2500   .0821   9.4000   .0947   9.5000   .1033   9.7500   .1260
+%   10.000   .1544
+% /
+% \setquadratic \plot
+%   10.000  1.2850    9.900  1.2480    9.771  1.2000    9.650  1.1556
+%   9.5500  1.1191   9.4950  1.1000   9.3539  1.0500   9.2500  1.0132
+%   9.1500   .9785   9.0644   .9500   8.9500   .9111   8.8500   .8778
+%   8.7000   .8290   8.6071   .8000   8.5000   .7657   8.4472   .7500
+%   8.3500   .7195   8.2833   .7000   8.2000   .6744   8.1141   .6500
+%   8.0000   .6165   7.9392   .6000   7.8500   .5744   7.7577   .5500
+%   7.6500   .5204   7.5687   .5000   7.5000   .4816   7.4000   .4570
+%   7.3000   .4321   7.2000   .4087   7.1000   .3854   7.0000   .3631
+%   6.9000   .3416   6.7500   .3104   6.6500   .2906   6.5000   .2621
+%   6.4000   .2446   6.2500   .2185   6.1000   .1955   5.9000   .1660
+%   5.7500   .1471   5.5000   .1173   5.3000   .0983   4.9500   .0688
+%   4.6245   .05000   4.3500   .03617   4.0000   .02382   3.6000   .01468
+%   3.2000   .008969   2.8500   .005778   2.4500   .003453   1.9500   .001770
+%   1.4500   .0008708   1.0500   .0004707    .6000   .0002134    .3500   .0001244
+%    .0500   .0000425
+% /
+% \setquadratic \plot
+%   .0500   .00425   .1000   .00563   .2000   .00822   .3500   .01244
+%    .5500   .01932    .7500   .02826    .9500   .03995   1.0881   .05000
+%   1.2000   .0587   1.4000   .0775   1.5888   .1000   1.7500   .1212
+%   1.9310   .1500   2.1000   .1794   2.2500   .2093   2.4000   .2419
+%   2.5000   .2649   2.6000   .2896   2.7000   .3152   2.8000   .3423
+%   2.9000   .3701   3.0000   .4000   3.1000   .4297   3.1633   .4500
+%   3.2500   .4773   3.3178   .5000   3.4500   .5446   3.5500   .5792
+%   3.6500   .6152   3.7500   .6524   3.8761   .7000   4.0000   .7482
+%   4.1000   .7876   4.2000   .8280   4.3500   .8903   4.4500   .9325
+%   4.5500   .9755   4.6053  1.0000   4.7189  1.0500   4.8305  1.1000
+%   4.9404  1.1500   5.0486  1.2000   5.1557  1.2500   5.2615  1.3000
+%   5.3660  1.3500   5.4693  1.4000   5.5715  1.4500   5.6727  1.5000
+%   5.8000  1.5634   5.9000  1.6139   6.0500  1.6905   6.1500  1.7421
+%   6.2610  1.8000   6.3563  1.8500   6.4509  1.9000   6.6000  1.9791
+%   6.7314  2.0500   6.8237  2.1000   6.9500  2.1688   7.0500  2.2237
+%   7.1873  2.3000   7.3000  2.3627   7.4500  2.4472   7.5432  2.5000
+%   7.6500  2.5606
+% /
+% \setquadratic \plot
+%   8.2500  2.9080   8.4000  2.9964   8.5000  3.0556   8.6500  3.1449
+%   8.8000  3.2346   8.9083  3.3000   9.0736  3.4000   9.2000  3.4767
+%   9.3500  3.5685   9.4824  3.6500   9.6442  3.7500   9.8052  3.8500
+%   10.000  3.9714
+% /
+% \setquadratic \plot
+%   10.000  6.5747    9.717  6.3500    9.401  6.1000    9.148  5.9000
+%   8.8295  5.6500   8.5736  5.4500   8.3000  5.2371   8.0500  5.0435
+%   7.7500  4.8123   7.5384  4.6500   7.2763  4.4500   7.0127  4.2500
+%   6.7500  4.0520   6.5500  3.9020   6.3500  3.7528
+% /
+% \setquadratic \plot
+%   6.0000  3.4937   5.8000  3.3468   5.5987  3.2000   5.3918  3.0500
+%   5.1833  2.9000   5.0000  2.7691   4.8000  2.6275   4.6184  2.5000
+%   4.4026  2.3500   4.2500  2.2448   4.0500  2.1082   3.8899  2.0000
+%   3.7000  1.8730   3.5500  1.7739   3.3598  1.6500   3.2043  1.5500
+%   3.0500  1.4521   2.9500  1.3893   2.8000  1.2965   2.6500  1.2051
+%   2.5000  1.1152   2.3890  1.0500   2.2500   .9696   2.1270   .9000
+%   1.9500   .8025   1.8522   .7500   1.7573   .7000   1.6603   .6500
+%   1.5500   .5947   1.4500   .5460   1.3500   .4987   1.2438   .4500
+%   1.1000   .3870   1.0110   .3500    .9000   .3058    .8000   .2678
+%   .7000   .2320   .6052   .2000   .5500   .1821   .4500   .1515
+%   .4000   .1369   .3000   .1091   .2500   .0957   .1500   .0700
+%   .0500   .0425
+% /
+% \setquadratic \plot
+%   .03400   .0500   .03868   .1000   .05000   .1961   .09546   .2500
+%   .1424   .3000   .1927   .3500   .2452   .4000   .2991   .4500
+%   .3500   .4963   .4000   .5413   .4500   .5859   .5000   .6304
+%   .5500   .6748   .6000   .7192   .6915   .8000   .7477   .8500
+%    .8000   .8965    .8500   .9410    .9166  1.0000   1.0000  1.0747
+%   1.0845  1.1500   1.1500  1.2090   1.2500  1.2988   1.3070  1.3500
+%   1.4000  1.4340   1.4733  1.5000   1.5836  1.6000   1.6500  1.6604
+%   1.7500  1.7514   1.8583  1.8500   1.9678  1.9500   2.0771  2.0500
+%   2.2000  2.1629   2.3000  2.2549   2.4034  2.3500   2.5500  2.4853
+%   2.6742  2.6000   2.8000  2.7165   2.9440  2.8500   3.0516  2.9500
+%   3.2000  3.0880   3.3500  3.2278   3.5000  3.3677   3.6417  3.5000
+%   3.8000  3.6482   3.9500  3.7887   4.1000  3.9293   4.2500  4.0702
+%   4.4413  4.2500   4.6000  4.3994   4.7500  4.5407   4.9190  4.7000
+%   5.1309  4.9000   5.3000  5.0599   5.5000  5.2491   5.6000  5.3438
+%   5.7000  5.4385
+% /
+% \setquadratic \plot
+%   6.1000  5.8178   6.2920  6.0000   6.5000  6.1977   6.7000  6.3879
+%   6.9229  6.6000   7.1500  6.8164   7.3951  7.0500   7.5523  7.2000
+%   7.7500  7.3886   8.0000  7.6274   8.2852  7.9000   8.5000  8.1054
+%   8.7556  8.3500   9.0166  8.6000   9.3000  8.8716   9.5500  9.1113
+%    9.850  9.3991    9.903  9.4500   10.000  9.5431
+% /
+% \setquadratic \plot
+%   8.1329  10.000   7.9500   9.800   7.8000   9.636   7.5500   9.362
+%   7.3000  9.0880   7.0500  8.8133   6.8107  8.5500   6.6000  8.3178
+%   6.3574  8.0500   6.1500  7.8207   5.9500  7.5991   5.7254  7.3500
+%   5.5006  7.1000   5.3210  6.9000   5.1000  6.6534   4.9181  6.4500
+%   4.7000  6.2055
+% /
+% \setquadratic \plot
+%   4.3000  5.7554   4.1500  5.5861   3.9856  5.4000   3.8094  5.2000
+%   3.6500  5.0188   3.5021  4.8500   3.3500  4.6761   3.2000  4.5039
+%   3.0500  4.3313   2.9363  4.2000   2.8068  4.0500   2.7000  3.9261
+%   2.5500  3.7512   2.4500  3.6343   2.3000  3.4581   2.2000  3.3402
+%   2.0817  3.2000   1.9976  3.1000   1.8720  2.9500   1.7887  2.8500
+%   1.6643  2.7000   1.5819  2.6000   1.5000  2.5000   1.4000  2.3775
+%   1.3000  2.2538   1.2167  2.1500   1.1370  2.0500   1.0500  1.9401
+%   .9500  1.8123   .9000  1.7476   .8252  1.6500   .7500  1.5509
+%   .7000  1.4844   .6500  1.4170   .6000  1.3485   .5500  1.2796
+%   .4937  1.2000   .4500  1.1379   .3903  1.0500   .3500   .9901
+%   .3000   .9131   .2609   .8500   .2308   .8000   .2000   .7487
+%   .1500   .6588   .1213   .6000   .0967   .5500   .0556   .4500
+%   .04474   .4000   .03345   .3000   .02528   .2000   .02208   .1500
+%   .01700   .0500
+% /
+% \setquadratic \plot
+%   .002834   .0500   .003224   .1000   .004214   .2000   .005575   .3000
+%   .00746   .4000   .01007   .5000   .01373   .6000   .01888   .7000
+%   .02615   .8000   .03649   .9000   .05000   .9932   .07063  1.1000
+%   .1052  1.2500   .1457  1.4000   .1753  1.5000   .2078  1.6000
+%   .2500  1.7226   .2968  1.8500   .3350  1.9500   .3750  2.0500
+%   .4167  2.1500   .4597  2.2500   .5263  2.4000   .5500  2.4508
+%   .6000  2.5585   .6500  2.6635   .7000  2.7662   .7500  2.8669
+%    .8173  3.0000    .8690  3.1000    .9483  3.2500   1.0019  3.3500
+%   1.0833  3.5000   1.1500  3.6201   1.2227  3.7500   1.3000  3.8853
+%   1.3952  4.0500   1.4538  4.1500   1.5500  4.3127   1.6321  4.4500
+%   1.7229  4.6000   1.8000  4.7258   1.9000  4.8877   1.9698  5.0000
+%   2.0641  5.1500   2.1593  5.3000   2.2552  5.4500   2.3519  5.6000
+%   2.4500  5.7512   2.5500  5.9042   2.6788  6.1000   2.8000  6.2823
+%   2.9121  6.4500   3.0131  6.6000   3.1147  6.7500
+% /
+% \setquadratic \plot
+%   3.4571  7.2500   3.5956  7.4500   3.7002  7.6000   3.8399  7.8000
+%   3.9806  8.0000   4.1221  8.2000   4.2643  8.4000   4.4073  8.6000
+%   4.5510  8.8000   4.7000  9.0067   4.8500  9.2138   5.0000  9.4200
+%   5.1680   9.650   5.3000   9.830   5.4252  10.000
+% /
+% \endpicture\vspace{5pt}
+%\centerline{$x$}\vspace{5pt}
+%\centerline{\quad $P(a,x)$ (solid) \quad\quad $Q(a,x)$
+%(dashed)}\vspace{10pt}
+%
+$P(a,x)$ and $Q(a,x)$ are not defined for $a < 0$ or $x < 0$%
+, but Tricomi's entire incomplete gamma function $\gamma ^*(a,x)$\ is a
+single-valued analytic function of $x$ and a, possessing no finite
+singularities.
+
+$P(a,x)$ enjoys the recurrence relation $P(a+1,x) = P(a,x) -
+x^ae^{-x}/\Gamma (a+1)$, from which one can compute $P(n+\frac 12,z)$ for
+small integer $n$ and arbitrary complex $z$ by using CWOFZ from Chapter
+2.16.  $Q(n,z)$ is elementary, being a polynomial of degree $n$ in $z$
+multiplied by $e^{-z}$.  See Sections~6.5 and~26.4 of \cite{ams55:gamma}
+for further properties of the incomplete gamma function ratios.
+
+The computational methods used in SGAMI and DGAMI are described in
+\cite{DiDonato:1986:CIG}.  Methods include continued fractions, series
+expansions, recurrences, and uniform asymptotic expansions.
+
+\subparagraph{Accuracy Testing}
+
+The precision of SGAMI was assessed by comparing to DGAMI on an IBM
+compatible PC with an 80486 processor, using IEEE arithmetic for which
+the round-off level $\rho \approx 1.19 \times 10^{-7}$.  The results
+are shown in the following table.  The quantity R is the relative error
+in units of $\rho $; the quantity B is the error relative to the achievable
+precision in units of $\rho $, which takes into account the derivative
+of the function:  Where the derivative has large magnitude, a small
+perturbation of the arguments causes a large perturbation of the result,
+so achieving precise results is inherently difficult.  The column labeled
+"\% 1 bit" is the percentage of samples for which no more than 1 bit was
+incorrect, in the relative error measure.  For the case of the range
+$(1, 10^7) \times (1, 10^7)$, $(0, 7) \times (0, 7)$ was divided into
+$288 \times 288$ equal subregions, and a point $(a, x)$ was randomly selected
+in each subregion.  The function was then evaluated with arguments
+$10^a$ and $10^x$.  All other ranges were divided into $288 \times 288$ equal
+subregions, and the function was evaluated at a point (a,x) randomly selected
+in each subregion. The greatest possible number of samples in each range was
+82944; fewer samples were used in some ranges if DGAMI estimated it was
+unable to produce answers more precise than single precision, but no range was
+tested using fewer than 79918 samples.
+
+\begin{tabular}{lrrr}
+\multicolumn{1}{c}{range} & \multicolumn{1}{c}{Max $|$R$|$} &
+\multicolumn{1}{c}{Max $|$B$|$} & \multicolumn{1}{c}{\% 1 bit}\\
+$(0, 100) \times (0,100)$ &   82.98 \rule{.03in}{0pt} &
+5.91 \rule{.07in}{0pt} & 65.4 \rule{.05in}{0pt} \\
+$(1,10^7) \times (1,10^7)$ & 178.23 \rule{.03in}{0pt} &
+1.72 \rule{.07in}{0pt} & 97.0 \rule{.05in}{0pt} \\
+$(0,1) \times (0,1)$ &         3.11 \rule{.03in}{0pt} &
+1.53 \rule{.07in}{0pt} & 98.1 \rule{.05in}{0pt} \\
+$(1,10) \times (1,10)$ &       6.98 \rule{.03in}{0pt} &
+2.13 \rule{.07in}{0pt} & 95.7 \rule{.05in}{0pt} \\
+$(1,10) \times (0,1)$ &       16.80 \rule{.03in}{0pt} &
+0.96 \rule{.07in}{0pt} & 61.6 \rule{.05in}{0pt} \\
+$(0,1) \times (1,10)$ &        2.09 \rule{.03in}{0pt} &
+2.09 \rule{.07in}{0pt} & 99.9 \rule{.05in}{0pt} \\
+\end{tabular}
+
+The version of DGAMI used for reference was developed and tested by A. H.
+Morris, and described in \cite{DiDonato:1986:CIG}.
+
+The accuracy of Morris's version of DGAMI, and of the version of DGAMI
+incorporated into MATH77, were assessed by checking their results against 50
+digit computations carried out by the computer algebra program {\em Maple},
+at 30 points in the range $(1, 100) \times (1, 100)$ where SGAMI
+committed the greatest relative error.  In all cases, the results were
+correct to more than 14 digits.  The precision of DGAMI was not as
+rigorously assessed as that for SGAMI.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If the error tolerances are not satisfied, $P(a,x)$ and $Q(a,x)$
+will be computed, but an error message will be issued by the error message
+processor of Chapter~19.2, with LEVEL = 2 + MSGOFF, where MSGOFF
+is zero unless specified by a call to SGAMIK at some time before calling
+SGAMI. If error termination is suppressed by providing a sufficiently small
+value of MSGOFF (say $-$2), or by calling ERMSET, IERR is set to~2.
+
+If SGAMI or DGAMI is called with A = X = 0, neither $P(a,x)$ nor $%
+Q(a,x)$ is defined, and an error message is issued by the error message
+processor of Chapter~19.2, with LEVEL\ = 2 + MSGOFF. If error
+termination is suppressed, IERR is set to~3 and P is set to~3.0.
+
+If SGAMI or DGAMI is called with at least one of A or X negative, neither $%
+P(a,x)$ nor $Q(a,x)$ is defined, and an error message is issued by the
+error message processor as above.
+If error termination is suppressed, IERR is set to~4 and P is set to~4.0.
+
+\subsection{Supporting Information}
+
+All program units are written in ANSI Standard Fortran~77.
+The program units SGAMI, SGAMIB, SGAMIE and SGAMIK communicate by way of a
+common block /SGAMIC/. The program units DGAMI, DGAMIB, DGAMIE and DGAMIK
+communicate by way of a common block /DGAMIC/.
+
+Designed and programmed by Armido DiDonato and Alfred Morris, Naval Surface
+Warfare Center, Dahlgren, VA 22448--5000, 1986. Revised and adapted to Math
+77 by W. V. Snyder, 1993.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DGAMI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERF, DERM1, DERV1, DGAM1, DGAMI, DGAMMA, DGR17, DGR29,
+DINITS, DRCOMP, DREXP, DRLOG, DXPARG, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DGAMIE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERF, DERM1, DERV1, DGAM1, DGAMI, DGAMMA, DGR17, DGR29,
+DINITS, DRCOMP, DREXP, DRLOG, DXPARG, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DGAMIK & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSEVL, DERF, DERM1, DERV1, DGAM1, DGAMI, DGAMMA, DGR17, DGR29,
+DINITS, DRCOMP, DREXP, DRLOG, DXPARG, ERFIN, ERMSG, IERM1, IERV1}\\
+SGAMI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERF, SERM1, SERV1, SGAM1,
+SGAMI, SGAMMA, SINITS, SRCOMP, SREXP, SRLOG, SXPARG\rule[-5pt]{0pt}{8pt}}\\
+SGAMIE & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERF, SERM1, SERV1, SGAM1,
+SGAMI, SGAMMA, SINITS, SRCOMP, SREXP, SRLOG, SXPARG\rule[-5pt]{0pt}{8pt}}\\
+SGAMIK & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SCSEVL, SERF, SERM1, SERV1,
+SGAM1, SGAMI, SGAMMA, SINITS, SRCOMP, SREXP, SRLOG, SXPARG}\\
+\end{tabular}
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDGAMI}\vspace{10pt}
+\lstinputlisting{\codeloc{dgami}}
+
+\vspace{30pt}\centerline{\bf \large ODDGAMI}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dgami}}
+\closegraphsfile
+\end{document}

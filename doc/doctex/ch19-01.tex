@@ -1,0 +1,375 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 19.1 System Parameters
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms provide values of various system parameters that
+are needed in library subprograms and typically have different values
+on different computer systems.  ``F. Supporting Information'' below
+has instructions for customizing these programs for your system.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype}
+
+\begin{description}
+\item[REAL]  \ {\bf R1MACH, S}
+
+\item[DOUBLE PRECISION]  \ {\bf D1MACH, D}
+
+\item[INTEGER]  \ {\bf I1MACH, I, J}
+\end{description}
+
+Set J in the range 1 $\leq $ J $\leq $ 5 for R1MACH or D1MACH or 1 $\leq $ J
+$\leq $ 16 for I1MACH. Then, use the appropriate one of the following
+statements:
+$$
+\fbox{{\bf S = R1MACH(J)}}
+$$
+$$
+\fbox{{\bf D = D1MACH(J)}}
+$$
+$$
+\fbox{{\bf I = I1MACH(J)}}
+$$
+The results, S, D, or I are set as described in Section D.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[J]  \ [in] Integer argument selecting the desired system parameter as
+described in Section D.
+\end{description}
+
+\subsection{Examples and Remarks}
+
+The program DRMACH lists all the values obtainable from R1MACH, D1MACH, and
+I1MACH on the host computer system. Output is shown from several different
+host systems.
+
+\subsection{Functional Description}
+
+For the purpose of this package a model of the Fortran~77 INTEGER, REAL, and
+DOUBLE PRECISION number sets is characterized by a total of nine fundamental
+parameters.
+
+The model of Fortran~77 numbers of type INTEGER is parameterized by two
+numbers, $a$ and $s$, where $a$ denotes the base (radix) of the number
+system and $s$ denotes the maximum number of base $a$ digits available to
+represent a Fortran integer. Thus the integers range from $-(a^s -1)$ to $%
+a^s -1.$
+
+The model of Fortran~77 numbers of type REAL is characterized by four
+parameters, $b$, $t$, $emin$, and $emax$, where $b$ is the base of the
+fraction part, $t$ is the number of base $b$ digits in the fraction part, $%
+emin $ is the minimum exponent and $emax$ is the maximum exponent. The
+magnitude of a floating-point number is thus of the form%
+\begin{equation*}
+b^e\left( c_1b^{-1}+c_2b^{-2}+...+c_tb^{-t}\right) ,
+\end{equation*}
+where, $emin\leq e\leq emax$, and the digits $c_i$ satisfy $0\leq c_i\leq
+b-1.$ A nonzero floating-point number is normalized if and only if the digit
+$c_1$ is nonzero. We shall consider only normalized floating-point numbers,
+although numeric processors based on the IEEE standard also support a
+range of unnormalized numbers.
+
+Fortran~77 numbers of type DOUBLE PRECISION are modeled in the same form as
+REAL numbers and are assumed to have the same base, $b$, but generally
+different values of $t$, $emin$, and $emax$.
+
+For some computer systems no setting of these parameters will make the model
+system coincide exactly with the actual computer's number set. In such cases
+the model parameters are selected so the model system will be as large a
+subset of the actual number set as possible. In particular, for Cray
+X/MP and Y/MP (but not T3D) systems the parameters $t$ and $emax$ are set
+smaller and $emin$ is set larger than one might expect from the structure
+of floating-point numbers on these systems. The reasons for this are
+described in \cite{Schryer:1981:ATO}.
+
+The values returned by this package are either prestored constants or are
+computed at compile-time from prestored constants by use of expressions in
+PARAMETER statements. Thus correct values must be determined and edited into
+the package whenever this package is moved to a new computer system. Correct
+values for many systems are present as comments in the source code.
+
+On some systems, the Fortran compiler may not be able to compute
+numbers in the full range of the model, in PARAMETER statements (this
+disease usually strikes computation of the overflow limit).  On such
+systems it may be necessary to restrict the model, $e.g.$ by reducing
+$emax$.
+
+{\bf Specification of Values Returned}
+\begin{itemize}
+\item[\bf J]  {\hspace{.5in} {\bf I1MACH (J)}}
+\item[1]  Standard input unit number.
+\item[2]  Standard output unit number.
+\item[3]  Standard punch unit number.
+\item[4]  Standard error message unit number.
+\item[5]  Number of bits per Fortran integer storage unit.
+\item[6]  Number of characters per Fortran integer storage unit.
+\item[7]  $a$, the base for integers.
+\item[8]  $s$, the number of base $a$ digits in an integer.
+\item[9]  $a^s-1$, the largest integer magnitude.
+\item[10]  $b$, the base for floating-point numbers. Assumed the same for
+REAL and DOUBLE PRECISION arithmetic.
+\item[11]  $t$, the number of base $b$ digits for REAL arithmetic.
+\item[12]  $emin$, minimum exponent for REAL arithmetic.
+\item[13]  $emax$, maximum exponent for REAL arithmetic.
+\item[14]  $t$, the number of base $b$ digits for DOUBLE PRECISION
+arithmetic.
+\item[15]  $emin$, minimum exponent for DOUBLE PRECISION arithmetic.
+\item[16]  $emax$, maximum exponent for DOUBLE PRECISION arithmetic.
+\end{itemize}
+\begin{itemize}
+\item[\bf J]  {\hspace{.5in} {\bf R1MACH(J)}}
+\item[1]  $b^{emin-1}$ smallest positive normalized REAL number,
+(underflow limit).
+\item[2]  $b^{emax}(1-b^{-t})$, largest REAL number, (overflow limit).
+\item[3]  $b^{-t}$, smallest relative difference between two successive
+nonzero REAL numbers. This is also the difference between~1.0 and the next
+smaller REAL number.
+\item[4]  $b^{-(t-1)}$ largest relative difference between two successive
+nonzero REAL numbers. This is also the difference between~1.0 and the next
+larger REAL number.
+\item[5]  $\log _{10}b$, useful in certain conversions between base $b$ and
+base~10.
+\end{itemize}
+The values returned by D1MACH are as described above for R1MACH with REAL
+replaced by DOUBLE PRECISION.
+
+\subparagraph{Historical perspective and relations to other languages}
+
+The specifications of R1MACH, D1MACH, and I1MACH and the original
+implementation were developed at the AT\&T Bell Laboratories, Murray Hill,
+New Jersey, in the~1970's to support the development of portable
+mathematical software, and specifically the PORT library,
+\cite{Fox:1978:PMS}, which is a proprietary AT\&T Bell Laboratories
+product.  These three subprograms were published as a subset of
+Algorithm~528 in TOMS,~\cite{Fox:1978:AFP}, and are not proprietary.  The
+MATH77 version has the same specification but is substantially different
+in its implementation from the original versions.
+
+The attributes associated with J = 1, 2, 3, 4, and~6 in I1MACH are less
+relevant in Fortran~77 in the~90's than they were in Fortran~66 in the~70's.
+In particular, only the DNLxxx and SNLxxx subroutines of
+Chapter~9.3 access I1MACH(2).
+
+Other MATH77 library subprograms use PRINT or WRITE(*,...) for printing.
+
+Languages developed more recently than Fortran~77, such as Ada, ANSI C, and
+Fortran~90, provide methods within the language to obtain certain
+environmental parameters. Consider, for example, the underflow and overflow
+limits, and precision for floating-point arithmetic. Using the present
+package, these can be obtained for DOUBLE PRECISION arithmetic by
+referencing D1MACH(1), D1MACH(2), and D1MACH(4), respectively, and for REAL
+arithmetic by referencing R1MACH(1), R1MACH(2), and R1MACH(4). In Fortran~90
+these parameters can be obtained by referencing the generic inquiry
+functions TINY(X), HUGE(X), and EPSILON(X), where X may be any DOUBLE
+PRECISION entity to obtain the values for DOUBLE PRECISION arithmetic, and
+any REAL entity to obtain the values for REAL arithmetic. In ANSI C these
+values for arithmetic of type $double$ are given by the macro names DBL\_MIN,
+DBL\_MAX, and DBL\_EPSILON, for type $float$ there are FLT\_MIN, FLT\_MAX,
+and FLT\_EPSILON, and for type $long\ double$ LDBL\_MIN, LDBL\_MAX, and
+LDBL\_EPSILON.  All of these are defined in the standard
+header file $float.h$.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If the argument is outside the range 1\ $\leq $ J $\leq $ 16 for I1MACH or
+outside 1 $\leq $ J $\leq $ 5 for R1MACH or D1MACH, an error message is
+printed and execution is terminated.
+
+This package contains a partial protection against the inadvertent use of
+the wrong version of one of these subroutines; say using the PC version on a
+VAX. On the first call to any one of these subprograms, tests are done to
+verify that two of the stored parameter values are not grossly wrong for the
+current environment. These tests depend on assumptions about hardware,
+compilers, and linkers that may be invalidated by technological changes.
+Subroutines AMTEST and AMSUB1 are used to support these tests and are not
+intended for any other usage.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77. All the program units are
+grouped into a single file, AMACH.FOR. The filename may be different
+on different systems, $e.g.$, ``amach.f" on UNIX systems.
+
+One can either customize AMACH for a new system by commenting out
+lines defining the parameters required for the system as it is
+currently configured, and uncommenting lines required for the desired
+system, or one can use the program {\tt m77con} described in
+Chapter~19.4.  This requires making up a small control file {\tt
+m77job}, and compiling, linking, and running {\tt m77con}, which is
+self contained.  To make up {\tt m77job} for a VAX running UNIX, the
+control file would contain the following.
+
+{\tt SET SYS = VAX\newline
+FILE amach.f}
+
+Running {\tt m77con} with this control file and amach in the current
+directory will generate a file {\tt amach.f} for the VAX.  If one
+wants the extension ``{\tt .for}'' change the {\tt h.f} to {\tt
+h.for}.  If one wants a machine other than the VAX, choose a value
+for SYS (without any parenthetical remark) from the following table.
+{\tt SYS=IEEE} covers any machine that uses the IEEE binary standard
+for floating point arithmetic.  If your machine is not included in
+this list, either pick a machine with the same parameters for the
+floating point arithmetic as for a machine on this list, or enter
+parameters for your machine as a new option into AMACH.
+
+\begin{tabbing}
+{\tt SYS = IEEE}\\
+{\tt SYS = AMDAHL}\\
+{\tt SYS = APOLLO\_10000}\\
+{\tt SYS = BUR1700}\\
+{\tt SYS = BUR5700}\\
+{\tt SYS = BUR67\_7700}\\
+{\tt SYS = CDC60\_7000}\\
+{\tt SYS = CONVEXC\_1}\\
+{\tt SYS = CRAY1}\\
+{\tt SYS = CRAY1\_SD}\hspace{30pt}\=(Sngl prec.arith. used for dble.)\\
+{\tt SYS = CRAY1\_64}\>(64 bit integers)\\
+{\tt SYS = CRAY1\_SD\_64}\>(64 bit int, SP used for DP)\\
+{\tt SYS = CRAY\_J90}\\
+{\tt SYS = CRAY\_J90\_SD}\>(Sngl prec. used for dble.)\\
+{\tt SYS = DG\_S2000}\\
+{\tt SYS = HARRIS220}\\
+{\tt SYS = HON600\_6000}\\
+{\tt SYS = HON\_DPS\_8\_70}\\
+{\tt SYS = HP700Q}\>(Q Precision on HP700 series)\\
+{\tt SYS = IBM360\_370}\\
+{\tt SYS = INTERDATA\_8\_32}\\
+{\tt SYS = PDP10\_KA}\\
+{\tt SYS = PDP10\_KB}\\
+{\tt SYS = PDP11}\\
+{\tt SYS = PRIME50}\\
+{\tt SYS = SEQ\_BAL\_8000}\\
+{\tt SYS = UNIVAC}\\
+{\tt SYS = VAX}\\
+{\tt SYS = VAX\_G}\\
+{\tt SYS = ALPHA\_D3}
+\end{tabbing}
+
+Designed and programmed by P.A. Fox, A.D. Hall, and N.L. Schryer, AT\&T Bell
+Laboratories, 1978. Adapted to the JPL MATH77 library, 1984 and~1987.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.2in} {\bf Required Files}\vspace{2pt} \\
+D1MACH & \hspace{.35in} AMACH\\
+I1MACH & \hspace{.35in} AMACH\\
+R1MACH & \hspace{.35in} AMACH\\\end{tabular}
+
+
+\begcode
+
+\medskip
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRMACH}\vspace{0pt}
+\lstinputlisting{\codeloc{mach}}
+
+\centerline{{\bf \large Results from Various Machines\hspace{1in}}}
+
+\begin{lstlisting}{}
+
+              MACHINE CONSTANTS for IEEE Arithmetic
+              -----------------------------------------
+ J      I1MACH(J)       R1MACH(J)             D1MACH(J)
+
+ 1              5    0.11754944E-37    0.222507385850720100-307
+ 2              6    0.34028235E+39    0.179769313486231600+309
+ 3              7    0.59604645E-07    0.111022302462515700E-15
+ 4              6    0.11920929E-06    0.222044604925031300E-15
+ 5             32    0.30103001        0.301029995663981200
+ 6              4
+ 7              2
+ 8             31
+ 9     2147483647
+10              2
+11             24
+12           -125
+13            128
+14             53
+15          -1021
+16           1024
+\end{lstlisting}
+
+\begin{lstlisting}{}
+
+
+              MACHINE CONSTANTS for VAX
+              -----------------------------------------
+ J      I1MACH(J)       R1MACH(J)             D1MACH(J)
+ 1              5    0.29387359E-38    0.293873587705571877E-38
+ 2              6    0.17014117E+39    0.170141183460469229E+39
+ 3              7    0.59604645E-07    0.138777878078144568E-16
+ 4              6    0.11920929E-06    0.277555756156289135E-16
+ 5             32    0.30103001        0.301029995663981198
+ 6              4
+ 7              2
+ 8             31
+ 9     2147483647
+10              2
+11             24
+12           -127
+13            127
+14             56
+15           -127
+16            127
+\end{lstlisting}
+
+\newpage
+\begin{lstlisting}{}
+
+              MACHINE CONSTANTS for CRAY J90
+              -----------------------------------------
+ J      I1MACH(J)       R1MACH(J)             D1MACH(J)
+ 1              5    0.73344155-2465   0.733441547021938866-2465
+ 2              6    0.13634352+2466   0.136343516952426991+2466
+ 3            102    0.71054274E-14    0.504870979341447555E-28
+ 4              6    0.14210855E-13    0.100974195868289511E-27
+ 5             64    0.30103000        0.301029995663981195
+ 6              8
+ 7              2
+ 8             46
+ 9 70368744177663
+10              2
+11             47
+12          -8188
+13           8189
+14             94
+15          -8188
+16           8189
+
+
+
+              MACHINE CONSTANTS for UNISYS 1100
+              -----------------------------------------
+ J      I1MACH(J)       R1MACH(J)             D1MACH(J)
+ 1              5     .14693679-038     .278134232313400172-308
+ 2              6     .17014118+039     .898846567431157951+308
+ 3              7     .74505806-008     .867361737988403547-018
+ 4              6     .14901161-007     .173472347597680709-017
+ 5             36     .30103000         .301029995663981194
+ 6              4
+ 7              2
+ 8             35
+ 9    34359738367
+10              2
+11             27
+12           -128
+13            127
+14             60
+15          -1024
+16           1023
+\end{lstlisting}
+\end{document}

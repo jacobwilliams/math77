@@ -1,0 +1,831 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\usepackage{url}
+\begin{document}
+
+\begmath 10.0 Overview of Fourier Transforms and Spectral Analysis
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Introduction}
+
+The subroutines in this chapter compute discrete Fourier transforms,
+using the fast Fourier transform (FFT). Discrete Fourier transforms
+can be used in turn to approximate Fourier coefficients or evaluate
+truncated Fourier series, to approximate power spectra, to compute
+convolutions and lagged products (as might be required in computing
+correlations and in filtering), and in several other applications
+where the speed of the FFT has been found of value, see, $e.g.$,
+\cite{Cooley:1966:AFF}.
+
+The purpose of this introductory section is to outline what is
+available, to help the reader in the selection of the appropriate
+subroutine, to outline how the discrete transform can be used for the
+computation of convolutions and lagged products, to examine the
+errors introduced in using the discrete transform as an approximation
+to other transforms, and to suggest a computational procedure to
+those with doubts on how to proceed.
+
+Lower case English letters are used for functions of $t$, the
+independent variable, and Greek letters for Fourier transform
+functions, that are functions of $\omega $, with units of
+radians/(units of $t)$.
+
+\subsection{Subroutines Available}
+
+The one dimensional discrete transform pairs available are indicated
+below.  In ``SRFT1/DRFT1'' (for example) SRFT1 is the name for the
+single precision version and DRFT1 is the name for the double
+precision version. In all cases N $=2^M$ where M is a nonnegative
+integer and W $=e^{2\pi i/N}=\cos 2\pi /{N} +i\ \sin 2\pi /N.$
+
+SRFT1/{DRFT1} One dimensional real transform\vspace{-6pt}
+\begin{equation}\label{O1}
+x_j=\sum_{k=0}^{N-1}\xi _kW^{jk},\quad j=0,1,...,N-1\vspace{-6pt}
+\end{equation}
+\vspace{-15pt}
+\begin{equation}\label{O2}
+\xi _k=\frac 1N\sum_{j=0}^{N-1}x_jW^{-jk},\quad k=0,1...,N-1
+\end{equation}
+STCST/DTCST Trigonometric transform\vspace{-6pt}%
+\begin{multline}\label{O3}
+y_j=\frac 12\alpha _0+\,\sum_{k=1}^{(N/2)-1}\left[
+\alpha _k\cos \frac{2\pi jk}N+\beta _k\sin \frac{2\pi jk}N\right]\\
++\frac 12\alpha _{N/2}(-1)^j,\quad j=0,1,...,N-1
+\end{multline}
+\vspace{-20pt}
+\begin{equation}
+\begin{split}\label{O4}
+\alpha _k&=\frac 2N\sum_{j=0}^{N-1}y_j\cos \frac{2\pi jk}N,\quad
+k=0,1,...,\frac N2\\
+\beta _k&=\frac 2N\sum_{j=1}^{N-1}y_j\sin \frac{2\pi jk}N,\quad
+k=1,2,...,\frac N2-1
+\end{split}
+\end{equation}
+
+STCST/DTCST Cosine transform%
+\begin{multline}\label{O5}
+y_j=\frac 12\alpha _0+\sum_{k=1}^{N-1}\alpha _k\cos
+\frac{\pi jk}N+\frac 12\alpha _N(-1)^j,\\
+j=0,1,...,N
+\end{multline}
+\vspace{-15pt}
+\begin{multline}\label{O6}
+\alpha _k=\frac 2N\left[ \frac 12y_0+\sum_{j=1}^{N-1}y_j\cos
+\frac{\pi jk} N+\frac 12y_N(-1)^k\right]\\
+k=0,1,...,N
+\end{multline}
+\vspace{-15pt}
+
+STCST/DTCST Sine transform
+\begin{equation}\label{O7}
+y_j=\sum_{k=1}^{N-1}\beta _k\sin \frac{\pi jk}N,\quad
+j=1,2,...,N-1
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O8}
+\beta _k=\frac 2N\sum_{j=1}^{N-1}y_j\sin \frac{\pi jk}N,\quad
+k=1,2,...,N-1
+\end{equation}
+
+SCFT/DCFT Complex transform
+\begin{equation}\label{O9}
+z_j=\sum_{k=0}^{N-1}\zeta _kW^{jk},\quad j=0,1,...,N-1
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O10}
+\zeta _k=\frac 1N \sum_{j=0}^{N-1}z_jW^{-jk},\quad k=0,1,...,N-1
+\end{equation}
+
+All variables in the above equations are real, except $W$, $\xi $,
+$z$, and $ \zeta $ which are complex. For each of the transform pairs
+given, either equation can be derived from the other -- there are no
+approximations involved.
+
+Taking real and imaginary parts of Eq.\,(2) and making comparisons with Eq.
+(4), it is clear that if $x_j=y_j$, then 2 $\Re \xi _k=\alpha _k$ and
+2 $\Im \xi _k=-\beta _k$. Thus the trigonometric transform and the real
+transform are closely related. Since SRFT1 is slightly more efficient and
+shorter than STCST, it is recommended unless one has a distinct preference
+for the trigonometric form. If one has data that are even (or odd) then
+one can save a factor of two in both storage and computation by using the
+cosine (or sine) transform in STCST. One could use SCFT for real data by
+setting $\Im z_j=0$, but since this requires twice the storage and twice
+the work as SRFT1, SCFT is recommended only for complex data.
+
+Subroutines STCST, SCFT, and SRFT (similar to SRFT1) can be used for
+data in more than one dimension. As above, there is a connection
+between the real transform and the trigonometric transform, but the
+relations connecting the two are not as simple. Indexing of the
+coefficients in SRFT is more complicated, and thus we recommend STCST
+for multi-dimensional real data unless one prefers the form of the
+solution provided by SRFT.
+
+\subsection{Discrete Convolutions and Correlations}
+
+Here we consider computing sums of the form
+\begin{equation}\label{O11}
+c_n=\sum_{j=0}^{N-1}a_jb_{n\pm j},\quad n=0,1,...,N-1
+\end{equation}
+Initially it is assumed that $a_j$ and $b_j$ are periodic with period N.
+(That is, if $j$ is not in the range $0\leq j\leq {N-1}$, it is replaced by
+its value mod N.) Thus $\alpha _k$ and $\beta _k$ can be defined by%
+\begin{equation*}
+a_j=\sum_{k=0}^{N-1}\alpha _kW^{jk},\quad \text{and}\quad
+b_j=\sum_{k=0}^{N-1}\beta _kW^{jk}.
+\end{equation*}
+Substitution in Eq.\,(11) yields
+\begin{equation}\label{O12}
+\begin{split}
+ c_n&=\sum_{j=0}^{N-1}\left[ \sum_{k^{\prime }=0}^{N-1}\alpha
+_{k^{\prime }}W^{jk^{\prime }}\right] \left[ \sum_{k=0}^{N-1}\beta
+_kW^{(n\pm j)k}\right] \vspace{4pt} \\ \displaystyle\phantom{c_n}%
+&=\sum_{k^{\prime }=0}^{N-1}\sum_{k=0}^{N-1}\alpha _{k^{\prime }}\beta
+_kW^{nk}\sum_{j=0}^{N-1}W^{j(k^{\prime }\pm k)}.
+\end{split}
+\end{equation}
+From the easily verified fact that
+\begin{equation}\label{O13}
+\sum_{j=0}^{N-1}W^{j(k^{\prime }\pm k)}=
+\begin{cases}
+N & \text{if }k^{\prime }\equiv \mp k\text{ mod }N \\
+0 & \text{if }k^{\prime }\not \equiv \mp k\text{ mod }N
+\end{cases}
+\end{equation}
+and since $\alpha _k$ is periodic with period N there follows from Eq.\,(12)
+\begin{equation}\label{O14}
+\begin{array}{ll}
+\displaystyle c_n=N\sum_{k=0}^{N-1}\alpha _{\mp k}\beta _kW^{nk},&%
+n=0,1,...,N-1\rule[-20pt]{0pt}{20pt}\\
+\displaystyle \phantom{c_n}=N\sum_{k=0}^{N-1}\gamma _kW^{nk},&%
+\text{where }\gamma _k=\alpha _{\mp k}\beta _k.
+\end{array}
+\end{equation}
+
+The $c_n$ can be computed most efficiently by the indirect route of
+using the FFT to compute the $\alpha ^{\prime }$s and $\beta ^{\prime
+}$s from the $a^{\prime }$s and $b^{\prime }s$, then computing
+$\gamma _k$ as defined in Eq.\,(14), and finally using the FFT to
+compute the $c^{\prime }$s from the $\gamma ^{\prime }s$. For real
+data, SRFT1 is recommended for computing the transforms. Note that
+with SRFT1 $\alpha _k$, $\beta _k$, and $\gamma _k$ are only computed
+for $k=0,1,...,N/2$; for $k=(N/2)+1,...,N-1$, one must use the fact
+that for real data $\alpha _{N-k}=\overline{\alpha }_k\
+(\overline{z}=$ conjugate of $z).$
+
+Ordinarily one has $a_j$ and $b_j$ defined for $j=0,1,...,J-1$,
+assumed to be~0 for other values of $j$, and desires $c_n$ for
+$n=0,1,...,L-1$, where $L\leq J$. The above procedure can be used to
+get the first $L$ values of $c_n $ if one sets $N=$ smallest power of
+$2>J+L$ and sets $a_j$ and $b_j=0$ for $j=J,J+1,...,N-1.$ (If $J+L$
+is equal to or just slightly greater than a power of~2, it pays to
+reduce $L$ so that $J+L$ is one less than a power of 2, and to
+compute $c_n$ directly from Eq.\,(11) for values of $n=new\ L,...,$
+desired $L-1$.) Direct computation of the $c_n$ for $n=0,1,...,L-1$
+from Eq.  (11) requires $L(2J-L+1)/2$ multiplies and adds. Using
+SRFT1 and the procedure above requires approximately $(9/4)N\ \log
+_2N$ multiplies, $(33/8)N(\log _2N+1)$ adds, and a little additional
+overhead. If $a_j=b_j$ then the counts using SRFT1 can be multiplied
+by $2/3$. The fastest procedure clearly depends on the values of
+$J,L$, and $N$. For $J<64$, or for values of $L$ small relative to
+$J$, the direct method is fastest, see \cite{Cooley:1966:AFF}.
+
+Note that no assumption need be made about $a_j$ and $b_j$; the only
+errors introduced in the calculation of $c_n$ using SRFT1 are
+round-off errors.
+
+\subsection{Estimating Power Spectra}
+
+To within a constant factor (different normalizations are used), an
+estimate of the power at the $k^{th}$ frequency (defined in E below)
+is given by $|\xi _k|^2=(\Re \xi _k)^2+(\Im \xi _k)^2$, where the
+$\xi _k$ are obtained from SRFT1, Eq.\,(2) above. This estimate
+suffers from the same type of errors discussed below for the case of
+computing Fourier integrals.
+
+\subsection{Replacement of Continuous Transforms with Discrete Ones}
+
+To simplify the material that follows we consider only the case of
+complex functions. Results for real data follow immediately by
+considering real and imaginary parts of the variables and equations
+below. Proofs for the transform pairs are given in many books on
+Fourier transforms, although different scalings for $\varphi $ and
+$\omega $ are used.  We have used definitions that maximize symmetry
+while matching up with the form of the discrete transform provided by
+the FFT.
+
+For continuous data we have the following transform pairs.
+
+Fourier Integral $\left( \int_{-\infty }^\infty |f(t)|\,dt\text{\quad
+exists}\right)$%
+\begin{equation}\label{O15}
+f(t)=\int_{-\infty }^\infty \varphi (\omega )e^{2\pi i\omega
+t}d\omega
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O16}
+\varphi (\omega )=\int_{-\infty }^\infty f(t)e^{-2\pi i\omega
+t}dt
+\end{equation}
+Fourier Series $\left( s(t)=s(t+T)\right) $%
+\begin{equation}\label{O17}
+s(t)=\sum_{k=-\infty }^\infty \sigma _ke^{2\pi ikt/T}
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O18}
+\sigma _k=\frac 1T\int_{-T/2}^{T/2}s(t)e^{-2\pi ikt/T}dt
+\end{equation}
+The discrete transform Eq.\,(10) can be used to approximate Eq.\,(16)
+if the infinite limits are replaced by finite limits and $f$ is
+sampled at equally spaced points between the two limits. As an
+example let the infinite limits be replaced by $-T/2$ and T$/2$, and
+let
+\begin{equation}\label{O19}
+z_j=
+\begin{cases}
+\displaystyle f(-\frac T2+j\Delta t),&j=1,2,...,N-1\\
+\displaystyle \frac 12\left[ f(-\frac T2)+f(\frac T2)\right] ,& j=0,
+\end{cases}
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O20}
+\Delta t=\frac TN.
+\end{equation}
+This value of $z_0$ gives significantly better results than simply
+setting $z_0=f(-T/2)$. With the assumption that the contribution to
+the integral in Eq.\,(16) is negligible for $|t|>T/2$, the trapezoidal
+rule gives
+\begin{equation}\label{O21}
+\begin{split}
+\varphi (\omega )&\approx \Delta t\sum_{j=0}^{N-1}z_je^{-\pi
+i\omega (-T+2j\Delta t)} \\
+&\approx \frac TNe^{\pi i\omega T}\sum_{j=0}^{N-1}z_je^{-2\pi ij\omega T/N}.
+\end{split}
+\end{equation}
+In order that Eq.\,(21) have the form of Eq.\,(10), the solution is
+obtained for $\omega =\omega _k$, where
+\begin{equation}\label{O22}
+\omega _k=\frac kT,\quad k=0,1,...N-1.
+\end{equation}
+Then
+\begin{equation}\label{O23}
+\varphi (\omega _k)\approx \frac TNe^{\pi
+ik}\sum_{j=0}^{N-1}z_jW^{-jk}\quad (W=e^{2\pi i/N}).\hspace{-10pt}
+\end{equation}
+Thus $\varphi (\omega _k)\approx Te^{\pi ik}\zeta _k$, $\zeta _k$
+defined as in (10). The factor $e^{\pi ik}(=(-1)^k)$ is due to
+shifting the lower limit of $-T/2$ on the integral to a lower limit
+of~0 on the summation.
+
+Note that the $k^{th}$ frequency, $2 \pi \omega _k$, depends only on
+T, the length of the interval over which $f$ is sampled. Thus, from
+Eq.\,(22), $2 \pi \omega _k \text{ radians/(units of }t) =k/T$
+cycles/(units of $t)$. From Eqs.\,(20) and Eq.\,(21) it follows that
+the largest frequency for which a result is obtained is $\omega
+_{N-1}=(N-1)/(N\Delta T)$ cycles.  For real data, our approximation
+is such that $\varphi (\omega _{N-k})$ is the conjugate of $\varphi
+(\omega _{-k})$, and thus in this case the largest effective
+frequency is \begin{equation}\label{O24} \omega _{N/2}=\frac
+1{2\Delta t}\ \text{cycles}/\text{(units of } t\text{).}
+\end{equation} This frequency is commonly called the {\em Nyquist
+frequency.} Note that this frequency depends only on the sampling
+interval $\Delta t.$
+
+All that has been said above for Eq.\,(16) applies almost word for
+word to Eq.\,(18), except that Eq.\,(18) does not require replacing
+infinite limits by finite ones. Because of the factor $1/T$ appearing
+in Eq.\,(18), in place of $\varphi (\omega _k)\approx Te^{\pi
+ik}\zeta _k$, we have $\sigma _k\approx e^{\pi ik}\zeta _k.$
+
+\subsection{Errors Introduced by Using the Discrete Transform}
+
+The discrete Fourier transform when used as above is a crude
+approximation to a continuous transform. Its primary virtue is the
+speed with which it can be computed using the FFT ({\bf F}ast {\bf
+F}ourier {\bf T}ransform). Many procedures have been suggested for
+computing continuous transforms and power spectra, some of which
+permit the use of the FFT and some which do not.  References in
+Section H below give a sampling of what has been suggested.
+
+Any computational procedure involves making assumptions about either
+$f(t)$ or $\varphi (\omega )$ (or both), and any assumption about one
+implies something about the other. Answers to questions such as the
+following help one in understanding the implications of a
+computational procedure.
+
+(Q1) How are the true and computed transform related?
+
+(Q2) What is the error in the computed transform?
+
+(Q3) What assumptions (if any) are made or implied concerning the transform?
+
+(Q4) What assumptions are made about the function at points where its value
+is not used?
+
+(Q5) At the points where the value of the function is used, how is the
+function related to a function that would give the true transform at
+selected values of $\omega ?$
+
+These questions are considered below for the case of the discrete
+transform. We begin by giving some results required in the analysis,
+then consider the effect of limiting the sampling of $f$ to a finite
+range, the effect of discrete sampling, a combination of the two, and
+finally the effect on the discrete transform of filling in with zeros.
+
+\subsubsection{Convolution Theorems}
+
+For Fourier integrals we have
+\begin{equation}\label{O25}
+\varphi (\omega )=\varphi _1(\omega )\varphi _2(\omega )\qquad
+\text{if and only if}
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O26}
+f(t)=\int_{-\infty }^\infty f_1(\tau )f_2(t-\tau )\,d\tau .
+\end{equation}
+This result can be derived from Eqs.\,(15) and (16), and is also true
+if $\varphi $ and $f$ are interchanged throughout Eqs.\,(25) and (26).
+
+In the case of Fourier series there are two convolution theorems. We
+work with the three transform pairs $(a,\alpha )$, $(b,\beta )$, and
+$(c,\gamma )$. If $c(t)=a(t)b(t)$, then
+\begin{equation}\label{O27}
+\gamma _n=\frac 1T\int_{-T/2}^{T/2}\sum_{k=-\infty }^\infty
+\sum_{k^{\prime }=-\infty }^\infty \alpha _k\beta _{k^{\prime }}e^{2\pi
+it(k+k^{\prime }-n)/T}dt.
+\end{equation}
+Interchanging integration and summation, the integral is~0 if $k^{\prime
+}\neq n-k$, and is T if $k^{\prime }=n-k$. Thus
+\begin{equation}\label{O28}
+\gamma _n=\sum_{k=-\infty }^\infty \alpha _k\beta _{n-k}.
+\end{equation}
+The second convolution theorem starts with
+\begin{multline}\label{O29}
+c(t)=\frac 1T\int_{-T/2}^{T/2}a(\frac{1+\tau }2)b(\frac{1-\tau
+}2)\,d\tau \vspace{4pt} \\
+\hspace{-15pt}=\frac 1T\int_{-T/2}^{T/2}
+\sum_{k=-\infty }^\infty \sum_{k^{\prime }=-\infty
+}^\infty \!\!\!\alpha _k\beta _{k^{\prime }}e^{2\pi i[t(k+k^{\prime })+\tau
+(k-k^{\prime })]/2T}d\tau .
+\end{multline}
+Moving the integral inside the summations, we get a nonzero result only
+for $k^{\prime }=k$ in which case the integral is $\exp (2\pi itk/T)$.
+Thus%
+\begin{equation*}
+c(t)=\sum_{k=-\infty }^\infty \alpha _k\beta _ke^{2\pi itk/T},\quad
+\text{and so}
+\end{equation*}
+\begin{equation}\label{O30}
+\gamma _k=\alpha _k\beta _k.
+\end{equation}
+The convolution theorem for the discrete Fourier transform has already been
+given in Eqs.\,(11) and (14).
+
+\subsubsection{Fourier Transform of a Step Function}
+
+For Fourier integrals, let
+\begin{equation}\label{O31}
+r_T(t)=
+\begin{cases}
+1 & -\frac T2<t<\frac T2\\
+0 & |t|>\frac T2
+\end{cases}
+\end{equation}
+\begin{equation}\label{O32}
+\begin{split}
+\rho _T(\omega )&=\int_{-\infty }^\infty r_T(t)e^{-2\pi i\omega
+t}dt\vspace{4pt} \\
+\phantom{\rho _T(\omega )}&=\int_{-T/2}^{T/2}e^{-2\pi i\omega t}dt=
+\frac{\sin \pi \omega T}{\pi \omega }.
+\end{split}
+\end{equation}
+Similarly, one has the transform pair $(\frac 1{\pi t}\sin \pi t\Omega $, $r_\Omega
+(\omega )).$
+
+For Fourier series, we are interested in the case
+\begin{equation}\label{O33}
+\hat \rho _k^{(K)}=
+\begin{cases}
+1 & -K\leq k<K \\
+0 & k\geq K\text{ or }k<-K
+\end{cases}
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O34}
+\begin{split}
+\displaystyle\hat r^{(K)}&=\sum_{k=-\infty }^\infty \hat \rho _k^{(K)}e^{2\pi
+itk/T}=\sum_{k=-K}^{K-1}e^{2\pi itk/T}\vspace{4pt} \\
+\displaystyle &=\dfrac{2i(\sin 2\pi Kt/T)}{e^{2\pi it/T}-1}\vspace{4pt}\\
+\displaystyle &=\dfrac{(1+e^{-2\pi it/T})(\sin 2\pi Kt/T)}{\sin 2\pi t/T}.
+\end{split}
+\end{equation}
+For the discrete Fourier transform, consider
+\begin{equation}\label{O35}
+\tilde r_{j+kN}^{(J)}=
+\begin{cases}
+1 & 0\leq j\leq J-1 \\
+0 & J\leq j\leq N-1
+\end{cases}
+k=0,\pm 1,\pm 2,...
+\end{equation}
+\begin{equation*}
+\tilde \rho _k^{(J)}=\frac 1N\sum_{j=0}^{N-1}\tilde r_j^{(J)}W^{-jk}=\frac
+1N\sum_{j=0}^{J-1}W^{-jk}
+\end{equation*}
+\begin{equation}\label{O36}
+\tilde \rho _k^{(J)}=
+\begin{cases}
+J/N & k=0,\pm N,\pm 2N,...\\
+\dfrac{1-W^{-Jk}}{N(1-W^{-k})} & \text{otherwise.}
+\end{cases}
+\end{equation}
+
+\subsubsection{Errors Due to a Finite Range}
+
+Consider approximating $\varphi (\omega )$ in Eq.\,(16) with
+\begin{equation}\label{O37}
+\hat \varphi (\omega )=\int_{-T/2}^{T/2}f(t)e^{-2\pi i\omega t}dt.
+\end{equation}
+This is equivalent to answering (Q4) with $f(t)=0$ for $|t|>T/2.$
+
+To answer (Q1), rewrite the above equation as follows
+\begin{equation}\label{O38}
+\hat \varphi (\omega )=\int_{-\infty }^\infty r_T(t)f(t)e^{-2\pi
+i\omega t}dt,
+\end{equation}
+and using Eqs.\,(25) and (26) (with $f$ and $\varphi $ interchanged)
+\begin{equation}\label{O39}
+\hat \varphi (\omega )=\int_{-\infty }^\infty \varphi (\omega )
+\frac{\sin \pi T(\omega -w)}{\pi (\omega -w)}\,dw.
+\end{equation}
+Thus the effect of a finite range is a loss of resolution due to the
+smearing as indicated in Eq.\,(39).
+
+One answer to (Q2) is to subtract both sides of Eq.\,(39) from $\varphi
+(\omega )$. A more useful result is obtained by subtracting Eq.\,(37)
+from Eq.\,(16).
+\begin{equation}\label{O40}
+\varphi (\omega )-\hat \varphi (\omega )=\int_{T/2}^\infty \left[
+f(t)e^{-2\pi i\omega t}+f(-t)e^{2\pi i\omega t}\right] \,dt.
+\end{equation}
+Thus a bound on the error is given by
+\begin{equation}\label{O41}
+|\varphi (\omega )-\hat \varphi (\omega )|\leq \int_{T/2}^\infty
+\left[ |f(t)|+|f(-t)|\right] \,dt.
+\end{equation}
+If $\int_{-\infty }^\infty |f^{(j)}(t)|\,dt$ exists for $j=0,1,...,J+1$,
+integration by parts of the two terms in the integral of Eq.\,(40) yields $(k$ an
+integer)
+\begin{multline}\label{O42}
+\varphi (k/T)-\hat \varphi (k/T)=\hfill\vspace{4pt} \\
+\hspace{-10pt}(-1)^k\sum_{j=0}^J\left[ \frac{-iT}{2\pi k}\right]
+^{(j+1)}\left[ f^{(j)}(T/2)-f^{(j)}(-T/2)\right] +R,
+\end{multline}
+where R is a remainder term that goes to~0 as $k\rightarrow \infty $.
+Except for the form of the remainder, the same result is obtained in the
+same way from the negative of the right side of Eq.\,(37), where $\hat
+\varphi $ is defined. Thus for large $\omega $, $\hat \varphi (\omega )$ is
+mainly error unless derivatives of $f$ at $-T/2$ are very nearly equal to
+those at T$/2$. If the $j^{th}$ derivatives of $f$ at the endpoints are not
+equal, then $\hat \varphi (\omega )$ decreases no faster than $\omega
+^{-(j+1)}$ for large $\omega $. We find below that nearly equal derivatives
+at the ends of the interval are also important when estimating $\hat
+\varphi $ using the FFT.
+
+To answer (Q5) consider%
+\begin{equation*}
+\begin{split}
+\varphi (k/T)&=\int_{-\infty }^\infty f(t)e^{-2\pi ikt/T}dt\\
+&=\sum_{j=-\infty}^\infty \int_{-T/2+jT}^{T/2+jT}f(t)e^{-2\pi ikt/T}dt\\
+&=\int_{-T/2}^{T/2}\sum_{j=-\infty }^\infty f(t+jT)e^{-2\pi ik(t+jT)/T}dt.
+\end{split}
+\end{equation*}
+And since $e^{-2\pi ijk}=1$, we have
+\begin{equation}\label{O43}
+\begin{split}
+\varphi (k/T)&=\int_{-T/2}^{T/2}\hat f(t)e^{-2\pi ikt/T}dt, \quad
+\text{where}\vspace{4pt} \\
+\hat f(t)&=\sum_{j=-\infty }^\infty f(t+jT)
+\end{split}
+\end{equation}
+If $f(t)$ is replaced by $\hat f(t)$ as defined above, then $\hat \varphi
+(k/T)=\varphi (k/T).$
+
+\subsubsection{Errors Due to Discrete Sampling}
+
+Given $f(j\Delta t)$, $j=0$, $\pm 1$, $\pm 2$, ..., we have (proceeding much
+as was done in obtaining Eq.\,(42))%
+\begin{equation*}
+\begin{split}
+f(j\Delta t)&=\int_{-\infty }^\infty \varphi (\omega )e^{2\pi
+i\omega j\Delta t}d\omega\\
+&=\sum_{k=-\infty }^\infty \int_{(k-1/2)/\Delta
+t}^{(k+1/2)/\Delta t}\varphi (\omega )e^{2\pi i\omega j\Delta t}d\omega
+\end{split}
+\end{equation*}
+\begin{equation}\label{O44}
+\begin{split}
+f(j\Delta t)&=\int_{-1/2\Delta t}^{1/2\Delta t}\tilde \varphi
+(\omega )e^{2\pi i\omega j\Delta t}d\omega ,\quad \text{where}\\
+\tilde \varphi (\omega )&=\sum_{k=-\infty }^\infty \varphi (\omega
++\frac k{\Delta t}).
+\end{split}
+\end{equation}
+Clearly $\tilde \varphi (\omega )$ is periodic with period $1/\Delta t$,
+thus from Eqs.\,(18) and (17)
+\begin{equation}\label{O45}
+\tilde \varphi (\omega )=\Delta t\sum_{j=-\infty }^\infty f(j\Delta
+t)e^{-2\pi i\omega j\Delta t}.
+\end{equation}
+If no assumptions are made about $f$ or $\varphi $, then given just
+$f(j\Delta t)$, $j=0$, $\pm 1$, ... values of $\varphi $ for
+frequencies that differ by a multiple of $1/\Delta t$ cycles are
+irrevocably mixed. This phenomenon is commonly called {\em aliasing.}
+
+When sampling at discrete points the usual assumption made is that $f$ is
+band-limited. That is, $\varphi (\omega )=0$ for $|\omega |>1/(2\Delta t)$.
+Thus the computed transform is equal to $\hat \varphi $ as given in Eq.
+(45), and questions (Q1) and (Q2) are answered by the expression for $\hat
+\varphi$ as given in Eq.\,(44).
+
+To answer (Q4) and (Q5), note that if $\tilde f$ is a function whose true
+transform is 0 for $|\omega |>1/(2\Delta t)$ and is $\varphi (\omega )$
+otherwise, then
+\begin{equation}\label{O46}
+\tilde f(t)=\int_{-\infty }^\infty r_{1/\Delta t}(\omega )\varphi
+(\omega )e^{2\pi i\omega t}d\omega ,
+\end{equation}
+and using Eqs.\,(25), (26), (31), and (32)
+\begin{equation}\label{O47}
+\tilde f(t)=\int_{-\infty }^\infty f(\tau )\frac{\sin (\pi
+(t-\tau )/\Delta t)}{\pi (t-\tau )}\,d\tau .
+\end{equation}
+Note the symmetries between $f$ and $\varphi $ in Eqs.\,(38) and (46); (39) and
+(47); and (43) and (44). Relations symmetric to Eqs.\,(40) -- (42) are easily
+obtained, but we do not bother to do so here.
+
+\subsubsection{Errors Due to Discrete Sampling on a Finite Interval}
+
+Here we consider errors that result from evaluating the integral in Eq.\,(18)
+using the discrete Fourier transform. The results also apply to the integral
+in Eq.\,(37), and thus errors examined here combined with those due to a
+finite range give the total error due to replacing a Fourier integral with a
+discrete Fourier transform.
+
+The aliasing problem is revealed much as it was obtained in Eq.\,(44). Let
+$\Delta t=T/N$, and from Eq.\,(17)%
+\begin{equation*}
+\begin{split}
+s(j\Delta t)&=\!\sum_{k=-\infty }^\infty \!\sigma _ke^{2\pi
+ijk/N}=\!\sum_{m=-\infty }^\infty \!\!\sum_{k=mN}^{(m+1)N-1}\!\!\sigma
+_kW^{jk}\\
+&=\sum_{k=0}^{N-1}\sum_{m=-\infty }^\infty \sigma _{k+mN}W^{jk},
+\end{split}
+\end{equation*}
+\begin{equation}\label{O48}
+s(j\Delta t)=\sum_{k=0}^{N-1}\tilde \sigma _kW^{jk},\text{ where }%
+\tilde \sigma _k=\sum_{m=-\infty }^\infty \sigma _{k+mN}.
+\end{equation}
+And, as for Eq.\,(45), there results from Eqs.\,(9) and (10)
+\begin{equation}\label{O49}
+\tilde \sigma _k=\frac 1N\sum_{j=0}^{N-1}s(j\Delta t)W^{-jk}.
+\end{equation}
+Since $\tilde \sigma _{k-N}=\tilde \sigma _k$, and $W^{j(k-N)}=W^{jk},$ Eq.
+(48) can be rewritten to make more apparent the assumption that $s$ is
+band-limited. Subtracting N from all indices $k\geq N/2$, there results
+\begin{equation}\label{O50}
+s(j\Delta t)=\sum_{k=-N/2}^{(N/2)-1}\tilde \sigma _kW^{jk}.
+\end{equation}
+As before, if we assume that $s(t)$ is band-limited, questions (Q1) and (Q2)
+are answered by the expression for $\tilde \sigma $ given in Eq.\,(48).
+
+To answer (Q4) and (Q5) as in Eq.\,(47) we use Eqs.\,(29), (30), (33), and
+(34) to obtain from
+\begin{equation}\label{O51}
+\tilde s(t)=\sum_{k=-\infty }^\infty \sigma _k\hat \rho
+_k^{(N/2)}e^{2\pi ikt/T},
+\end{equation}
+\vspace{-10pt}
+\begin{multline}\label{O52}
+\tilde s(t)=\frac 1T\int_{-T/2}^{T/2}\Biggl [s(\frac{t+\tau }%
+2)\left( 1+e^{-\pi i(t-\tau )/T}\right) \vspace{4pt} \\
+\times \frac{\sin (\pi N(t-\tau )/2T)}{\sin (\pi (t-\tau )/T)}\Biggr ]%
+\,d\tau .
+\end{multline}
+Another answer to (Q2) can be obtained using the Euler-Maclaurin
+formula.  Let $S_k(t)=s(t)e^{-2\pi ikt/T}$, define $S_{k,j}^{(\mu )}$
+to be the $\mu ^{th}$ derivative of $S_k$ evaluated at $t=-\frac
+T2+j\,\Delta t$, and $S_{k,j}=S_{k,j}^{(0)}$. Then the
+Euler-Maclaurin formula applied to Eq.\,(18) gives
+\begin{equation}\label{O53}
+\hspace{-10pt}
+\sigma _k=\frac{\Delta t}T\left \{\frac 12\left[
+S_{k,N}+S_{k,0})\right] +\sum_{j=1}^{N-1}S_{k,j} + C_k^{(r)} \right \} +
+R_k^{(r)},
+\end{equation}\vspace{-5pt}
+where
+\begin{equation*}
+C_k^{(r)}=\sum_{\nu =1}^r\frac{B_{2\nu }(\Delta
+t)^{2\nu -1}}{2\nu !}\left[ S_{k,N}^{(2\nu -1)}-
+S_{k,0}^{(2\nu -1)}\right] ,
+\end{equation*}
+$B_{2\nu }$ is the $2\nu ^{th}$ Bernoulli number, and $R_k^{(r)}$ is
+a remainder term. The terms in Eq.\,(53) that contain S are what one
+would use following the procedure given in Section E above. The terms
+involving a $(2\nu -1)^{st}$ derivative of S are correction terms,
+which if not used, give an indication (which can be misleading) of
+the error. To examine the errors as they depend on the derivatives of
+$s$, we write
+\begin{equation}\label{O54}
+\hspace{-5pt}S_k^{(\mu )}(t)=\sum_{j=1}^\mu \binom
+\mu js^{(j)}(t)\left[ \frac{-2\pi ik}T\right] ^{\mu -j}e^{-2\pi ikt/T},
+\end{equation}
+\vspace{-10pt}
+\begin{equation}\label{O55}
+\hspace{-5pt}S_k^{(\mu )}(\pm T/2)=\sum_{j=1}^\mu \binom
+ \mu j\left[ \frac{-2\pi ik}T\right] ^{\mu -j}(-1)^ks^{(j)}(\pm T/2).
+\end{equation}
+Substitution into $C_k^{(r)}$ and a little algebraic manipulation gives the
+following result.
+\begin{equation}\label{O56}
+\hspace{-10pt}\begin{array}{l}\displaystyle
+\frac{\Delta t}TC_k^{(r)}\!=\!\frac{(-1)^k}%
+N\sum_{j=0}^{2r-1}b_j^{(r)}\!\left[ \frac{iT}{2\pi k}\right] ^j\!\!\left[
+s^{(j)}(\frac T2)-s^{(j)}(-\frac T2)\right],\\
+~
+\end{array}% Weird stuff with array needed to avoid overlap on label.
+\end{equation}
+where
+\begin{equation}\label{O57}
+b_j^{(r)}=\sum_{\nu =\lfloor j/2\rfloor +1}^r\binom{2\nu
+-1}j\frac{B_{2\nu }(-2\pi ik/N)^{2\nu -1}}{(2\nu )!},
+\end{equation}
+and $\lfloor j/2\rfloor $ is the integer part of $j/2$. Note the similarities
+between Eqs.\,(42) and (56). The degree of continuity in the periodic
+extension of the function sampled on $[-T/2$, T$/2]$ is extremely important
+in determining how well the discrete Fourier transform will approximate
+either of the other Fourier transforms.
+
+\subsubsection{Filling in with Zeros}
+
+The requirement that N be a power of~2 imposed by the FFT routines in
+this chapter may be inconvenient. It is sometimes suggested that if
+one has $N^{\prime }$ function values, that the remaining
+$N-N^{\prime }$ values be set to~0, where N is the first power of
+$2\geq N^{\prime }$. Let $z_j$ denote the true values of the function
+for $j=0,1,...,N-1$, and let $\zeta _k $ and $\hat \zeta _k$ denote
+the true and computed coefficients for the discrete Fourier transform
+of $z$. Then clearly
+\begin{equation}\label{O58}
+\zeta _k-\hat \zeta _k=\frac 1N\sum_{j=N^{\prime
+}}^{N-1}z_jW^{-jk}.
+\end{equation}
+And, using Eqs.\,(11), (14), (35), and (36)
+\begin{equation}\label{O59}
+\hat \zeta _k=\sum_{\nu =0}^{N-1}\zeta _\nu \frac{%
+1-W^{-N^{\prime }(k-\nu )}}{N(1-W^{-(k-\nu )})}
+\end{equation}
+where for $\nu =k$ the multiplier of $\zeta _\nu $ is $N^{\prime }/N.$
+
+It is perhaps more instructive to consider the connection between $\hat
+\zeta _k$ and $\tilde \zeta _k$, where
+\begin{equation}\label{O60}
+\tilde \zeta _k=\frac 1{N^{\prime }}\sum_{j=0}^{N^{\prime
+}-1}z_je^{-2\pi ijk/N^{\prime }}.
+\end{equation}
+By extending the definitions of $\hat \zeta _k$, and $\tilde \zeta _k$ to
+noninteger $k$ in the obvious way, one obtains
+\begin{equation}\label{O61}
+\begin{split}
+\hat \zeta _{kN/N^{\prime }}&=\frac 1N\sum_{j=0}^{N^{\prime
+}-1}z_je^{-2\pi ijk/N^{\prime }}=\frac{N^{\prime }}N\tilde \zeta _k
+\text{,\quad and}\\
+\tilde \zeta _{kN^{\prime }/N}&=\frac 1{N^{\prime }}
+\sum_{j=0}^{N^{\prime }-1}z_je^{-2\pi ijk/N}=\frac N{N^{\prime }}
+\hat \zeta _k
+\end{split}
+\end{equation}
+Thus $\frac N{N^{\prime }}\hat \zeta _k$ can be thought of as a way
+of computing $\tilde \zeta $ with a smaller than usual $\Delta \omega
+$. In particular, if $N=2N^{\prime }$, $\hat \zeta _{2k}=\tilde \zeta
+_k/2.$ It is sometimes suggested that $N^{\prime }$ extra zeros be
+added even when $N^{\prime }$ is a power of~2. By doing this one
+can use the FFT to get the autocorrelation from Eqs.\,(11) and (14),
+and the power spectrum, which can be defined as the Fourier transform
+of the autocorrelation function, is obtained automatically. An
+alternative method for those who like this approach is to compute
+$\tilde \zeta _k/2$ $(N^{\prime }$ a power of~2) to get $\hat \zeta
+_{2k}$, and obtain $\hat \zeta _{2k+1}$ by setting it equal to the
+$k^{th}$discrete Fourier coefficient of $z^{\prime }$ where
+$z_j^{\prime }=z_je^{\pi ij/N^{\prime }},\ j=0,1,...,N^{\prime }-1.$
+
+If one zeros $\zeta _k$ for $k=N^{\prime }$, $N^{\prime }+1$, ..., N, then
+instead of defining a trigonometric polynomial of degree $N-1$ that passes
+through $z_j$, $j=0,1,...,N-1,$ the $\zeta ^{\prime }s$ define a
+trigonometric polynomial of degree $N^{\prime }-1$, that fit the $z_j$ in a
+least-squares sense. Multiplication by the Lanczos sigma factors, see below,
+should usually give better smoothing characteristics for nonperiodic data.
+
+\subsection{Recommendations}
+
+The FFT gives good results if one is sampling a periodic function over one
+period. Results are less satisfactory for other cases. What we suggest here
+should usually give an improvement over the FFT, however, in many cases one
+can undoubtedly do ever better.
+
+It is assumed that trends in the data $(e.g.$, a linear trend) have been
+removed, and that appropriate action has been taken for wild points or gaps
+in the data. By a trend, we mean a smooth function S, so that the
+(estimated) average value of $|S(t)-z(t)|$ is as small as possible for $t$
+outside the sampling interval. In some cases one may want to add the Fourier
+transform of S to the computed transform of $z$.
+
+For functions that are not periodic it makes little sense to attempt a
+representation in terms of a discrete set of frequencies. In Eq.\,(61) the
+value of the discrete transform for noninteger values is defined. What we
+propose here amounts to computing $\zeta _k$, which is an average of the
+values of the discrete transform for nearby noninteger values of $k$.
+Starting from Eq.\,(21), consider
+\begin{align}
+\varphi _a(\omega )=&\frac 1{2a}\int_{\omega -a}^{\omega
++a}\varphi (\alpha )\,d\alpha \vspace{4pt}\notag \\
+=&\frac TN\sum_{j=0}^{N-1}z_j\frac
+1{2a}\int_{\omega -a}^{\omega +a}e^{\pi i\alpha T(N-2j)/N}d\alpha
+\vspace{4pt}\notag \\
+=\frac TNe^{\pi i\omega T}&\sum_{j=0}^{N-1}\left[
+\frac{\sin [\pi aT(N-2j)/N]}{\pi aT(N-2j)/N}\right]
+z_je^{-2\pi ij\omega T/N}.\label{O62}
+\end{align}
+With $\omega =\omega _k$, Eq.\,(62) is the same as Eq.\,(23) except
+for the multiplier of $z_j$. The choice $a=1/T$ is attractive for
+several reasons:  it is the smallest value of $a$ that gives a
+multiplier of~0 for $z_0$(and for $z_N$ if it were used), and thus
+helps to minimize the effect of a discontinuity in the periodic
+extension of $z_j$; the value of $\varphi _{1/T}(\omega _k)$ is the
+average value of $\varphi $ from $\omega _{k-1}$ to $\omega
+_{k+1}$, so not much resolution is lost; finally, if Eq.\,(39) is
+integrated from $\omega -a$ to $\omega +a$ as was done in Eq.\,(21),
+one finds that the choice $a=1/T$ minimizes the effect of $\varphi
+(\hat \omega )$ on $\hat \varphi _k(\omega )$ for values of $\hat
+\omega $ remote from $\omega $. Thus, we define
+\begin{equation}\label{O63}
+\sigma _j=\begin{cases}
+\dfrac{\sin \pi j/N}{\pi j/N}\vspace{4pt} & j\neq 0\\
+1 & j=0
+\end{cases}
+\end{equation}
+and the multiplier of $z_j$ in Eq.\,(62) is $\sigma _{N-2j}$. And since
+$\sigma _{-N+2j}=\sigma _{N-2j}$, $z_{N-j}$ has the same multiplier.
+
+The $\sigma _j$ defined in Eq.\,(63) are the Lanczos sigma factors, see
+\cite{Lanczos:1956:AA} for a different motivation in their derivation, and
+for instructive examples.  If one wants a greater smoothing, rather than
+increasing $a$, we recommend averaging the average.  Thus if the same
+procedure is applied to Eq.\,(62) as was applied to Eq.\,(21) one finds
+that $\sigma _{N-2j}$ is replaced by $\sigma _{N-2j}^2$.  This process can
+of course be repeated, depending on how much resolution one is willing to
+give up.  The $\sin \pi j/N$ are readily available from the sine table
+required by the FFT subroutines as illustrated in the example for SRFT1.
+
+The choice of $a = 1/T$ is not appropriate if one has filled out with
+zeros because $N^{\prime}$ values are given and $N^{\prime}$ is not a
+power of~2.  We assume the given values of $z$ are stored in $z_j$,
+$j = N^{\prime}/2$, ..., $[(N+N^{\prime})/2]$, and that both ends
+have been zero filled. Then one should set $a =N/(N^{\prime}T).$
+
+The $\sigma $ factors are also useful for smoothing. Given real data,
+$x$, one can replace $x_j$ by the average value of the trigonometric
+polynomial interpolating the data on the interval $x_{j-1}\leq x\leq
+x_{j+1}$ using the $\sigma $ factors. Simply compute the $\zeta _k$
+using the FFT, multiply $\zeta _k$ by $\sigma _{2k}$, $k=1$, 2,
+..., N$/2$, and then compute the inverse transform. This application
+is illustrated in the example for SRFT.
+
+When the number of data points is not a power of two, one may have an
+interest in using a mixed radix algorithm such as that in
+\cite{Singleton:1969:AAC}, or one could use the codes given here together
+with the technique described in \cite{Bailey:1991:TFF}.  Before making the
+decision to go with something more complicated than padding the data
+with~0's, (or when padding the data with~0's), one should understand the
+connections described from Eq.\,(60) to just below Eq.\,(61).
+\nocite{Hamming:1962:NMS}
+\nocite{Jenkins:1968:SAA}
+\nocite{Havie:1973:REI}
+\nocite{Abramovici:1973:TAC}
+\nocite{Lyness:1971:TCF}
+\nocite{VandeVooren:1968:OCI}
+\nocite{Stetter:1966:NAF}
+\nocite{Clendenin:1966:AMN}
+\nocite{VanLoan:1992:CFF}
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+For information on the web, see:\newline
+{\bf http://theory.lcs.mit.edu/$^\sim$fftw/fft-links.html}
+
+Fred T. Krogh, JPL, November~1974. Minor additions and corrections,
+October~1991, October~1993, and April~1998.
+\end{multicols}
+\end{document}

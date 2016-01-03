@@ -1,0 +1,547 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{SSVDRS ISCALE}
+\begmath 4.3 Singular Value Decomposition and Analysis
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Any M$\times $N matrix, $A$, has a Singular Value Decomposition (SVD) of the
+form
+\begin{equation*}
+A = USV^t
+\end{equation*}
+where $U$ is an M$\times $M orthogonal matrix, $V$ is an N$\times $N
+orthogonal matrix, and $S$ is an M$\times $N matrix having nonnegative
+elements on the diagonal and zeros elsewhere. It is customary to arrange
+that the diagonal elements of $S$, called the singular values of $A$, are in
+decreasing order. This is done in the software described here.
+
+The SVD can be useful in analyzing a linear least-squares problem or other
+matrix problems, particularly when there is reason to believe that the model
+is ill-conditioned. The SVD also has a role as a component in many
+specialized algorithms of linear algebra and statistics.
+
+Here we describe three subroutines to facilitate use of the SVD:
+
+(1) Let a matrix, $A$, and a matrix or vector, $B$, be given. Denote the SVD
+of $A$ by $A$ $= USV^t$. Subroutine SSVDRS computes the SVD of a matrix, $A$%
+, and returns $S$, $V$, and the product, $U^tB$. If one needs to obtain the
+matrix $U$ explicitly, call SSVDRS with $B$ set to be the $M^{th}$ order
+identity matrix.
+
+(2) Subroutine SSVA uses SSVDRS and produces a report of quantities useful
+for the singular value analysis of a least-squares problem, $A{\bf x} \simeq
+{\bf b}.$
+
+(3) Subroutine SCOV3 can be used following SSVDRS to compute a covariance
+matrix.
+
+\subsection{Usage}
+
+\subsubsection{Singular Value Decomposition with Computation of $U^tB$}
+
+Compute the Singular Value Decomposition, $USV^t$, of a matrix, $A$, and
+optionally return the product, $U^tB$, where $B$ is another given matrix.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf LDA, M, N, LDB, NB}
+
+\item[REAL]  \ {\bf A}(LDA, $\geq $N){\bf , SING}($\geq $N){\bf , D}($\geq $%
+N){\bf ,\\ WORK}($\geq 2\times $N){\bf , B}(LDB, $\geq $NB) or {\bf B}($\geq
+$M)
+\end{description}
+
+Assign values to A(,), LDA, M, N, B(), LDB, and NB.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SSVDRS (A, LDA, M, N, B,\\
+LDB, NB, SING, WORK)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in A(,), B(), and SING().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)]  \ [inout] On entry, contains an M$\times $N matrix, $A$. On
+return contains the N$\times $N matrix, $V$, such that $A=USV^t.$
+
+\item[LDA]  \ [in] First dimensioning parameter for A(,). Require LDA $\geq
+\max (\text{M},\text{N}).$
+
+\item[M,N]  \ [in] Number of rows and columns, respectively, in the given
+matrix, $A$. Either M $>$ N or M $\leq $ N is permitted. Require M $>0$ and
+N $>0.$
+
+\item[B()]  \ [inout] On entry, contains an M-vector, ${\bf b}$, or an M$%
+\times $NB matrix, $B$. On return, contains the M-vector, ${\bf g}=U^t{\bf b}
+$, or the M$\times $NB matrix, $G=U^tB$, where $U$ satisfies $USV^t=A.$ Note
+that if $B$ is the $M^{th}$ order identity matrix on entry, then on return
+the array B(,) will contain $U^t.$
+
+\item[LDB]  \ [in] First dimensioning parameter for the array B(,). Require
+LDB $\geq \max (\text{M},\text{N})$ when NB $\geq 1$ and LDB $\geq 1$ when
+NB = 0.
+
+\item[NB]  \ [in] Number of columns in the input matrix, $B$. Require NB $%
+\geq 0$. If NB = 1, the array B() may be singly or doubly subscripted. If NB
+$>1$, the array B(,) must be doubly subscripted. If NB = 0, the array B()
+will not be referenced.
+
+\item[SING()]  \ [out] On return, contains the singular values of $A$, in
+descending order, in locations indexed 1 through N. If M $<$ N, SING(M+1)
+through SING(N) will be set to zero.
+
+\item[WORK()]  \ [scratch] Work space of length at least 2$\times $N.
+\end{description}
+
+\subsubsection{Singular Value Analysis}
+
+Computes quantities useful for the singular value analysis of a
+least-squares problem, $A{\bf x} \simeq {\bf b}$. Optionally produces a
+report, with options to select the full report or only parts of it, to
+select the output unit for the report, and to specify the display width
+available for the report.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf LDA, M, N, MDATA, ISCALE, KPVEC}(4)
+
+\item[REAL]  \ {\bf A}(LDA, $\geq $N){\bf , B}($\geq $M){\bf , SING}($\geq $%
+N){\bf , D}($\geq $N){\bf , WORK}($\geq 2 \times \text{N}$)
+
+\item[CHARACTER]  \ {\bf NAMES}($\geq N)*($lennam)\\
+{}[lennam $\geq $ 1]
+\end{description}
+
+Assign values to A(,), LDA, M, N, MDATA, B(), KPVEC(), NAMES(), ISCALE, and
+optionally to D().
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SSVA (A, LDA, M, N, MDATA,\\
+B, SING, KPVEC, NAMES,\\
+ISCALE, D, WORK)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in A(,), B(), SING(), and optionally in
+D(). A report is produced if selected by KPVEC().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)]  \ [inout] On entry, contains the M$\times $N matrix, $A$, of the
+least-squares problem to be analyzed. This could be a matrix obtained by
+preliminary orthogonal transformations applied to the actual problem matrix
+which may have had more rows (See MDATA below.) On return, contains an $%
+N^{th}$ order matrix in which the $j^{th}$ column is the $j^{th}$ candidate
+solution for the least-squares problem, $i.e$. the solution computed as
+though singular values $j+1$ through N were zero.
+
+\item[LDA]  \ [in] First dimensioning parameter for A(,). Require LDA $\geq
+\max (\text{M},\text{N}).$
+
+\item[M,N]  \ [in] Number of rows and columns, respectively, in the matrix, $A$.
+Either M $>$ N or M $\leq $ N is permitted. Require M $>0$ and N $>0.$
+
+\item[MDATA]  \ [in] Number of rows in actual least-squares problem.
+Generally MDATA\ $\geq $ M. MDATA is used only in computing statistics for
+the report and is not used as a loop count or array dimension.
+
+\item[B()]  \ [inout] On entry, contains the right-side M-vector, ${\bf b}$,
+of the least-squares problem. On return, contains the M-vector, ${\bf g}=U^t%
+{\bf b}$, where $U$ comes from the singular value decomposition of $A$.
+
+\item[SING()]  \ [out] On return, contains the singular values of $A$, in
+descending order, in locations indexed 1 through N. If M $<$ N, SING(M+1)
+through SING(N) will be set to zero.
+
+\item[KPVEC()]  \ [in] Option array controlling report generation. If
+KPVEC(1) = 0, default settings will be used, producing the full report,
+sending it to the standard system output unit, formatted with a maximum line
+length of~79. If KPVEC(1) = 1, the contents of KPVEC(I), I = 2,...,~4, set
+options for the report, as follows:
+\begin{description}
+\item[KPVEC(2)] \ The decimal representation of KPVEC(2) must be at
+most 6~digits, each being 0~or~1. The decimal digits will be interpreted as
+independent on/off flags for the 6 possible blocks of the report. Examples:
+101010 selects the 1st, 3rd, and 5th~blocks, 111111 selects all blocks, 0
+suppresses the whole report, etc. The default value is 111111. The six
+blocks are:
+
+\begin{itemize}
+\item[1.]  Header, with size and scaling option parameters.
+
+\item[2.]  $V$-matrix.
+
+\item[3.]  Singular values and related quantities.
+
+\item[4.]  Listing of YNORM and RNORM and their logarithms.
+
+\item[5.]  Levenberg-Marquardt analysis.
+
+\item[6.]  Candidate solutions.
+\end{itemize}
+
+\item[KPVEC(3)] \ Define UNIT = KPVEC(3). If UNIT $\geq $ 0, UNIT will be
+used as the output unit number. If UNIT $=-1$, output will be written to
+the ``$\ast $'' output unit, $i.e.$, the standard system output unit.
+The default value is $-$1. The calling program unit is responsible for
+opening and/or closing the selected output unit if the host system
+requires these actions.
+
+\item[KPVEC(4)] Determines the width of blocks~2, 3, and~6 of the output report.
+Define WIDTH = KPVEC(4). The default value is~79. Each output line will have
+a leading blank for Fortran ``carriage control'' with line widths as
+follows: Output blocks~1, 4, and~5 always have 63, 66, and 66~character
+positions respectively. Output blocks~2 and~6 will generally have at most
+WIDTH character positions. One output line will contain a row number, a name
+from NAMES(), and from one to eight floating point numbers. The space
+allocated for a name will be that needed for the longest name in NAMES(),
+which may be less than the declared length of elements of NAMES(). The line
+length will only exceed WIDTH if this is necessary to accommodate the row
+number and name plus one floating-point number. Output block~3 will have
+69~character positions if WIDTH $<95$ and otherwise will have 95~character
+positions.
+\end{description}
+
+\item[NAMES()]  \ [in] NAMES$(j)$, for $j=1$, ..., N, may contain a name for
+the $j^{th}$ component of the solution vector. If NAMES(1) contains only
+blank characters, it will be assumed that no names have been provided, and
+this subroutine will not access the NAMES() array beyond the first element.
+
+\item[ISCALE]  \ [in] Set by the user to~1, 2, or~3 to select the column
+scaling option.
+
+\begin{itemize}
+\item[1]  The subroutine will use identity scaling and ignore the D() array.
+
+\item[2]  The subroutine will scale nonzero columns of $A$ to have unit
+Euclidean length, and will store reciprocal lengths of the original nonzero
+columns in D().
+
+\item[3]  User supplies column scaling factors in D(). The subroutine will
+multiply column $j$ by D($j)$, and remove the scaling from the solution at
+the end.
+\end{itemize}
+
+\item[D()]  \ [ignored or out or in] Usage of D() depends on ISCALE as
+described above. When used, its length must be at least N.
+
+\item[WORK()]  \ [scratch] Scratch work space.
+\end{description}
+
+\subsubsection{Computation of the Covariance Matrix}
+
+Subroutine, SCOV3, can be used to compute the covariance matrix for the
+solution vector of a least-squares problem, $A{\bf x} \simeq {\bf b}$,
+following use of SSVDRS in cases in which M $>$ N and all N singular values
+of $A$ are nonzero.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf LDA, N, IERR}
+
+\item[REAL]  \ {\bf A}(LDA, $\geq $N){\bf , SING}($\geq $N){\bf , VAR,\\ WORK%
+}($\geq $N)
+\end{description}
+
+On entry, the arguments, A(,), LDA, N, and SING() should contain the same
+values as on return from a previous call to SSVDRS.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SCOV3( A, LDA, N, SING,\\
+VAR, WORK, IERR)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in A(,) and IERR.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)]  \ [inout] On entry, contains the N$\times $N matrix, $V$,
+computed by a previous call to SSVDRS. (Note that the quantities left in the
+array A() by SSVA are not appropriate for use as input to SCOV3.) On return
+contains the N$\times $N symmetric covariance matrix, $C$, for the solution
+vector of the least-squares problem, $A{\bf x}\simeq {\bf b}.$
+
+\item[LDA]  \ [in] First dimensioning parameter for A(,). Must be the
+same value used when SSVDRS was called to compute the $V$ matrix.
+
+\item[N]  \ [in] Number of rows and columns of the matrix, $V$, contained in
+the array, A(,). Must be the same value used when SSVDRS was called
+to compute the $V$ matrix.
+
+\item[SING()]  \ [in] Contains the singular values of $A$ in locations indexed
+1 through N. Must all be nonzero.
+
+\item[VAR]  \ [in] User-supplied estimate of the variance of error in the
+vector, ${\bf b}$, of the least-squares problem.
+
+\item[WORK()]  \ [scratch] Work space of length at least N.
+
+\item[IERR]  \ [out] Set to~0 if all of the N given singular values are
+nonzero. Otherwise IERR will be set to the index of the first zero element
+of the array, SING(). In this latter case the covariance matrix cannot be
+computed and the contents of A(,) on return will be meaningless.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change all REAL type statements to DOUBLE
+PRECISION, and change the subroutine names from SSVA, SSVDRS, and SCOV3 to
+DSVA, DSVDRS, and DCOV3, respectively.
+
+\subsection{Examples and Remarks}
+
+The program, DRDSVA, illustrates the use of DSVA to compute and report
+quantities for the singular value analysis of a $15\times 5$ least-squares
+problem.  This is an artificially constructed problem that was used as an
+example in \cite{Lawson:1974:SLS}.  The output of this example is shown in
+ODDSVA.
+
+\subsubsection{Large problems}
+
+If M $>>$ N and storage limitations make it awkward or impossible to
+allocate M$\times $N locations for the array, A(,), one can use sequential
+accumulation of the rows of data to produce a smaller matrix to which SSVDRS
+or SSVA can then be applied. When the ratio M\,/\,N is sufficiently large this
+approach will be faster than direct application of SSVDRS to the original
+matrix. See Chapter~4.4 for sequential accumulation.
+
+\subsubsection{The pseudoinverse of $A$}
+
+The pseudoinverse of $A$, conventionally denoted by $A^+$, can be computed
+using results produced by SSVDRS. Set $B=I$, the $\text{M}^{th}$ order identity
+matrix. Then call SSVDRS obtaining $S$, $V$, and $U^t$. Since $S$ is diagonal,
+its pseudoinverse, $S^+$, is its transpose with nonzero elements replaced by
+their reciprocals. Depending on the application, it may be appropriate to
+treat nonzero singular values that are smaller than some problem-related
+threshold as though they were zero. After defining $S^+$, one can compute $%
+A^+ = VS^+U^t.$
+
+\subsubsection{Solution of the least-squares problem,\protect\\ $A{\bf x}
+\simeq {\bf b}$}
+
+From $A$ and ${\bf b}$, SSVDRS can compute $V$, $S$, and ${\bf g} = U^t{\bf b}$.
+The user can then determine $S^+$ from $S$ as described in the preceding
+paragraph and compute the solution vector as ${\bf x} = VS^+{\bf g}.$
+
+\subsection{Functional Description}
+
+\subsubsection{Method in SSVDRS}
+
+Subroutine SSVDRS computes the singular value decomposition by an
+algorithm due to G.  Golub and W.  Kahan, as described in
+\cite{Lawson:1974:SLS}.  This method uses approximately 2N Householder
+orthogonal transformations to reduce the given $A$ matrix to a bidiagonal
+matrix and then calls SQRBD to apply a specialized version of the QR
+eigenvalue algorithm to the bidiagonal matrix to complete the reduction to
+the diagonal $S$ matrix.  The QR algorithm generally requires about 2N
+iterations to reach convergence to machine accuracy.  The product of the
+orthogonal transformations is accumulated to produce the $V$ matrix and
+the product, $G = U^tB.$
+
+Results are permuted so the singular values are in decreasing order.
+The largest singular value will be accurate to nearly the machine accuracy.
+Other singular values will have about the same absolute accuracy as the
+largest one. The matrices $V$ and $U$ will be orthogonal to nearly machine
+accuracy.
+
+This implementation gives special treatment to any column of $A$ that is
+exactly zero. If M $>$ N each such column will give rise to an exactly zero
+singular value in the SING() array. This is convenient if one wishes to
+remove a variable from a problem by just zeroing its column in $A$.
+
+\subsubsection{Method in SSVA}
+
+When the matrix of a least-squares problem is ill-conditioned it will
+frequently be true that the vector ${\bf x}$ that minimizes the residual
+norm $\|A{\bf x} - {\bf b}\|$ is undesirably large, $i.e.$, $\|{\bf x}\|$ is
+large. It is also generally true that there will be other vectors, ${\bf x}$%
+, that are significantly smaller in norm than the exact solution vector,
+with only a small increase in the residual norm. One of these
+vectors may be preferable to the true solution as an operational solution
+for the problem.
+
+There are various ways to define either a discrete or a continuous family of
+candidate solutions for a least-squares problem that range from the true
+solution through ${\bf x}$'s having smaller norms but allowing
+larger residual norms. This subroutine gives information on two such
+families of candidate solutions.
+
+To simplify the discussion we assume M $>$ N; however the subroutine also
+handles M $\leq $ N. A useful discrete family of candidate solutions is
+obtained by defining ${\bf x}^{(i)}$ to be the solution obtained when all
+singular values following the $i^{th}$ are set to zero. Then ${\bf x}^{(%
+\text{N})}$ is the true solution, ${\bf x}^{(0)}$ is the zero vector, and
+the intermediate candidate solution vectors satisfy the monotonicity
+conditions, $\Vert {\bf x}^{(i)}\Vert \leq \Vert {\bf x}^{(i+1)}\Vert $ and $%
+\Vert A{\bf x}^{(i)}-{\bf b}\Vert \geq \Vert A{\bf x}^{(i+1)}-{\bf b}\Vert .$
+
+A useful continuous family of candidate solutions is defined by letting $%
+{\bf x}^\lambda $, for $\lambda \geq 0$, be the vector that minimizes $\Vert
+A{\bf x}-{\bf b}\Vert ^2+\lambda ^2\Vert {\bf x}\Vert ^2$. This is
+equivalent to asking for the solution of the augmented least-squares problem:%
+\begin{equation*}
+\left[
+\begin{array}{c}
+A \\
+\lambda I
+\end{array}
+\right] {\bf x}^\lambda \simeq \left[
+\begin{array}{c}
+{\bf b} \\ {\bf 0}
+\end{array}
+\right]
+\end{equation*}
+where I denotes the $N^{th}$ order identity matrix. If $\lambda <\mu $ then $%
+\Vert {\bf x}^\lambda \Vert \geq \Vert {\bf x}^\mu \Vert $ and $\Vert A{\bf x%
+}^\lambda -{\bf b}\Vert \leq \Vert A{\bf x}^\mu -{\bf b}\Vert $. This family
+of candidate solutions is discussed in the literature under various names,
+such as ridge regression, damped least-squares, and Levenberg-Marquardt
+stabilization.
+
+Since the units in which variables are expressed is arbitrary and the value
+of $\|{\bf x}\|$, and thus the family of candidate solutions, depends on the
+choice of units, this subroutine gives the user the ability, via the
+parameters ISCALE and D(), to scale the columns of $A$ and thus the
+components of ${\bf x}.$
+
+Given $A$ and ${\bf b}$ defining a least-squares problem, $A{\bf x} \simeq
+{\bf b}$, SSVA performs the following steps, doing the indicated printing
+only if selected by the settings of KPVEC().
+
+\begin{itemize}
+\item[1a.]  As specified by the user's setting of ISCALE and D(),
+introduce a nonsingular diagonal scaling matrix, $D$, reformulating the
+problem as\ $(AD)(D^{-1}{\bf x})\simeq {\bf b}$. Let ${\bf y}=D^{-1}{\bf x}$
+so the problem can be written as $(AD){\bf y}\simeq {\bf b}.$
+
+\item[1b.]  Use SSVDRS to compute the singular value decomposition of $AD$,
+obtaining $U$, $S$, and $V$ satisfying $AD=USV^t$, and ${\bf g}=U^t{\bf b%
+}$. Let $s_i$ denote the $i^{th}$ diagonal element of $S$, $i.e$. the $i^{th}$
+singular value of $AD$. The scaled solution vector, ${\bf y}$, is given by $%
+{\bf y}=VS^{+}U^t{\bf b}$, and thus may be computed in two steps as ${\bf p}%
+=S^{+}{\bf g}$ and ${\bf y}=V{\bf p}$. Specifically the components of the
+N-vector ${\bf p}$ are computed as $p_i=g_i/s_i$ if $s_i\neq 0$ and $p_i=0$ if $%
+s_i=0.$
+
+\item[2.]  Print the $V$ matrix.
+
+\item[3.]  For $i=1$, ..., N, print $s_i$, $p_i$, $1/s_i$, $g_i$,
+and $g_i^2.$
+
+Define $\rho _j^2=\Vert A{\bf x}^{(j)}-{\bf b}\Vert ^2$. This
+quantity is computed as%
+\begin{equation*}
+\rho _j^2=\sum_{i=j+1}^Ng_i^2
+\end{equation*}
+and is printed with the heading ``Cumulative Sum of Squares."
+
+An estimate of the variance of the errors in the data vector ${\bf b}$,
+under the assumption that the singular values following the $j^{th}$ are
+zero, is given by $\sqrt{\rho _j^2/(\text{M}-j)}$. This quantity is printed
+with the heading ``Scaled Sqrt of Cum. S.S." for Scaled Square Root of the
+Cumulative Sum of Squares.
+
+\item[4.]  The quantities $\Vert {\bf y}^{(j)}\Vert $ are computed
+(using the $p_i$'s) and printed along with the corresponding values
+of $\rho _j$, with the headings YNORM and RNORM.
+
+\item[5.]  A range of values of the Levenberg-Marquardt parameter, $%
+\lambda $, and associated $\Vert {\bf y}^\lambda \Vert $ and $\Vert AD{\bf y}%
+^\lambda -{\bf b}\Vert $ are computed and printed. These quantities are
+computed from formulas involving $s_i$'s, ${p_i}$'s,
+and ${g_i}$'s.
+
+\item[6.]  The candidate solutions, ${\bf x}^{(j)}=D{\bf y}^{(j)}$, are
+computed and printed.
+\end{itemize}
+
+SSVA calls SPRTSV to print the $V$ matrix and the candidate solutions.
+
+\subsubsection{Method for SCOV3}
+
+If the variance of the error in the data vector, ${\bf b}$, is VAR, the
+covariance matrix, $C$, for the solution vector, ${\bf x}$, is conventionally
+defined as $C = \text{VAR}\times (A^tA)^{-1}$. Using the singular value
+decomposition, $A = USV^t$, one can write $C =\text{VAR}\times
+(VS^tSV^t)^{-1} = \text{VAR}\times VS^+(VS^+)^t$. SCOV3 computes $C$ using
+this latter formula.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+In SSVA, if M $\leq 0$ or N $\leq 0$ an immediate return will be made.
+
+SSVDRS will issue an error message, set SING$(1) = -1.0$, and do an
+immediate return if any of the following conditions are noted.
+
+\hspace{.2in}M $< 1$, N $< 1$, NB $< 0$, LDA $< \max (\text{M},\text{N}),$
+
+\hspace{.2in}LDB $<$ M when NB $> 0$, or LDB $< 1$ when NB $= 0.$
+
+SCOV3 requires N nonzero singular values. If this is satisfied it will set
+IERR = 0. Otherwise it will set IERR to the index of the first zero singular
+value and the results returned in A(,) will be meaningless.
+
+The subroutine SCOV3 is intended for use following SSVDRS. It cannot be used
+following SSVA since SSVA does not leave the $V$ matrix in the A(,) array on
+return.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+These subroutines were adapted from \cite{Lawson:1974:SLS} for use with
+Fortran~77 by C.  L.  Lawson and S.  Y.  Chiu, May~1986, June~1987.
+Altered March~1989 by Lawson to introduce the vector KPVEC() to provide
+more report options.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DCOV3 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCOPY, DCOV3, DDOT, DSCAL, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DSVA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DAXPY, DCOPY, DDOT, DHTCC, DHTGEN, DNRM2, DPRTSV, DQRBD, DROT, DROTG, DSVA, DSVDRS, DSWAP, ERFIN, ERMOR, ERMSG, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DSVDRS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DAXPY, DCOPY, DDOT, DHTCC, DHTGEN, DNRM2, DQRBD, DROT, DROTG, DSVDRS, DSWAP, ERFIN, ERMOR, ERMSG, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SCOV3 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SCOPY, SCOV3, SDOT, SSCAL\rule[-5pt]{0pt}{8pt}}\\
+SSVA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMOR, ERMSG, IERV1, SAXPY, SCOPY, SDOT, SHTCC, SHTGEN, SNRM2, SPRTSV, SQRBD, SROT, SROTG, SSVA, SSVDRS, SSWAP\rule[-5pt]{0pt}{8pt}}\\
+SSVDRS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMOR, ERMSG, IERV1, SAXPY, SCOPY, SDOT, SHTCC, SHTGEN, SNRM2, SQRBD, SROT, SROTG, SSVDRS, SSWAP}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDSVA}\vspace{10pt}
+\lstinputlisting{\codeloc{dsva}}
+\newpage
+\enlargethispage*{8pt}
+\centerline{\bf \large ODDSVA}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dsva}}
+\end{document}

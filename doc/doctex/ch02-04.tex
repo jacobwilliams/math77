@@ -1,0 +1,224 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-04}
+\begmath 2.4 Bessel Functions $J_0$, $J_1$, $Y_0$ and $Y_1$
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms compute values of the cylindrical Bessel functions
+of the first kind, $J_0$ and $J_{1}$, and of the cylindrical Bessel
+functions of the second kind, $Y_0$ and $Y_{1}$.  These functions are
+discussed in \cite{ams55} and \cite{Hart:1968:CA:bes}.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+\begin{description}
+\item[REAL]  \ {\bf X,SBESJ0,SBESJ1,SBESY0,SBESY1,W}
+\end{description}
+Assign a value to X and use one of the following function references.
+
+\begin{tabular}{ll}
+To compute $J_0:$ & \fbox{\bf W = SBESJ0(X)}\rule[-15pt]{0pt}{8pt}\\
+
+To compute $J_1:$ & \fbox{\bf W = SBESJ1(X)}\rule[-15pt]{0pt}{8pt}\\
+
+To compute $Y_0$ for $x > 0:$ & \fbox{\bf W = SBESY0(X)}\rule[-15pt]{0pt}{8pt}\\
+
+To compute $Y_1$ for $x > 0:$ & \fbox{\bf W = SBESY1(X)}
+\end{tabular}
+
+\subsubsection{Argument Definitions}
+\begin{description}
+\item[X]  \ [in] Argument of function. Require X $>0$ for the Y
+functions.
+\end{description}
+\subsubsection{Modifications for Double Precision}
+For double precision usage, change the REAL type statement to DOUBLE
+PRECISION, and change the function names to DBESJ0, DBESJ1, DBESY0, and DBESY1,
+respectively.
+
+\subsection{Examples and Remarks}
+
+The listing of DRSBESJ0 and ODSBESJ0 gives an example of using these
+subprograms to evaluate the Wronskian identity
+\begin{equation}
+z(x) = (x\pi /2)[J_1(x)Y_0(x)-J_0(x)Y_1(x)] - 1 = 0\notag
+\end{equation}
+
+\subsection{Functional Description}
+
+The functions $J_n$ and $Y_n$ are a pair of linearly
+independent solutions for the differential equation
+\begin{equation}
+x^2\frac{d^2w}{dx^2}+x\frac{dw}{dx}+\left( x^2-n^2\right) w=0\notag
+\end{equation}
+The functions $J_0$ and $J_1$ are defined for all real $x$. The function $J_0
+$ is even, and $J_1$ is odd. As $x\rightarrow \infty $, $J_0(x)$ and $J_1(x)$
+oscillate an infinite number of times about zero with an amplitude that
+diminishes asymptotically to $[2/(\pi x)]^{\frac 12}$, $i.e.$, approximately
+$0.80x^{-\frac 12}$. The distance between successive zeros approaches $\pi $
+as $|x|\rightarrow \infty .$
+
+The functions $Y_0$ and $Y_1$ have real values for positive real $x$,
+approach $-\infty $ as $x\rightarrow 0^{+}$ and have complex values for
+negative real $x$. For large positive $x$ the Y functions have oscillatory
+behavior similar to the J functions, $i.e.$, with amplitude approaching $0.80
+x^{-\frac 12}$ and zero spacing approaching $\pi $. As $x\rightarrow 0^{+}$%
+, $Y_0(x)\rightarrow (2/\pi )\ln (x)$ and $Y_1(x)\rightarrow -(2/\pi x).$
+
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-04 }
+
+The Y subprograms treat $x\leq 0$ as an error condition. If the complex values
+of $Y_0$ and $Y_1$ for negative $x$ are desired they may be computed from
+the formulae
+\begin{equation}
+\begin{array}{ll}
+\begin{array}{rcl}
+Y_0(x) & = & Y_0(-x)+2iJ_0(-x)
+\rule[-10pt]{0pt}{8pt} \\ Y_1(x) & = & -Y_1(-x)-2iJ_1(-x),
+\end{array}
+\quad x<0
+\end{array}\notag
+\end{equation}
+where $i$ denotes the imaginary unit. See Equation 9.1.36 in \cite{ams55}.
+
+The computer approximations for these functions were developed by L. W.
+Fullerton, \cite{Fullerton:1973:FNLIB} and \cite{Fullerton:1977:PSF},
+using functional forms involving sine, cosine, square root, logarithm, and
+Chebyshev polynomial approximations.  These subprograms select the
+polynomial degrees to adapt to machine accuracy of up to 30 decimal
+places.
+
+The single precision subprograms for $J_n(x)$ and $Y_n(x)$ were tested on a
+Univac~1100 by comparison with the corresponding double precision
+subprograms over various argument ranges. The relative precision of Univac
+single precision arithmetic is $\rho = 2^{-27} \approx 0.745\times 10^{-8}$.
+
+The results show that the relative error can be very large near the zeros
+of any of these functions with the exception that relative accuracy can be,
+and is, maintained for $J_1$ near its zero at $x = 0$. The absolute error
+is large for $Y_0$ and $Y_1$ near the singularity at $x = 0.$
+
+Test results may be summarized as follows.
+
+\begin{tabular}{lllc}
+ &\multicolumn{1}{c}{\bf Argument} & \multicolumn{1}{c}{\bf Maximum} &
+\multicolumn {1}{c}{\bf (Abs. or}\\
+\multicolumn{1}{c}{\bf Function}  &\multicolumn{1}{c}{\bf Interval} &
+\multicolumn{1}{c}{\bf Error} & \multicolumn{1}{c}{\bf Rel.)}\\
+SBESJ0 & [$-$5.6, 5.6] & \hspace{10pt} $6.5\rho $ & (Abs.)\\
+ & [1.0, 1.0E6] & \hspace{10pt} $2.1\rho x^{\frac{1}{2}}$ & (Abs.)\\
+SBESJ1 & [$-$7.2, 7.2] & \hspace{10pt} $3.8\rho $ & (Abs.)\\
+ & [1.0, 1.0E6] & \hspace{10pt} $1.1\rho x^{\frac{1}{2}}$ & (Abs.)\\
+SBESY0 & [0.00, 0.32] & \hspace{10pt} $7.6\rho $ & (Rel.)\\
+ & [0.32, 1.12] & \hspace{10pt} $6.0\rho $ & (Abs.)\\
+ & [1.12, 4.00] & \hspace{10pt} $1.9\rho $ & (Abs.)\\
+ & [1.0, 1.0E6] & \hspace{10pt} $2.1\rho x^{\frac{1}{2}}$ & (Abs.)\\
+SBESY1 & [0.0, 1.1] & \hspace{10pt} $6.6\rho $ & (Rel.)\\
+ & [1.1, 5.5] & \hspace{10pt} $3.0\rho $ & (Abs.)\\
+ & [1.0, 1.0E6] & \hspace{10pt} $1.3\rho x^{\frac{1}{2}}$ & (Abs.)
+\end{tabular}
+
+For the functions $J_n(x)$ and $Y_n(x)$ the absolute error is approximated
+by $2|x|^{\frac{1}{2}}\rho $ for large $|x|$ while the amplitude of the
+function values decreases like $0.8|x|^{-\frac{1}{2}}$. Thus no accuracy at
+all can be expected when $2|x|^{\frac{1}{2}}\rho > 0.8|x|^{-\frac{1}{2}}$, $i.e.$%
+, when $|x| > 0.4\rho ^{-1}$. The subprograms assume less than one decimal
+digit of accuracy could be produced when $x > 0.04\rho ^{-1}$, and issue an
+error message.
+
+As a test of the double precision subprograms and an additional test of
+the single precision
+subprograms the test function, $z(x)$, defined above in Section C, was
+evaluated in double precision and in single precision at selected points
+ranging from $10^0$ to $10^7$. The machine arithmetic accuracies were $%
+\rho_1 = 2^{-27} \approx 0.745\times 10^{-8}$ for single precision
+and $\rho _2 = 2^{-60} \approx 1.15\times 10^{- 18}$ for double precision.
+The magnitude of $z(x)$ computed in single precision was bounded
+by $8\rho _1$ for $10^0 \leq x \leq 10^4$ and had the value
+$22\rho _1$ for $x = 10^5$ and $x = 10^6$. The magnitude of $z(x)$ computed
+in double precision was bounded by $9\rho _2$ for $10^0 \leq x \leq 10^7.$
+
+This accuracy is much greater than the individual subprograms, SBESJ0, etc.,
+deliver for large arguments. Thus the very accurate values of $z(x)$ must be
+due to a functional relation existing between the algorithms implemented in
+the different cylindrical Bessel function subprograms.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+These subprograms return a zero result and issue an error message if
+
+\begin{tabbing}
+\hspace{.3in}\=(a)\quad \=$x \leq 0 \text{ for } Y_0\text{ or }Y_1,$\\
+or\\
+\>(b)\>$|x| > 0.04\rho ^{-1}\text{ for }J_0,\ J_1,\ Y_0\text{ or }Y_1.$
+\end{tabbing}
+
+The subprograms use R1MACH(4) or D1MACH(4) for $\rho $.  The
+system-supplied sine and cosine subprograms may also have a cutoff
+value close to $\rho ^{-1}$. If it is less than $0.04\rho ^{-1}$ then
+there will be values of $x$ that will pass through the tests and
+trigger an error message from the sine or cosine subprogram.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DBESJ0 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DBESJ0, DBMP0, DCSEVL, DERM1, DERV1, DINITS, ERFIN, ERMSG,
+IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DBESJ1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DBESJ1, DBMP1, DCSEVL, DERM1, DERV1, DINITS, ERFIN, ERMSG,
+IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DBESY0 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DBESJ0, DBESY0, DBMP0, DCSEVL, DERM1, DERV1, DINITS, ERFIN, ERMSG,
+IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DBESY1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DBESJ1, DBESY1, DBMP1, DCSEVL, DERM1, DERV1, DINITS, ERFIN,
+ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+% \end{tabular}
+% \begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+% \bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+SBESJ0 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SBESJ0, SBMP0, SCSEVL, SERM1,
+SERV1, SINITS\rule[-5pt]{0pt}{8pt}}\\
+SBESJ1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SBESJ1, SBMP1, SCSEVL, SERM1,
+SERV1, SINITS\rule[-5pt]{0pt}{8pt}}\\
+SBESY0 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SBESJ0, SBESY0, SBMP0, SCSEVL,
+SERM1, SERV1, SINITS\rule[-5pt]{0pt}{8pt}}\\
+SBESY1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, IERM1, IERV1, SBESJ1, SBESY1, SBMP1, SCSEVL,
+SERM1, SERV1, SINITS\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+Subprograms SBESJ0, SBESJ1, SBESY0 and SBESY1 designed and developed by L.
+W. Fullerton, Los Alamos, 1977. Adapted to Fortran~77 and the MATH77
+library by C. L. Lawson and S. Chiu, JPL, 1984.
+
+
+\begcodenp
+\enlargethispage*{6pt}
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+\centerline{\bf \large DRSBESJ0}\vspace{-3pt}
+\lstinputlisting{\codeloc{sbesj0}}
+\vspace{4pt}\centerline{\bf \large ODSBESJ0}\vspace{3pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sbesj0}}
+\closegraphsfile
+\end{document}

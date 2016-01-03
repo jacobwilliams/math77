@@ -1,0 +1,255 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 3.2 Gaussian (Normal) Random Numbers and Vectors
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Generate pseudorandom numbers or vectors from the Gaussian (normal)
+distribution.
+
+\subsection{Usage}
+
+\subsubsection{Generating Gaussian (normal) pseudorandom numbers}
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[REAL]  \ {\bf SRANG, X}
+\end{description}
+$$
+\fbox{{\bf X = SRANG()}}
+$$
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[SRANG]  \ [out] The function returns a pseudorandom number from the
+Gaussian (normal) distribution with mean zero and unit standard deviation.
+\end{description}
+
+\subsubsection{Generating Gaussian (normal) pseudorandom vectors}
+
+Given an N-vector, ${\bf \mu }$, and a symmetric positive-definite N$\times $%
+N matrix, $A$, the objective is to compute pseudorandom N-vectors, ${\bf x}$%
+, from the N-dimensional Gaussian (normal) distribution having mean vector, $%
+{\bf \mu }$, and covariance matrix, $A$.
+
+On the first call to SRANGV with a new covariance matrix, $A$, the user must
+set HAVEC = .false. to indicate that the Cholesky factor of $A$ has not yet
+been computed. SRANGV will replace $A$ in storage by its Cholesky factor, $C$%
+, and set HAVEC = .true. to indicate that the array A() now contains $C$
+rather than $A$.
+
+On each call to SRANGV an N-vector, ${\bf x}$, is returned as a pseudorandom
+sample from the specified distribution.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+\item[INTEGER]  \ {\bf NDIM, N, IERR}
+
+\item[REAL]  \ {\bf A}(NDIM$\geq $N, $\geq $N){\bf , U}($\geq $N){\bf , X}($%
+\geq $N)
+
+\item[LOGICAL]  \ {\bf HAVEC}
+\end{description}
+
+Assign values to A(,), NDIM, N, U(), and HAVEC.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SRANGV(A, NDIM, N, U,\\
+X, HAVEC, IERR)\\
+\end{tabular}}
+\end{center}
+
+Computed values will be returned in X() and IERR, and the contents of A(,)
+and HAVEC may be changed.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)]  \ [inout] When HAVEC is .false., A(,) contains a user-supplied N%
+$\times $N symmetric positive-definite covariance matrix, $A$. Only the
+diagonal and subdiagonal elements of $A$ need be given. This subroutine will
+not access the super-diagonal locations in the array, A(,). This subroutine
+will replace $A$ by its lower-triangular Cholesky factor, $C$, and set HAVEC
+= .true.
+
+When HAVEC is .true., A(,) is assumed to contain the Cholesky factor, $C$.
+
+\item[NDIM]  \ [in] First dimension of the array A(,). Require NDIM $\geq $
+N.
+
+\item[N]  \ [in] Order of the covariance matrix $A$ and dimension of the
+vectors U and X.  Require N $\geq $ 1.
+
+\item[U()]  \ [in] Contains the N-dimensional mean vector, ${\bf \mu }.$
+
+\item[X()]  \ [out] On return will contain the N-dimensional generated
+random vector.
+
+\item[HAVEC]  \ [inout] See description above for A(,).
+
+\item[IERR]  \ [out] IERR will only be referenced when the subroutine is
+entered with HAVEC = .false. If the Cholesky factorization is successful,
+the subroutine will set HAVEC = .true. and IERR = 0. Otherwise, it will
+leave HAVEC = .false. and set IERR to the index of the row of $A$ in which
+failure was noted. In this latter case the results returned in A(,) and X()
+will not be useful.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double-precision usage, change the REAL statements to DOUBLE PRECISION
+and change the initial ``S" of the function and subroutine names to ``D."
+Note particularly that if the function name, DRANG, is used it must be typed
+DOUBLE PRECISION either explicitly or via an IMPLICIT statement.
+
+\subsection{Examples and Remarks}
+
+The program DRSRANG demonstrates the use of SRANG to compute Gaussian random
+numbers and uses SSTAT1 and SSTAT2 to compute and print statistics and a
+histogram based on a sample of~10000 numbers delivered by SRANG.
+
+To compute Gaussian random numbers with mean XMEAN and standard deviation
+STDDEV, one can use the statement
+$$
+\text{X = XMEAN + STDDEV }*\text{ SRANG()}
+$$
+The program DRSRANGV demonstrates the use of SRANGV to compute pseudorandom
+vectors from a 3-dimensional Gaussian distribution with mean vector and
+covariance matrix specified as%
+$$
+{\bf \mu } =\left[
+\begin{array}{c}
+1 \\
+2 \\
+3
+\end{array}
+\right] \quad \text{and}\quad A=\left[
+\begin{array}{rrr}
+0.05 & 0.02 & 0.01 \\
+0.02 & 0.07 & -0.03 \\
+0.01 & -0.03 & 0.06
+\end{array}
+\right] .
+$$
+To fetch or set the seed used in the underlying pseudorandom integer
+sequence use the subroutines described in Chapter~3.1.
+
+\subsection{Functional Description}
+
+\subparagraph{Method}
+
+The algorithm for generation of Gaussian random numbers is based on
+\cite{Bell:1968:A334}--\nocite{Box:1958:NOG}\cite{vonNeumann:1959:VTU}.
+This method draws pairs of uniform random numbers $x$ from
+[0,~1] and $y$ from [$-$1,~1] until a pair is obtained that
+satisfies $x^2 + y^2 \leq 1$.
+The probability of satisfying this constraint is $\pi /4 \approx 0.785$. It
+then draws another uniform random number $u$ from [0,~1] and computes
+\begin{eqnarray*}
+s & = & x^2 + y^2\\
+t & = & \sqrt{-2\ \log u} \,/s\\
+g_1 & = & t(x^2 - y^2)\\
+g_2 & = & 2xyt
+\end{eqnarray*}
+The numbers $g_1$ and $g_2$ are independent samples from the Gaussian
+distribution with mean zero and unit standard deviation. The number $g_1$ is
+returned when it is computed and $g_2$ is saved and returned the next time a
+Gaussian random number is requested. The saved value will be discarded if
+the underlying uniform sequence is reinitialized by a call to RAN1 or RANPUT
+of Chapter~3.1.
+
+This method is a mathematically exact transformation from the uniform
+distribution to the Gaussian distribution so the statistical quality of the
+delivered numbers depends entirely on the quality of the uniform
+pseudorandom numbers used. The uniform numbers are obtained by calling
+SRANUA or DRANUA, using the array in common block /RANCMS/ or /RANCMD/ as a
+buffer as described in Chapter~3.1.
+
+For the generation of Gaussian random vectors we are given a mean vector $%
+{\bf \mu }$ and a symmetric positive-definite covariance matrix $A$. The
+Cholesky method is used to factor the given covariance matrix $A$ as $A =
+CC^t$ where $C$ is a lower triangular matrix. Then for each vector to be
+delivered the method first constructs a vector ${\bf g}$ whose components
+are independent samples from the Gaussian distribution with mean zero and
+unit standard deviation. It then computes
+$$
+{\bf x} = {\bf \mu }+C{\bf g}
+$$
+which is a sample from the N-dimensional Gaussian distribution with mean $%
+{\bf \mu }$ and covariance matrix $A$.
+
+Values returned as double-precision random numbers will have random bits
+throughout the word, however the quality of randomness should not be
+expected to be as good in a low-order segment of the word as in a high-order
+part.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+While computing the Cholesky factorization of $A$, subroutine SRANGV or
+DRANGV may determine that the matrix is not positive-definite. In that case
+it will return with IERR set to the index of the row of the matrix at which
+the problem was detected. In this non-positive-definite case the contents of
+the array A(,) will have been altered, HAVEC will still have the value
+.false., and X() will not contain useful results.
+
+When the Cholesky factorization is successful, IERR will be set to zero.
+
+The conditions that N $\geq $ 1, and NDIM $\geq $ N are required but
+not checked.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DRANG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DRANG, ERFIN, ERMSG, RANPK1, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+DRANGV & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DRANG, DRANGV, ERFIN, ERMSG, RANPK1, RANPK2\rule[-5pt]{0pt}{8pt}}\\
+SRANG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK1, RANPK2, SRANG\rule[-5pt]{0pt}{8pt}}\\
+SRANGV & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, RANPK1, RANPK2, SRANG, SRANGV}\\\end{tabular}
+
+Based on subprograms written for JPL by Carl Pitts, Heliodyne Corp., April,
+1969. Adapted to Fortran~77 for the JPL MATH77 library by C. L. Lawson and
+S. Y. Chiu, JPL, April~1987. November~1991: Lawson reorganized and renamed
+common blocks. Improved coordination between Gaussian and uniform sequences
+on reinitializations.
+
+
+\begcodenp
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSRANG}\vspace{10pt}
+\lstinputlisting{\codeloc{srang}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSRANG}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{srang}}
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+\newpage
+
+\centerline{\bf \large DRSRANGV}\vspace{10pt}
+\lstinputlisting{\codeloc{srangv}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODSRANGV}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{srangv}}
+\end{document}

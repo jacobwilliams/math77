@@ -1,0 +1,353 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\hyphenation{KORDER}
+\begmath 11.6 Low-level Subprograms for Operations on Splines
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This chapter describes five subprograms for spline operations that are used
+by the subprograms of the preceding chapter. It is expected that one would
+only use these subprograms directly if one has needs more specialized than
+are covered by the higher level subprograms of the preceding chapter.
+
+Subroutine DSVALA evaluates at an argument X the values of the derivatives,
+of orders~0 through NDERIV, of a spline function represented using the
+B-spline basis. DSVALA must be given a difference table of the coefficients
+of the spline function. Subroutine DSDIF is provided to compute this
+difference table. Once the difference table has been computed and saved, use
+of DSVALA is more economical than making NDERIV$+1$ calls to subprogram
+DSVAL of the preceding chapter if NDERIV $> 0.$
+
+Subroutine DSFIND does a lookup in a knot array to find a knot subinterval
+of nonzero length containing a specified argument X, or the nearest such
+subinterval if extrapolation is needed.
+
+Using a knot sequence regarded as defining a B-spline basis function of
+order KORDER, subroutine DSBASD computes the values at X of the KORDER
+B-spline basis functions (or a derivative of these functions as specified by
+IDERIV) that could be nonzero at X. Subprogram DSBASI computes the integral
+from X1 to X2 of each of the NCOEF basis functions. The output of these
+subprograms is needed in setting up the matrix for curve fitting or
+interpolation involving values, derivatives, or integrals of the fitted
+spline function.
+
+\subsection{Usage}
+
+\subsubsection{Usage of DSBASD for evaluation of basis functions or their
+derivatives}
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, LEFT, IDERIV}
+
+\item[DOUBLE PRECISION]  \ {\bf TKNOTS}($\geq ncoef+$\\ KORDER){\bf , X,
+BDERIV}($\geq $ KORDER)
+\end{description}
+(See TKNOTS below for the definition of {\em ncoef}.)
+
+Assign values to KORDER, LEFT, TKNOTS, X, and IDERIV.
+\begin{center}\vspace{-10pt}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DSBASD(KORDER, LEFT, TKNOTS,\\
+X, IDERIV, BDERIV)\\
+\end{tabular}}
+\end{center}
+Computed quantities are returned in BDERIV().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER]  \ [in] KORDER is both the order of the spline basis functions
+and the number of basis functions whose derivatives are to be evaluated.
+
+\item[LEFT]  \ [in] Identifies an interval of nonzero length [TKNOTS(LEFT),
+TKNOTS(LEFT$+$1)] which is the reference interval for the function
+evaluation. DSBASD will evaluate the IDERIV$^{th}$ derivative of the KORDER
+basis functions that could be nonzero on this interval. Require KORDER $\leq
+$ LEFT $\leq ncoef.$ Except when extrapolation is needed, LEFT should
+satisfy TKNOTS(LEFT) $\leq $ X $<$ TKNOTS(LEFT+1). We recommend that the
+subroutine DSFIND be used to determine LEFT.
+
+\item[TKNOTS()]  \ [in] The knot sequence [$t_i$: $i=1$, ..., {\em ncoef} +
+KORDER], where {\em ncoef} denotes the total number of B-spline basis functions
+associated with this knot sequence. The proper interpolation interval, $[a,b]
+$, associated with this knot sequence is given by $a=$ TKNOTS(KORDER) and $b=
+$ TKNOTS({\em ncoef}+1). Require $t_i\leq t_{i+1}$ for $i=1$, ..., {\em ncoef} +
+KORDER $-$ 1; $t_i<t_{i+KORDER}$ for $i=1$, ..., {\em ncoef}; $%
+t_{KORDER+1}>t_{KORDER}$; $t_{ncoef}<t_{ncoef+1}$. The knots strictly
+between a and $b$ are internal knots. They specify abscissae at which one
+polynomial piece ends and the next begins. Successive internal knots may
+have the same value. An abscissa appearing with multiplicity $\mu $ means the
+order of continuity of the spline at this abscissa will be at least $\text{%
+KORDER}-\mu -1$. The knots indexed ahead of $t_{KORDER}$ can all be equal to
+$a$, and those indexed after $t_{ncoef+1}$ can all be equal to $b.$
+
+\item[X]  \ [in] Argument at which the IDERIV$^{th}$ derivative of basis
+functions are to be evaluated.
+
+\item[IDERIV]  \ [in] Order of derivative to be computed. IDERIV $=0$
+specifies function values. Require IDERIV $\geq 0$. Values of derivatives of
+order\ $\geq $ KORDER will be zero.
+
+\item[BDERIV()]  \ [out] On return the values at X of the IDERIV$^{th}$
+derivative of the basis functions indexed from $\text{LEFT}+1-\text{KORDER}$
+through LEFT will be stored in BDERIV($i$), $i=1$, ..., KORDER.
+\end{description}
+\subsubsection{Usage of DSBASI for evaluation of an integral of basis
+functions}
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, NCOEF, J1, J2}
+
+\item[DOUBLE PRECISION]  \ {\bf TKNOTS}($\geq $ NCOEF +\\ KORDER){\bf , X1,
+X2, BASI}($\geq $ NCOEF)
+\end{description}
+Assign values to KORDER, NCOEF, TKNOTS(), X1, X2, J1, and J2.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DSBASI ( KORDER, NCOEF,\\
+TKNOTS, X1, X2, J1, J2, BASI)\\
+\end{tabular}}
+\end{center}
+Computed results are returned in J1, J2, and BASI().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER]  \ [in] The order of the spline basis functions.
+
+\item[NCOEF]  \ [in] The total number of B-spline basis functions associated
+with this knot sequence. Also the number of values to be returned in BASI().
+
+\item[TKNOTS()]  \ [in] As for DSBASD above, with {\em ncoef} replaced by
+NCOEF.
+
+\item[X1, X2]  \ [in] Integration is to be done from X1 to X2. Permit X1 $<$
+X2 or X1 $\geq $ X2. Generally X1 and X2 should each lie in $[a,b]$, however
+extrapolation will be used to return values when this is not the case.
+
+\item[J1, J2]  \ [inout] On entry J1 and J2 must contain integer values. If
+J1 is in [1, N] it will be used to start the lookup for X1. Otherwise the
+search will start with~1. Similarly for J2.
+
+On return J1 and J2 indicate the portion of the array BASI() that might be
+nonzero on return. BASI($i$) might be nonzero if J1 $\leq i\leq $ J2, and BASI$%
+(i)=0$ if $i<$ J1 or $i>$ J2.
+
+\item[BASI()]  \ [out] On return, BASI($i$) will contain the value of the
+integral of the $i^{th}$ basis function over the range from X1 to X2, for $i=1$,
+..., NCOEF. J1 and J2 above indicate which elements might be nonzero.
+\end{description}
+\subsubsection{Usage of DSDIF to compute the difference table needed by
+DSVALA}
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, NCOEF, NDERIV}
+
+\item[DOUBLE PRECISION]  \ {\bf TKNOTS}($\geq $ NCOEF + \\ KORDER){\bf ,
+BCOEF}($\geq $ NCOEF){\bf , \\ BDIF}($\geq $ NCOEF $\times $ (NDERIV+1))
+\end{description}
+Assign values to KORDER, NCOEF, TKNOTS(), BCOEF(), and NDERIV.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DSDIF (KORDER, NCOEF,\\
+TKNOTS, BCOEF, NDERIV, BDIF)\\
+\end{tabular}}
+\end{center}
+Computed results are returned in BDIF().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER]  \ [in] The order of the spline basis functions.
+
+\item[NCOEF]  \ [in] The total number of B-spline basis functions associated
+with this knot sequence.
+
+\item[TKNOTS()]  \ [in] Same specifications as for DSBASI above.
+
+\item[BCOEF()]  \ [in] Array of NCOEF coefficients representing a spline
+function relative to a B-spline basis.
+
+\item[NDERIV]  \ [in] Highest order difference to be computed. Since the
+difference table BDIF() is intended for use by DSVALA this should correspond
+to the largest order derivative one intends to compute using DSVALA.
+
+\item[BDIF()]  \ [out] Will contain a copy of BCOEF() plus differences
+through order NDERIV of this array of coefficients. Intended for use by
+DSVALA.
+\end{description}
+\subsubsection{Usage of DSFIND for lookup in a knot sequence}
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf IX1, IX2, LEFT, MODE}
+
+\item[DOUBLE PRECISION]  \ {\bf XT}(IX2+1){\bf , X}
+\end{description}
+Assign values to XT(), IX1, IX2, LEFT, and X.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DSFIND(XT, IX1, IX2, X,\\
+LEFT, MODE)\\
+\end{tabular}}
+\end{center}
+Results are returned in LEFT and MODE.
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[XT(), IX1, IX2]  \ [in] XT() is the array in which the lookup will be
+done. DSFIND will only look at elements from XT(IX1) through XT(IX2).
+Require IX1 $<$ IX2, XT(IX1) $<$ XT(IX1+1), XT(IX2$-$1) $<$ XT(IX2), and
+XT($i$) $\leq $ XT($i+$1) for $i=$ IX1+1, ..., IX2 $-$~2.
+
+If the lookup is in a knot array of length $korder + ncoef$ associated with a
+B-spline basis, one would generally set IX1 $=korder$ and IX2 $=ncoef+1.$ If
+the lookup is in a knot array of length $npc+1$ associated with a power
+basis, one would generally set IX1 $=1$ and IX2 $=npc+1.$
+
+\item[X]  \ [in] Value to be looked up in XT().
+
+\item[LEFT]  \ [inout] On entry LEFT must contain an integer value. If this
+value is in [IX1,~IX2~$-$~1] the lookup will start with this value,
+otherwise the lookup starts with IX1 or IX2~$-$~1.
+
+On return LEFT is the index of the left end of the reference interval $%
+\langle $ XT(LEFT), XT(LEFT+1) $\rangle $ for X. This will always be an
+interval of nonzero length. If X satisfies XT(IX1) $\leq $ X $<$ XT(IX2) then
+LEFT will satisfy XT(LEFT) $\leq $ X $<$ XT(LEFT+1). Otherwise, if X $<$
+XT(IX1), LEFT $=$ IX1; or if X $\geq $ XT(IX2), LEFT$=$ IX2 $-$ 1. The
+polynomial segment defined over this reference interval is intended to be
+used for function evaluation at X.
+
+\item[MODE]  \ [out] Indicator of the position of X relative to [XT(IX1),
+XT(IX2)]. Set to $-$1 if X is to the left of this interval, to~0 if X is in
+this closed interval, and to +1 if X is to the right of this interval.
+\end{description}
+\subsubsection{Usage of DSVALA for evaluating a sequence of derivatives}
+
+\paragraph{Program Prototype, Double Precision}
+\begin{description}
+\item[INTEGER]  \ {\bf KORDER, NCOEF, NDERIV}
+
+\item[DOUBLE PRECISION]  \ {\bf TKNOTS}($\geq $ NCOEF +\\ KORDER){\bf , BDIF}%
+($\geq $ NCOEF $\times $ (NDERIV+1)){\bf ,\\ X, SVALUE}($\geq $ NDERIV + 1)
+\end{description}
+Assign values to KORDER, NCOEF, TKNOTS(), NDERIV, BDIF(), and X.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL DSVALA(KORDER, NCOEF,\\
+TKNOTS, NDERIV, BDIF, X, SVALUE)\\
+\end{tabular}}
+\end{center}
+Computed results are returned in SVALUE().
+
+\paragraph{Argument Definitions}
+\begin{description}
+\item[KORDER]  \ [in] The order of the spline basis functions.
+
+\item[NCOEF]  \ [in] The total number of B-spline basis functions associated
+with this knot sequence.
+
+\item[TKNOTS()]  \ [in] Same specifications as for DSBASI above.
+
+\item[NDERIV]  \ [in] Highest order derivative to be evaluated. Values of
+derivatives of order $\geq $ KORDER will be zero.
+
+\item[BDIF()]  \ [in] A difference table of B-spline coefficients computed
+by DSDIF.
+
+\item[X]  \ [in] Argument at which values returned in SVALUE() are to be
+computed.
+
+\item[SVALUE()]  \ [out] On return, SVALUE($i$+1) contains the value at X of
+the $i^{th}$ derivative of the spline function $f$ for $i=0$, ..., NDERIV.
+The spline function $f$ is defined by the parameters KORDER, NCOEF,
+TKNOTS(), and the coefficients whose difference table is in BDIF().
+\end{description}
+\subsubsection{Modifications for Single Precision}
+
+For single precision usage change the DOUBLE PRECISION statements to REAL
+and change the initial ``D'' in the subprogram names to ``S''.
+
+\subsection{Examples and Remarks}
+
+The program DRDSBASD and output listing ODDSBASD demonstrate the use of the
+subprograms of this chapter.
+
+\subsection{Functional Description}
+
+The subprograms of this chapter are described in Section~D of Chapter~11.5.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+DSBASD, DSBASI, and DSVALA each contain an internal dimensioning parameter
+$kmax = 20$. It is an error if KORDER $> kmax$ in DSBASD, DSBASI, or DSVALA.
+The condition IDERIV\ $< 0$ is an error in DSBASD.
+
+In DSFIND, if the search reaches either of the intervals [XT(IX1),
+XT(IX1+1)] or [XT(IX2$-$1), XT(IX2)] and the interval is found to have
+nonpositive length, the error is reported.
+
+Errors are reported to the library error message processing subroutines
+of Chapter~19.2 with a severity level of~2 that will, by default, cause
+execution of the program to stop.
+
+Abscissae and weights for 2-point, 6-point, and 10-point Gaussian quadrature
+are stored to 40~decimal digits in DSBASI. With infinite precision abscissae
+and weights, these formulae would be exact for splines of KORDER up to~20.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+These subprograms, except DSBASI, are modifications by Lawson of codes
+developed by C.\ de Boor, \cite{deBoor:1978:APG}.  Subprogram DSBASI is
+based on code due to D.\ E.\ Amos, \cite{Amos:1979:xxx}.
+
+\newpage
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DSBASD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DSBASD, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DSBASI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DSBASD, DSBASI, DSFIND, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+DSDIF & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright DSDIF\rule[-5pt]{0pt}{8pt}}\\
+DSFIND & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DSFIND, ERFIN, ERMSG, IERM1, IERF1\rule[-5pt]{0pt}{8pt}}\\
+DSVALA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DERV1, DSFIND, ERFIN, ERMSG, IERM1, IERF1}\\
+\end{tabular}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+SSBASD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SSBASD\rule[-5pt]{0pt}{8pt}}\\
+SSBASI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERV1, SERV1, SSBASD, SSBASI, SSFIND\rule[-5pt]{0pt}{8pt}}\\
+SSDIF & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright SSDIF\rule[-5pt]{0pt}{8pt}}\\
+SSFIND & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERF1, SERV1, SSFIND\rule[-5pt]{0pt}{8pt}}\\
+SSVALA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, IERM1, IERF1, SERV1, SSFIND}\\
+\end{tabular}
+
+\begcode
+\bigskip
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDSBASD}\vspace{10pt}
+\lstinputlisting{\codeloc{dsbasd}}
+
+\vspace{30pt}\centerline{\bf \large ODDSBASD}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dsbasd}}
+\end{document}

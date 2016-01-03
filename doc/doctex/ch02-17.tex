@@ -1,0 +1,214 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-17}
+\begmath 2.17 Fresnel Integrals
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The subprograms described in this chapter compute the Fresnel Integrals%
+\begin{equation*}
+\hspace{-13pt}C(x)=\int_0^x\!\!\cos \left( \frac \pi 2t^2\right) dt\quad
+\text{and}\quad S(x)=\int_0^x\!\!\sin \left( \frac \pi 2t^2\right) dt,
+\end{equation*}
+and the associated functions%
+\begin{align*}
+\hspace{-13pt}f(x)&=\left[ \frac 12-S(x)\right] \cos \left(
+\frac \pi 2x^2\right) -\left[\frac 12-C(x)\right] \sin \left(
+\frac \pi 2x^2\right)\\
+\hspace{-13pt}g(x)&=\left[ \frac 12-C(x)\right] \cos \left(
+\frac \pi 2x^2\right) +\left[\frac 12-S(x)\right] \sin \left(
+\frac \pi 2x^2\right)
+\end{align*}
+as defined by Equations 7.3.1,~7.3.2, 7.3.5 and~7.3.6 in \cite{ams55}.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+To compute $C(x)$ use
+
+{\bf REAL \ SFRENC, X, Y}
+$$
+\fbox{{\bf Y = SFRENC(X)}}
+$$
+To compute $S(x)$ use
+
+{\bf REAL \ SFRENS, X, Y}
+$$
+\fbox{{\bf Y = SFRENS(X)}}
+$$
+To compute $f(x)$ use
+
+{\bf REAL \ SFRENF, X, Y}
+$$
+\fbox{{\bf Y = SFRENF(X)}}
+$$
+To compute $g(x)$ use
+
+{\bf REAL \ SFRENG, X, Y}
+$$
+\fbox{{\bf Y = SFRENG(X)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[X]  \ [in] The value at which the function is to be evaluated.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change the REAL type statements to double precision, and change the initial
+letter of the subprogram names from S to D. It is important that the
+subprogram names be explicitly typed.
+\vspace{10pt}
+
+\hspace{5pt}\mbox{\input pl02-17 }
+
+\subsection{Examples and Remarks}
+
+See DRSFRENL and ODSFRENL for an example of the usage of this subprogram.
+
+There are no restrictions on the range of applicability of these functions.
+The accuracy of the trigonometric functions decreases, however, for large $%
+|x|$. Thus evaluation of $C(x)$, $S(x)$, $f(-|x|)$ or $g(-|x|)$ for large $%
+|x|$ will be less accurate than evaluation of $f(|x|)$ and $g(|x|)$ for the
+same value of $x$. When formulating an application, one should when possible
+use $C(x)$ and $S(x)$ when $|x|\leq 1.6$ (to achieve maximum efficiency). To
+achieve maximum accuracy and efficiency use $f(x)$ and $g(x)$ when $x>1.6$,
+and avoid using $x<-1.6.$
+
+\subsection{Functional Description}
+
+\begin{table*}
+\begin{center}
+\begin{tabular}{cl*{6}{r}}
+& \multicolumn{1}{c}{\bf Argument} & \multicolumn{1}{c}{\bf Mean} &
+\multicolumn{1}{c}{\bf Max} & \multicolumn{1}{c}{\bf Mean} &
+\multicolumn{1}{c}{\bf Max} & \multicolumn{1}{c}{\bf Mean} &
+\multicolumn{1}{c}{\bf Max}\\
+{\bf Function} & \multicolumn{1}{c}{\bf Interval} &
+\multicolumn{1}{c}{\bf ULP} & \multicolumn{1}{c}{\bf ULP} &
+\multicolumn{1}{c}{\bf REL} & \multicolumn{1}{c}{\bf REL} &
+\multicolumn{1}{c}{\bf ABS} & \multicolumn{1}{c}{\bf ABS}\\
+$C(x)$ & [0..1.2] & 0.57 $\rho $ & 2.18 $\rho $ & 0.40 $\rho $ &
+1.29 $\rho $ & 0.19 $\rho $ & 0.83 $\rho $\\
+& (1.2..1.6] & 0.70 $\rho $ & 2.52 $\rho $ & 0.48 $\rho $ &
+1.55 $\rho $ & 0.19 $\rho $ & 0.63 $\rho $\\
+S($x)$ & [0..1.2] & 0.74 $\rho $ & 2.42 $\rho $ & 0.52 $\rho $ &
+1.39 $\rho $ & 0.09 $\rho $ & 0.65 $\rho $\\
+& (1.2..1.6] & 0.75 $\rho $ & 2.20 $\rho $ & 0.55 $\rho $ &
+1.55 $\rho $ & 0.38 $\rho $ & 1.10 $\rho $\\
+$f(x)$ & (1.6..1.9] & 0.51 $\rho $ & 1.50 $\rho $ & 0.36 $\rho $ &
+1.10 $\rho $ & 0.06 $\rho $ & 0.19 $\rho $\\
+& (1.9..2.4] & 0.30 $\rho $ & 0.96 $\rho $ & 0.26 $\rho $ &
+0.77 $\rho $ & 0.04 $\rho $ & 0.12 $\rho $\\
+& (2.4..6.0] & 0.43 $\rho $ & 1.15 $\rho $ & 0.29 $\rho $ &
+0.80 $\rho $ & 0.02 $\rho $ & 0.07 $\rho $\\
+& (6.0..50.0] & 0.45 $\rho $ & 1.05 $\rho $ & 0.31 $\rho $ &
+0.71 $\rho $ & 0.00 $\rho $ & 0.03 $\rho $\\
+& (50..1000] & 0.39 $\rho $ & 1.02 $\rho $ & 0.27 $\rho $ &
+0.72 $\rho $ & 0.00 $\rho $ & 4E$-$3 $\rho $\\
+$g(x)$ & (1.6..1.9] & 0.53 $\rho $ & 1.92 $\rho $ & 0.38 $\rho $ &
+1.11 $\rho $ & 0.01 $\rho $ & 0.02 $\rho $\\
+& (1.9..2.4] & 1.06 $\rho $ & 3.43 $\rho $ & 0.75 $\rho $ &
+1.93 $\rho $ & 0.01 $\rho $ & 0.02 $\rho $\\
+& (2.4..6.0] & 1.51 $\rho $ & 4.04 $\rho $ & 1.01 $\rho $ &
+2.61 $\rho $ & 0.00 $\rho $ & 0.01 $\rho $\\
+& (6.0..50.0] & 1.40 $\rho $ & 3.62 $\rho $ & 0.97 $\rho $ &
+2.11 $\rho $ & 0.00 $\rho $ & 3E$-$4 $\rho $\\
+& (50..1000] & 1.09 $\rho $ & 2.40 $\rho $ & 0.75 $\rho $ &
+1.50 $\rho $ & 0.00 $\rho $ & 2E$-$7 $\rho $
+\end{tabular}
+\end{center}
+\end{table*}
+
+The computer approximations for these functions use Chebyshev rational
+approximations developed by W. J. Cody, described in \cite{Cody:1968:CAF}. Cody
+provides approximations for $C(x)$ and $S(x)$ for $|x| \leq 1.6$, and for $%
+f(x)$ and $g(x)$ for $x > 1.6$. The approximations for $f(x)$ and $g(x)$ for
+$x > 2.4$ have the same asymptotic form as the functions. We compute $f(x)$
+and $g(x)$ from $S(x)$ and $C(x)$ when $|x| \leq 1.6$, and vice versa for $x
+> 1.6$. For $x < 0$ we use $C(-x) = -C(x)$, $S(-x) = -S(x)$, $g(-x) = \cos
+(\pi /2\ x^2) + \sin (\pi /2\ x^2) - g(x)$ and $f(-x) = \cos (\pi /2\ x^2) -
+\sin (\pi /2\ x^2) - f(x)$.
+
+The approximations and programming were checked by comparing the double
+precision functions to an extended precision computation of $w(z)$, the
+Fadeeva function described in Chapter~2.16. Testing consisted of dividing
+several regions of the argument range into~200 equal-sized intervals, and
+selecting a point randomly in each interval. To test $f(x)$ and $g(x)$ when $%
+50 < x < 1000$ we divided the range $10^{-3} < 1/x < .02$ into~200 equal
+subranges. In each interval we report the error in units of the last
+position of the test value in the column headed ULP, the error relative to
+the true value in the column headed REL, and the absolute error in the
+column headed ABS. The quantity $\rho $ is the round off level, that is, the
+difference between~1.0 and the next representable number, which is provided
+by D1MACH(4) (Chapter~19.1). For IEEE arithmetic, $\rho \approx 2.22$E$-$16 in
+double precision. The results are summarized above.
+
+Cody's testing of the approximations, as described in \cite{Cody:1968:CAF},
+indicates a relative accuracy in the approximations of~15 to~18 digits, so
+one should not expect to achieve more accuracy simply by carrying out the
+calculations using more precision, as, for example, by using double
+precision on a Cray computer.
+
+The errors in $f(x)$ and $g(x)$ decrease as $x$ increases in the range $6 <
+x \leq 1000$. The approximations for $f(x)$ and $g(x)$ have the same
+asymptotic form as the functions when $x > 2.4$, and therefore they become
+more accurate as $x$ increases. For IEEE format double precision arithmetic,
+the approximation for $f(x)$ is identical to the asymptotic expansion when $%
+x > 29$, and the approximation for $g(x)$ is identical to the asymptotic
+expansion when $x > 14.$
+
+We verified correct programming of $f(x)$ and $g(x)$ for $|x| \leq 1.6$, and
+for $C(x)$ and $S(x)$ for $x > 1.6$, by comparing results to values in table
+7.7 in \cite{ams55}. Extensive accuracy testing would simply have validated
+the trigonometric function routines.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+There are no restrictions on the argument range for these functions; they do
+not announce any errors.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}c}
+\bf Entry & \hspace{.27in} {\bf Required Files}\vspace{2pt} \\
+DFRENC & \hspace{.2in} AMACH, DFRENL\\
+DFRENF & \hspace{.2in} AMACH, DFRENL\\
+DFRENG & \hspace{.2in} AMACH, DFRENL\\
+DFRENS & \hspace{.2in} AMACH, DFRENL\\
+SFRENC & \hspace{.2in} AMACH, SFRENL\\
+SFRENF & \hspace{.2in} AMACH, SFRENL\\
+SFRENG & \hspace{.2in} AMACH, SFRENL\\
+SFRENS & \hspace{.2in} AMACH, SFRENL\\
+\end{tabular}
+
+Subprograms designed and developed by W. V. Snyder, JPL, 1992.
+
+
+\begcodenp
+
+\enlargethispage*{10pt}
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+\centerline{\bf \large DRSFRENL}\vspace{-5pt}
+\lstinputlisting{\codeloc{sfrenl}}
+
+\vspace{0pt}\centerline{\bf \large ODSFRENL}\vspace{2pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sfrenl}}
+
+\closegraphsfile
+\end{document}

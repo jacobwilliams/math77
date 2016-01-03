@@ -1,0 +1,141 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 17.3  Double Precision Complex Computation
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These subprograms do the following computations for double precision complex
+data: sum, difference, product, quotient, square root, and absolute value.
+The Fortran~77 standard does not support a double precision complex data
+type. Using the convention of storing the real and imaginary parts of a
+complex number as an adjacent pair of double precision numbers, this set of
+subprograms provides the above operations while staying within the standard.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Double Precision}
+
+\begin{description}
+
+\item[DOUBLE PRECISION] \ {\bf  A}(2){\bf , B}(2){\bf , RESULT}(2){\bf ,
+ABSVAL, DZABS}
+
+\end{description}
+
+Assign values to A(), or to A() and B(), and access the appropriate
+subprogram. The results will be stored in RESULT() or ABSVAL.
+\begin{center}
+\fbox{\begin{tabular}{@{\bf \ }ll@{\ }}
+CALL ZSUM(A, B, RESULT) & Result $= a + b$\\
+CALL ZDIF(A, B, RESULT) & Result $= a - b$\\
+CALL ZPRO(A, B, RESULT) & Result $= a \times b$\\
+CALL ZQUO(A, B, RESULT) & Result $= a\ /\ b$\\
+CALL ZSQRTX(A, RESULT) & Result $= \sqrt a$\\
+ABSVAL = DZABS(A) & Absval $= |a|$\\
+\end{tabular}}
+\end{center}
+\subsubsection{Argument Definitions}
+
+\begin{description}
+
+\item[A()] \ [in] Contains the double precision complex value, $a$, with the real part in A(1) and
+the imaginary part in A(2).
+
+\item[B()] \ [in] Contains the double precision complex value, $b$, with the real part in B(1)
+and the imaginary part in B(2).
+
+\item[RESULT()] \ [out] On return contains the double precision complex result with the real part
+in RESULT(1) and the imaginary part in RESULT(2). It is allowable for the
+array RESULT() to occupy the same storage locations as the arrays A()
+and/or B(). For example the statement, CALL ZPRO(Z, Z, Z), is
+permissible.
+
+In the case of the complex square root, which is double valued, ZSQRTX
+returns the root with nonnegative real part. If the real part of the root is
+zero it returns the root whose imaginary part is nonnegative. The other root
+is always the negative of the returned root.
+
+\item[DZABS] \ [out] Returns the double precision absolute value of the complex
+number represented by the pair, (A(1),A(2)).
+
+\end{description}
+
+\subsection{Examples and Remarks}
+
+The program, DRZCOMP, with its output, ODZCOMP, illustrates the use of these
+subprograms. The example begins with three complex constants, $a$, $b$, and $u$%
+. It computes $v = u+a$, $w = v\times b$, and $z = \sqrt w$. It then inverts this
+sequence of computations by computing $w_2 = z\times z$, $v_2 = w_2/b$, and $u_2 =
+v_2-a$. Mathematically this should result in $w_2 = w$, $v_2 =
+v$, and $u_2 = u$. We test the last of these relations by computing TEST\ $=
+u_2-u$.  Additionally TEST2 is a measure of the error in an
+application of DZABS.  Both TEST and TEST2 are seen to be acceptably
+small given that the computation was done with double precision IEEE
+arithmetic.
+
+\subsection{Functional Description}
+
+\subsubsection{Method}
+
+To compute $(u,v)$ as the square root of $(x,y)$ the basic algorithm is
+\begin{gather*}
+r = \sqrt{x^2 + y^2}\\
+u = \sqrt{(r+|x|)/2}\\
+v = |y|/(2u)\\
+\text{if } x < 0 \text{ swap }u\text{ and }v\\
+\text{if } y < 0 \text{ set }v = -v
+\end{gather*}
+Subroutine ZSQRTX contains special treatment for the cases of $x = 0$ or $y =
+0$, and uses scaling to avoid unnecessary overflow that could result from
+computing $x^2$ or $y^2.$
+
+Subprograms ZQUO and DZABS use scaling to avoid unnecessary overflow.
+In the five subroutines the implementations permit the output array to
+occupy the same storage locations as the input arrays.
+
+\subsubsection{Accuracy tests}
+
+These subprograms have been tested using arguments on the four principal
+axes and interior to the eight octants. Results were consistent with the
+machine precision.
+
+\subsection{Error Procedures and Restrictions}
+
+If B($1) = 0$ and B($2) = 0$ in ZQUO, the subroutine will execute a division
+by zero. We assume the host system will produce a runtime error diagnostic
+in this case.
+
+If the function DZABS is used its name must be typed as double precision in
+the referencing program.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Designed by C. L. Lawson, JPL, May~1986.
+
+Programmed by C. L. Lawson and S. Y. Chiu, JPL, May~1986, Feb.~1987,
+Nov.~1987.
+
+
+Each of the subprograms, DZABS, ZDIF, ZPRO, ZQUO, ZSQRTX, and ZSUM is
+contained in a program file of the same name.
+
+\begcode
+
+\medskip\
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRZCOMP}\vspace{10pt}
+\lstinputlisting{\codeloc{zcomp}}
+
+\vspace{30pt}\centerline{\bf \large ODZCOMP}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{zcomp}}
+\end{document}

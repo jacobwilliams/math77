@@ -1,0 +1,732 @@
+\documentclass[twoside]{MATH77}
+\usepackage[\graphtype]{mfpic}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\opengraphsfile{pl02-16}
+\begmath 2.16 Complex Error Function $w(z)$
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+Compute the Fadeeva function $w(z)$, defined by Equation~7.1.3 in \cite{ams55}:%
+\begin{equation}\label{w_def}
+w(z)=e^{-z^2}\left[ 1+\frac{2i}{\sqrt{\pi }}\int_0^ze^{t^2}dt\right] .
+\end{equation}
+The Fadeeva function is related to the error function by%
+\begin{equation*}
+w(z)=e^{-z^2}\erfc (-iz),
+\end{equation*}
+to Dawson's integral%
+\begin{equation*}
+F(z)=e^{-z^2}\int_0^ze^{t^2}dt,\text{ by}\quad \frac{2i}{\sqrt{\pi }}%
+F(z)=w(z)-e^{-z^2},
+\end{equation*}
+to the Fresnel integrals%
+\begin{equation*}
+\hspace{-10pt}C(z)=\int_0^z\cos \left( \frac \pi 2t^2\right) dt,\ \text{and}\ \
+S(z)=\int_0^z\sin \left( \frac \pi 2t^2\right) dt,
+\end{equation*}
+by
+\begin{equation*}
+C(z)+iS(z)=\frac{1+i}2\left[ 1- e^{i \pi z^2 / 2}w\left( \frac{\sqrt{\pi
+}}2(1+i)z\right) \right] ,
+\end{equation*}
+and to the Voigt functions $V(x,y)$ and $L(x,y)$ (used in spectroscopy and
+astronomy --- see \cite{Penner:1959:QMS}) by $V(x,y)=\Re w(z)$ and
+$L(x,y)=\Im w(z)$, where $z=x+iy.$
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[COMPLEX]  \ {\bf Z, W}
+
+\item[INTEGER]  \ {\bf IFLAG}
+\end{description}
+
+$$
+\fbox{{\bf CALL CWOFZ (Z, W, IFLAG)}}
+$$
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[Z]  \ [in] Argument at which the function is to be evaluated.
+
+\item[W]  \ [out] Value of $w(z)$, where $z$ is given by the argument Z.
+
+\item[IFLAG]  \ [out] A flag indicating success or failure of the
+computation:
+
+\begin{itemize}
+\item[0]  means $w(z)$ was successfully calculated,
+
+\item[$+1$]  means $w(z)$ was not successfully calculated because it would
+have no significant digits.
+
+\item[$-1$]  means $w(z)$ was not successfully calculated because it would
+overflow.
+\end{itemize}
+
+See Section E, Error Procedures and Restrictions, for a discussion of values
+of Z that result in nonzero values of IFLAG. If IFLAG is nonzero, the real
+and imaginary parts of W are set to the largest representable number.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change the subprogram name to ZWOFZ. On computers that support a double
+precision complex data type, frequently spelled COMPLEX*16, and on which
+double precision complex is represented by an array of two double precision
+numbers, with the first being the real part, and the second being the
+imaginary part, change the type declarations of Z and W so that Z and W are
+declared to be of type double precision complex. On machines that do not
+support double precision complex, change the declarations of Z and W to
+
+{\bf DOUBLE PRECISION \ Z(2), W(2)}
+
+In the latter case, put the real part of $z$ into Z(1), and the imaginary
+part of $z$ into Z(2), and find the real and imaginary parts of $w(z)$ in
+W(1) and W(2), respectively.
+
+\subsection{Examples and Remarks}
+
+See DRCWOFZ and ODCWOFZ for an example of the usage of this subprogram.
+
+\subsection{Functional Description}
+
+From Eq.~\eqref{w_def} it is clear that $w(z)$ is analytic in the entire
+plane.  In the upper half-plane, $0 \leq |w(z)| < 1$, which may have been
+the original reason to consider $w(z)$ to be a generalization of erfc.
+
+$w(z)$ satisfies the differential equation $w^{\prime}(z) + 2zw(z) = 2i/%
+\sqrt{\pi }$.  Since $w(z)$ is analytic it satisfies the Cauchy-Riemann
+conditions.  If we let $w(z) = u(z) + iv(z)$, and $z = x + iy$, where $u$,
+$v$, $x$ and $y$ are real, the Cauchy-Riemann conditions, together with
+the differential equation, give us $u_x = 2yv - 2xu \text{ and } u_y = 2xv
++ 2yu - 2\pi ^{1/2} $.  In some applications, particularly related to
+spectroscopy, one needs $V(x,y)$, $L(x,y)$, $V_x(x,y)$ and $V_y(x,y)$.  We
+have already, above, identified $V(x,y)$ as $u(z)$ and $L(x,y)$ as $v(z)$.
+Thus, one can compute these four functions by computing $w(z)$ alone.
+
+These subprograms are based on a subprogram by G. P. M. Poppe and C. M. J.
+Wijers described in \cite{Poppe:1990:MEC} and \cite{Poppe:1990:AEC}. The subprogram by Poppe and
+Wijers was modified to work in either single or double precision, and some
+tests of argument range were changed to be invoked only when necessary.
+Machine characteristics are discovered, and errors are processed, using
+MATH77 conventions. The subprogram name was changed to conform to
+MATH77 naming conventions.
+
+The algorithm uses three different methods. Inside the ellipse $%
+(x/6.3)^2+(y/4.4)^2\leq .292^2$ the algorithm uses the series approximation
+given by Equation~7.1.6 in \cite{ams55}. In the elliptic annulus $%
+.292^2<(x/6.3)^2+(y/4.4)^2\leq 1.0$ the algorithm uses a Taylor series, with
+derivatives calculated by the Laplace continued fraction. Outside the latter
+ellipse, a Laplace continued fraction is used.
+% \input prepic.tex
+% \input pictex.tex
+% \input postpic.tex
+% \beginpicture \ninepoint
+% \setcoordinatesystem units <   .786in,   .864in>
+% \setplotarea x from    .000 to   3.500, y from  -2.500 to   3.000
+% \axis left label {$\Im z$\hspace{-6pt}} ticks in numbered from -2.5 to
+% 3.0 by .5 /
+% \axis right ticks in quantity 12 /
+% \axis top ticks in quantity 8 /
+% \axis bottom label {} ticks in withvalues 0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 / at 0 .5 1 1.5 2 2.5 3 3.5 / /
+% \put {$0.2$} at   1.080  2.460
+% \put {$0.3$} at    .750  1.500
+% \put {$0.5$} at    .420   .700
+% \put {$1$} at    .280  -.040
+% \put {$2$} at    .250  -.550
+% \put {$5$} at    .250 -1.010
+% \put {$10$} at    .250 -1.300
+% \put {$30$} at    .250 -1.670
+% \put {$100$} at    .250 -2.000
+% \put {$300$} at    .250 -2.260
+% \put {$45$} at   1.100   .640
+% \put {$90$} at   1.260  -.400
+% \put {$135$} at   1.280  -.920
+% \put {$180$} at   1.350 -1.200
+% \put {$-90$} at   1.480 -1.600
+% \put {$0$} at   1.640 -1.900
+% \put {$90$} at   1.830 -2.120
+% \put {$180$} at   2.050 -2.300
+% \put {$-90$} at   2.290 -2.400
+% \put {$0$} at   2.590 -2.400
+% \put {$90$} at   2.840 -2.400
+% \setsolid
+% \setquadratic \plot
+%   .1225 -2.2415   .1050 -2.2406   .0700 -2.2392   .0350 -2.2384
+%   .0000 -2.2382
+% /
+% \setquadratic \plot
+%   .1225 -1.9820   .0700 -1.9796   .0000 -1.9785
+% /
+% \setquadratic \plot
+%   .1575 -1.6553   .0875 -1.6506   .0000 -1.6486
+% /
+% \setquadratic \plot
+%   .1575 -1.2904   .0875 -1.2848   .0000 -1.2823
+% /
+% \setquadratic \plot
+%   .1750 -1.0094   .0875 -1.0015   .0000  -.9989
+% /
+% \setquadratic \plot
+%   .1750  -.5257   .1050  -.5190   .0000  -.5151
+% /
+% \setquadratic \plot
+%   .3150  -.5498   .3850  -.5671   .4375  -.5826   .4900  -.6005
+%   .5425  -.6203   .5775  -.6350   .6265  -.6575   .6650  -.6764
+%   .7000  -.6950   .7350  -.7150   .7761  -.7400   .8183  -.7675
+%   .8575  -.7949   .8925  -.8209   .9275  -.8485   .9622  -.8775
+%    .9934  -.9050   1.0150  -.9247   1.0500  -.9585   1.0787  -.9875
+%   1.1047 -1.0150   1.1375 -1.0509   1.1725 -1.0913   1.2004 -1.1250
+%   1.2250 -1.1555
+% /
+% \setquadratic \plot
+%   1.3271 -1.2900   1.3475 -1.3178   1.3825 -1.3652   1.4081 -1.4000
+%   1.4350 -1.4355   1.4700 -1.4812   1.4930 -1.5100
+% /
+% \setquadratic \plot
+%   1.6100 -1.6430   1.6416 -1.6750   1.6702 -1.7025   1.6999 -1.7300
+%   1.7325 -1.7588   1.7675 -1.7886   1.8200 -1.8317   1.8550 -1.8599
+%   1.8982 -1.8950   1.9318 -1.9225   1.9775 -1.9608   2.0125 -1.9916
+%   2.0562 -2.0325   2.0842 -2.0600   2.1350 -2.1131   2.1616 -2.1425
+%   2.2050 -2.1924   2.2324 -2.2250   2.2575 -2.2550   2.2784 -2.2800
+%   2.3018 -2.3075
+% /
+% \setquadratic \plot
+%   2.4150 -2.4307   2.4500 -2.4649   2.4877 -2.5000
+% /
+% \setquadratic \plot
+%   2.5200 -2.4074   2.4850 -2.3730   2.4500 -2.3351   2.4274 -2.3075
+%   2.3865 -2.2525   2.3625 -2.2169   2.3317 -2.1700   2.3100 -2.1361
+%   2.2750 -2.0833   2.2400 -2.0343   2.2050 -1.9897   2.1695 -1.9500
+%   2.1175 -1.8986   2.0825 -1.8683   2.0473 -1.8400   2.0110 -1.8125
+%   1.9600 -1.7754   1.9075 -1.7378   1.8601 -1.7025   1.8200 -1.6702
+%   1.7675 -1.6233   1.7369 -1.5925   1.7120 -1.5650   1.6800 -1.5253
+%   1.6489 -1.4825   1.6275 -1.4492   1.5989 -1.4000   1.5750 -1.3536
+%   1.5575 -1.3173   1.5334 -1.2625   1.5108 -1.2075   1.4998 -1.1800
+%   1.4875 -1.1486
+% /
+% \setquadratic \plot
+%   1.4675 -1.0975   1.4458 -1.0425   1.4175  -.9737
+% /
+% \setquadratic \plot
+%   1.3469  -.8225   1.3174  -.7675   1.2852  -.7125   1.2600  -.6727
+%   1.2250  -.6215   1.1904  -.5750   1.1686  -.5475   1.1375  -.5104
+%   1.1025  -.4715   1.0850  -.4530   1.0500  -.4181   1.0150  -.3854
+%   .9802  -.3550   .9625  -.3400   .9275  -.3122   .8925  -.2860
+%   .8575  -.2614   .8326  -.2450   .8050  -.2273   .7700  -.2062
+%   .7175  -.1770   .6891  -.1625   .6650  -.1505   .6314  -.1350
+%   .5950  -.1190   .5663  -.1075   .5425  -.0981   .5075  -.0855
+%   .4725  -.07376   .4025  -.05318   .3500  -.03987
+% /
+% \setquadratic \plot
+%   .2100  -.01412   .1050  -.00344   .0000   .00006
+% /
+% \setquadratic \plot
+%   .2800   .7484   .1400   .7640   .0000   .7691
+% /
+% \setquadratic \plot
+%   .5600   .6844   .6257   .6625   .6825   .6415   .7350   .6201
+%   .7875   .5967   .8225   .5799   .8759   .5525   .9256   .5250
+%    .9717   .4975   1.0149   .4700   1.0555   .4425   1.0937   .4150
+%   1.1298   .3875   1.1639   .3600   1.1964   .3325   1.2272   .3050
+%   1.2600   .2742   1.2845   .2500   1.3125   .2210   1.3475   .1827
+%   1.3825   .1415   1.4058   .1125   1.4350   .0740   1.4660   .0300
+%   1.4875  -.0025   1.5182  -.0525   1.5488  -.1075   1.5630  -.1350
+%   1.5890  -.1900   1.6009  -.2175   1.6227  -.2725   1.6417  -.3275
+%   1.6581  -.3825   1.6720  -.4375   1.6834  -.4925   1.6924  -.5475
+%   1.6991  -.6025   1.7063  -.7125   1.7071  -.7675   1.7063  -.8225
+%   1.7043  -.8775   1.6998  -.9600   1.6968 -1.0150   1.6938 -1.0975
+%   1.6935 -1.1250   1.6947 -1.1800   1.6975 -1.2190   1.7027 -1.2625
+%   1.7135 -1.3175   1.7210 -1.3450   1.7413 -1.4000   1.7544 -1.4275
+%   1.7850 -1.4775   1.8102 -1.5100   1.8375 -1.5391   1.8900 -1.5830
+%   1.9425 -1.6175   1.9978 -1.6475   2.0825 -1.6886   2.1350 -1.7156
+%   2.2022 -1.7575   2.2400 -1.7871   2.2923 -1.8400   2.3322 -1.8950
+%   2.3753 -1.9775   2.3974 -2.0325   2.4178 -2.0875   2.4325 -2.1261
+%   2.4502 -2.1700   2.4850 -2.2376   2.5353 -2.3075
+% /
+% \setquadratic \plot
+%   2.6101 -2.3075   2.5809 -2.2800   2.5419 -2.2250   2.5290 -2.1975
+%   2.5119 -2.1425   2.5026 -2.0875   2.5000 -2.0600   2.4966 -2.0050
+%   2.4911 -1.9225   2.4850 -1.8779   2.4692 -1.8125   2.4458 -1.7575
+%   2.4077 -1.7025   2.3625 -1.6614   2.3100 -1.6310   2.2575 -1.6118
+%   2.1700 -1.5932   2.1000 -1.5816   2.0125 -1.5617   1.9522 -1.5375
+%   1.8900 -1.4958   1.8725 -1.4793   1.8375 -1.4334   1.8201 -1.4000
+%   1.8035 -1.3450   1.7995 -1.3175   1.7981 -1.2900   1.8020 -1.2350
+%   1.8072 -1.2075   1.8200 -1.1616   1.8340 -1.1250   1.8465 -1.0975
+%   1.8725 -1.0480   1.8900 -1.0187   1.9075  -.9913   1.9250  -.9650
+%   1.9477  -.9325   1.9670  -.9050   1.9950  -.8643   2.0125  -.8387
+%   2.0416  -.7950   2.0586  -.7675   2.0825  -.7256   2.1000  -.6927
+%   2.1172  -.6575   2.1294  -.6300   2.1508  -.5750   2.1602  -.5475
+%   2.1762  -.4925   2.1875  -.4433   2.1940  -.4100   2.2020  -.3550
+%   2.2073  -.3000   2.2100  -.2450   2.2103  -.2175   2.2092  -.1625
+%   2.2057  -.1075   2.2031  -.0800   2.1963  -.0250   2.1875   .0278
+%   2.1818   .0575   2.1700   .1096   2.1623   .1400   2.1525   .1752
+%   2.1380   .2225   2.1289   .2500   2.1089   .3050   2.0866   .3600
+%   2.0650   .4088   2.0475   .4456   2.0211   .4975   1.9907   .5525
+%   1.9578   .6075   1.9036   .6900   1.8375   .7796   1.7850   .8440
+%   1.7264   .9100   1.6800   .9586   1.6275  1.0099   1.5867  1.0475
+%   1.5230  1.1025   1.4700  1.1452   1.4172  1.1850   1.3650  1.2222
+%   1.2966  1.2675   1.2425  1.3010   1.1725  1.3413   1.1043  1.3775
+%   1.0325  1.4127    .9625  1.4441    .8750  1.4796
+% /
+% \setquadratic \plot
+%   .6125  1.5633   .5425  1.5803   .4550  1.5983   .3500  1.6157
+%   .2450  1.6284   .1225  1.6376   .0000  1.6407
+% /
+% \setquadratic \plot
+%   .0000  2.6529   .1400  2.6499   .2800  2.6408   .4200  2.6258
+%   .5425  2.6075   .6499  2.5875   .7729  2.5600   .8575  2.5382
+%   .9450  2.5130
+% /
+% \setquadratic \plot
+%   1.2075  2.4206   1.2950  2.3840   1.3914  2.3400   1.4875  2.2922
+%   1.5750  2.2450   1.6483  2.2025   1.7325  2.1504   1.8025  2.1042
+%   1.8900  2.0424   1.9600  1.9896   2.0371  1.9275   2.1013  1.8725
+%   2.1875  1.7935   2.2575  1.7244   2.3275  1.6504   2.4212  1.5425
+%   2.5076  1.4325   2.5725  1.3416   2.6388  1.2400   2.6775  1.1757
+%   2.7300  1.0813   2.7615  1.0200   2.8000   .9390   2.8175   .8995
+%   2.8475   .8275   2.8686   .7725   2.8875   .7197   2.9050   .6671
+%   2.9225   .6100   2.9386   .5525   2.9526   .4975   2.9651   .4425
+%   2.9813   .3600   2.9903   .3050   2.9979   .2500   3.0042   .1950
+%   3.0090   .1400   3.0109   .1125   3.0136   .0575   3.0148   .0025
+%   3.0149  -.0250   3.0139  -.0800   3.0115  -.1350   3.0097  -.1625
+%   3.0049  -.2175   2.9985  -.2725   2.9905  -.3275   2.9808  -.3825
+%   2.9693  -.4375   2.9575  -.4865   2.9487  -.5200   2.9400  -.5501
+%   2.9225  -.6057   2.9043  -.6575   2.8827  -.7125   2.8525  -.7809
+%   2.8175  -.8507   2.7871  -.9050   2.7530  -.9600   2.7300  -.9945
+%   2.6950 -1.0425   2.6775 -1.0651   2.6502 -1.0975   2.6253 -1.1250
+%   2.6075 -1.1436   2.5900 -1.1592   2.5395 -1.1800   2.5368 -1.1800
+%   2.5025 -1.1697   2.4738 -1.1525   2.4500 -1.1405   2.4221 -1.1250
+%   2.3800 -1.1065   2.3450 -1.0932   2.2925 -1.0783   2.2050 -1.0660
+%   2.1175 -1.0704   2.0650 -1.0818   2.0125 -1.1016   1.9775 -1.1206
+%   1.9425 -1.1459   1.9250 -1.1618   1.8900 -1.2044   1.8556 -1.2900
+%   1.8529 -1.3175   1.8550 -1.3500   1.8696 -1.4000   1.8856 -1.4275
+%   1.9075 -1.4528   1.9489 -1.4825   2.0125 -1.5039   2.1000 -1.5042
+%   2.1875 -1.4811   2.2400 -1.4581   2.2750 -1.4393   2.2969 -1.4275
+%   2.3275 -1.4078   2.3625 -1.3843   2.3975 -1.3593   2.4184 -1.3450
+%   2.4500 -1.3204   2.4675 -1.3064   2.5025 -1.2817   2.5550 -1.2687
+%   2.5900 -1.2935   2.6103 -1.3175   2.6425 -1.3656   2.6597 -1.4000
+%   2.6775 -1.4446   2.6995 -1.5375   2.7039 -1.5925   2.7021 -1.6475
+%   2.6950 -1.6971   2.6882 -1.7300   2.6717 -1.7850   2.6600 -1.8159
+%   2.6425 -1.8578   2.6264 -1.8950   2.6142 -1.9225   2.6022 -1.9500
+%   2.5807 -2.0050   2.5651 -2.0600   2.5582 -2.1150   2.5630 -2.1700
+%   2.5840 -2.2250   2.6035 -2.2525   2.6337 -2.2800   2.6775 -2.3041
+%   2.7125 -2.3149
+% /
+% \setquadratic \plot
+%   2.7125 -2.3640   2.6950 -2.3568   2.6600 -2.3402
+% /
+% \setquadratic \plot
+%   2.6600 -2.4085   2.6775 -2.4194   2.7125 -2.4397
+% /
+% \setquadratic \plot
+%   2.9750 -2.3417   3.0176 -2.3625   3.0625 -2.4036   3.0871 -2.4450
+%   3.1036 -2.5000
+% /
+% \setquadratic \plot
+%   2.1525 -2.4999   2.1175 -2.4686   2.0650 -2.4221   2.0475 -2.4065
+%   2.0282 -2.3900
+% /
+% \setquadratic \plot
+%   1.9250 -2.3011   1.8725 -2.2575   1.8323 -2.2250
+% /
+% \setquadratic \plot
+%   1.7325 -2.1461   1.6975 -2.1191   1.6625 -2.0923   1.6275 -2.0657
+%   1.5832 -2.0325   1.5467 -2.0050   1.5050 -1.9735   1.4700 -1.9473
+%   1.4175 -1.9075   1.3825 -1.8813   1.3300 -1.8422   1.2950 -1.8160
+%   1.2600 -1.7899   1.2250 -1.7641   1.1900 -1.7386   1.1550 -1.7133
+%   1.1025 -1.6766   1.0675 -1.6524   1.0325 -1.6288    .9975 -1.6059
+%   .9450 -1.5728   .9100 -1.5516   .8575 -1.5212   .8225 -1.5019
+%   .7852 -1.4825   .7350 -1.4573   .6825 -1.4328   .6300 -1.4102
+%   .5775 -1.3895   .5250 -1.3709   .4550 -1.3486   .4200 -1.3387
+%   .3500 -1.3214
+% /
+% \setquadratic \plot
+%   .3150 -1.0326   .3566 -1.0425   .4200 -1.0592   .4725 -1.0756
+%   .5339 -1.0975   .5775 -1.1144   .6300 -1.1370   .6650 -1.1535
+%   .7176 -1.1800   .7682 -1.2075   .8151 -1.2350   .8575 -1.2613
+%   .8925 -1.2841   .9275 -1.3080   .9625 -1.3330   .9975 -1.3589
+%   1.0500 -1.4000   1.0841 -1.4275   1.1200 -1.4572   1.1550 -1.4868
+%   1.1900 -1.5170   1.2250 -1.5478   1.2600 -1.5789   1.3055 -1.6200
+%   1.3475 -1.6574
+% /
+% \setquadratic \plot
+%   1.3977 -1.7025   1.4289 -1.7300   1.4604 -1.7575   1.4923 -1.7850
+%   1.5245 -1.8125   1.5572 -1.8400   1.5750 -1.8544
+% /
+% \setquadratic \plot
+%   1.7150 -1.9682   1.7500 -1.9963   1.7945 -2.0325
+% /
+% \setquadratic \plot
+%   1.9250 -2.1418   1.9572 -2.1700   1.9878 -2.1975
+% /
+% \setquadratic \plot
+%   1.8834 -2.5000   1.8470 -2.4725   1.8025 -2.4391   1.7675 -2.4135
+%   1.7150 -2.3753   1.6800 -2.3504   1.6450 -2.3259   1.6100 -2.3017
+%   1.5575 -2.2657   1.5225 -2.2421   1.4875 -2.2190   1.4350 -2.1843
+%   1.3825 -2.1505   1.3475 -2.1282   1.2950 -2.0953   1.2600 -2.0737
+%   1.2075 -2.0419   1.1725 -2.0211   1.1200 -1.9905   1.0850 -1.9708
+%   1.0325 -1.9418    .9959 -1.9225    .9450 -1.8961    .9100 -1.8783
+%   .8575 -1.8531   .8225 -1.8373   .7655 -1.8125   .7175 -1.7925
+%   .6650 -1.7723   .6229 -1.7575   .5600 -1.7364   .5075 -1.7207
+%   .4378 -1.7025   .4025 -1.6938   .3500 -1.6828
+% /
+% \setquadratic \plot
+%   .3850 -2.0145   .4550 -2.0291   .5250 -2.0455   .5775 -2.0600
+%   .6300 -2.0748   .6825 -2.0915   .7506 -2.1150   .8050 -2.1346
+%   .8575 -2.1550   .8933 -2.1700   .9578 -2.1975   .9975 -2.2148
+%   1.0500 -2.2390   1.0850 -2.2560   1.1375 -2.2819   1.1900 -2.3086
+%   1.2425 -2.3361   1.2950 -2.3644   1.3475 -2.3934   1.3897 -2.4175
+%   1.4372 -2.4450   1.4837 -2.4725   1.5293 -2.5000
+% /
+% \setquadratic \plot
+%   1.1130 -2.5000   1.0675 -2.4797   1.0150 -2.4574    .9625 -2.4362
+%   .9100 -2.4163   .8575 -2.3967   .8050 -2.3782   .7525 -2.3614
+%   .6651 -2.3350   .5950 -2.3156   .5250 -2.2986   .4550 -2.2839
+%   .3850 -2.2708
+% /
+% \setquadratic \plot
+%   1.9189 -1.3725   1.9334 -1.4000   1.9600 -1.4231   1.9950 -1.4345
+%   2.0437 -1.4275   2.0977 -1.3725   2.1035 -1.3450   2.1000 -1.3161
+%   2.0650 -1.2678   2.0300 -1.2529   1.9672 -1.2625   1.9195 -1.3175
+%   1.9189 -1.3725
+% /
+% \setquadratic \plot
+%   2.6238 -2.1975   2.6414 -2.2250   2.6775 -2.2483   2.7125 -2.2539
+%   2.7475 -2.2466   2.7825 -2.2261   2.8065 -2.1975   2.8175 -2.1662
+%   2.8197 -2.1425   2.8135 -2.1150   2.7957 -2.0875   2.7475 -2.0606
+%   2.7125 -2.0591   2.6775 -2.0692   2.6301 -2.1150   2.6196 -2.1425
+%   2.6238 -2.1975
+% /
+% \setdashes
+% \setquadratic \plot
+%    .1570 -2.5000    .1606 -2.4450    .1662 -2.3625
+% /
+% \setquadratic \plot
+%    .1808 -2.1700    .1831 -2.1425    .1878 -2.0875
+% /
+% \setquadratic \plot
+%    .2065 -1.8950    .2124 -1.8400    .2220 -1.7575
+% /
+% \setquadratic \plot
+%    .2474 -1.5650    .2598 -1.4825    .2732 -1.4000
+% /
+% \setquadratic \plot
+%   .3090 -1.2075   .3265 -1.1250   .3500 -1.0229   .3675  -.9527
+%   .3875  -.8775   .4030  -.8225   .4276  -.7400   .4449  -.6850
+%   .4724  -.6025   .4900  -.5525   .5075  -.5045   .5250  -.4582
+%   .5439  -.4100   .5600  -.3701   .5777  -.3275   .5950  -.2871
+%   .6135  -.2450   .6300  -.2085   .6514  -.1625   .6650  -.1337
+%   .6912  -.08000   .7049  -.05250   .7330   .00250   .7474   .03000
+%   .7620   .0575   .7769   .0850   .8050   .1362   .8225   .1672
+%   .8384   .1950   .8543   .2225   .8750   .2577   .8925   .2870
+%   .9202   .3325   .9450   .3726   .9719   .4150   .9975   .4550
+%   1.0253   .4975   1.0435   .5250   1.0619   .5525
+% /
+% \setquadratic \plot
+%   1.1900   .7367   1.2159   .7725   1.2562   .8275   1.2775   .8563
+%   1.3178   .9100   1.3475   .9492   1.3825   .9948   1.4235  1.0475
+%   1.4668  1.1025   1.5050  1.1505   1.5400  1.1941   1.5773  1.2400
+%   1.6275  1.3013   1.6679  1.3500   1.7138  1.4050   1.7500  1.4480
+%   1.8025  1.5099   1.8375  1.5508   1.8900  1.6118   1.9425  1.6723
+%   1.9950  1.7323   2.0458  1.7900   2.0945  1.8450   2.1434  1.9000
+%   2.1926  1.9550   2.2421  2.0100   2.2925  2.0658   2.3450  2.1237
+%   2.4150  2.2005   2.4672  2.2575   2.5200  2.3149   2.5725  2.3718
+%   2.6425  2.4474   2.6950  2.5039   2.7475  2.5602   2.8175  2.6351
+%   2.8761  2.6975   2.9400  2.7656   3.0100  2.8398   3.0835  2.9175
+%   3.1618  3.0000
+% /
+% \setquadratic \plot
+%   3.5000  -.00009   3.0625  -.00113   2.6075  -.00962   2.4675  -.01671
+%   2.3275  -.02768   2.2225  -.03918   2.1284  -.05250   2.0650  -.06316
+%   1.9807  -.0800   1.9250  -.0927   1.8550  -.1109   1.8025  -.1262
+%   1.7500  -.1430   1.7150  -.1551   1.6800  -.1680   1.6450  -.1816
+%   1.6100  -.1960   1.5750  -.2113   1.5400  -.2274   1.5050  -.2446
+%   1.4700  -.2625   1.4516  -.2725   1.4029  -.3000   1.4000  -.3016
+%   1.3650  -.3227
+% /
+% \setquadratic \plot
+%   1.1550  -.4757   1.1357  -.4925   1.1025  -.5223   1.0758  -.5475
+%   1.0477  -.5750   1.0150  -.6087    .9800  -.6467    .9468  -.6850
+%   .9241  -.7125   .8925  -.7523   .8575  -.7993   .8225  -.8494
+%   .7875  -.9029   .7691  -.9325   .7350  -.9905   .7000 -1.0546
+%   .6650 -1.1240   .6388 -1.1800   .6030 -1.2625   .5704 -1.3450
+%   .5407 -1.4275   .5050 -1.5375   .4725 -1.6498   .4317 -1.8125
+%   .3964 -1.9775   .3911 -2.0050   .3850 -2.0371
+% /
+% \setquadratic \plot
+%   .3758 -2.0875   .3675 -2.1352   .3617 -2.1700
+% /
+% \setquadratic \plot
+%   .3323 -2.3625   .3212 -2.4450   .3141 -2.5000
+% /
+% \setquadratic \plot
+%   .4712 -2.5000   .5166 -2.2800   .5775 -2.0388   .6210 -1.8950
+%   .6795 -1.7300   .7175 -1.6370   .7700 -1.5231   .8203 -1.4275
+%   .8692 -1.3450   .9052 -1.2900   .9450 -1.2341   .9873 -1.1800
+%   1.0346 -1.1250   1.0850 -1.0724   1.1200 -1.0392   1.1375 -1.0235
+%   1.1550 -1.0085
+% /
+% \setquadratic \plot
+%   1.2491 -1.2900   1.2075 -1.3271   1.1550 -1.3798   1.0896 -1.4550
+%   1.0325 -1.5304    .9625 -1.6373    .8925 -1.7628    .8060 -1.9500
+%   .7333 -2.1425   .6808 -2.3075   .6283 -2.5000
+% /
+% \setquadratic \plot
+%   1.2566 -2.5000   1.3475 -2.3310   1.4525 -2.1615   1.5050 -2.0851
+%   1.5750 -1.9902
+% /
+% \setquadratic \plot
+%   1.7150 -1.8177   1.7500 -1.7765   1.8025 -1.7145   1.8351 -1.6750
+%   1.8725 -1.6276   1.8981 -1.5925   1.9337 -1.5375   1.9488 -1.5100
+%   1.9729 -1.4550   1.9815 -1.4275   1.9903 -1.3725
+% /
+% \setquadratic \plot
+%   1.9950 -1.3666   2.0087 -1.3725   2.0262 -1.4000   2.0475 -1.4630
+%   2.0516 -1.5100   2.0475 -1.5480   2.0369 -1.5925   2.0148 -1.6475
+%   1.9950 -1.6852   1.9487 -1.7575   1.9075 -1.8131   1.8375 -1.9009
+%   1.7528 -2.0050   1.6461 -2.1425   1.5400 -2.2933   1.4782 -2.3900
+%   1.4135 -2.5000
+% /
+% \setquadratic \plot
+%   1.5704 -2.5000   1.6612 -2.3625   1.7621 -2.2250
+% /
+% \setquadratic \plot
+%   1.9200 -2.0325   1.9600 -1.9862   2.0125 -1.9253   2.0383 -1.8950
+%   2.0825 -1.8410   2.1046 -1.8125   2.1436 -1.7575   2.1609 -1.7300
+%   2.1875 -1.6794   2.2160 -1.5925   2.2195 -1.5375   2.2087 -1.4825
+%   2.1961 -1.4550   2.1767 -1.4275   2.1525 -1.4048   2.1175 -1.3825
+%   2.0825 -1.3680   2.0475 -1.3597   1.9950 -1.3581
+% /
+% \setquadratic \plot
+%   1.9950 -1.3496   2.0047 -1.3450   2.0274 -1.3175   2.0475 -1.2923
+%   2.0650 -1.2686   2.0825 -1.2421   2.1000 -1.2101   2.1199 -1.1525
+%   2.1253 -1.0975   2.1176 -1.0425   2.1088 -1.0150   2.0825  -.9640
+%   2.0475  -.9197   1.9996  -.8775   1.9569  -.8500   1.9075  -.8262
+%   1.8550  -.8081   1.8025  -.7963   1.7500  -.7895   1.6625  -.7885
+%   1.5925  -.7963   1.5225  -.8110   1.4700  -.8267   1.4525  -.8328
+%   1.4175  -.8463
+% /
+% \setquadratic \plot
+%   1.4875 -1.1440   1.5400 -1.1263   1.5925 -1.1134   1.6975 -1.1042
+%   1.8156 -1.1250   1.8550 -1.1413   1.8900 -1.1624   1.9116 -1.1800
+%   1.9385 -1.2075   1.9583 -1.2350   1.9725 -1.2625   1.9775 -1.2734
+%   1.9884 -1.3175
+% /
+% \setquadratic \plot
+%   1.9648 -2.1975   2.0151 -2.1425   2.0681 -2.0875   2.1175 -2.0388
+%   2.1535 -2.0050   2.1875 -1.9744   2.2400 -1.9296   2.2750 -1.9018
+%   2.3100 -1.8757   2.3450 -1.8516   2.3975 -1.8197   2.4500 -1.7936
+%   2.5025 -1.7744   2.6075 -1.7607   2.7125 -1.7884   2.7650 -1.8278
+%   2.8000 -1.8784   2.8145 -1.9225   2.8171 -1.9500   2.8101 -2.0050
+%   2.7866 -2.0600   2.7693 -2.0875   2.7481 -2.1150   2.7253 -2.1425
+%   2.6950 -2.1732
+% /
+% \setquadratic \plot
+%   2.6950 -2.1913   2.7092 -2.1975   2.7235 -2.2250   2.7311 -2.2525
+%   2.7329 -2.3075
+% /
+% \setquadratic \plot
+%   2.7125 -2.3800   2.6940 -2.4175   2.6600 -2.4710
+% /
+% \setquadratic \plot
+%   2.6517 -2.3075   2.6772 -2.2525   2.6896 -2.1975
+% /
+% \setquadratic \plot
+%   2.6950 -2.1822   2.7475 -2.1854   2.7825 -2.2003   2.8141 -2.2250
+%   2.8336 -2.2525   2.8350 -2.2559   2.8500 -2.3075
+% /
+% \setquadratic \plot
+%   2.9976 -2.5000   3.0416 -2.4725   3.0800 -2.4525   3.1150 -2.4391
+%   3.1675 -2.4278   3.2375 -2.4330   3.2900 -2.4570   3.3091 -2.4725
+%   3.3322 -2.5000
+% /
+% \setquadratic \plot
+%   2.6875 -2.1425   2.6775 -2.1093   2.6425 -2.0605   2.6075 -2.0351
+%   2.5725 -2.0205   2.4850 -2.0133   2.3975 -2.0349   2.3427 -2.0600
+%   2.2925 -2.0896   2.2400 -2.1266   2.1875 -2.1694   2.1868 -2.1700
+%   2.1559 -2.1975
+% /
+% \setquadratic \plot
+%   1.9735 -2.3900   1.9285 -2.4450   1.8856 -2.5000
+% /
+% \setquadratic \plot
+%   1.9250 -2.2431   1.8550 -2.3281   1.7866 -2.4175   1.7665 -2.4450
+%   1.7277 -2.5000
+% /
+% \setquadratic \plot
+%   2.5023 -2.5000   2.5025 -2.4998   2.5200 -2.4802
+% /
+% \setquadratic \plot
+%    .7855 -2.5000    .8828 -2.2250   1.0087 -1.9500   1.1047 -1.7850
+%   1.2250 -1.6199   1.3300 -1.5067   1.4525 -1.4054   1.5225 -1.3611
+%   1.6100 -1.3192   1.6625 -1.3012   1.7325 -1.2860   1.8200 -1.2825
+%   1.8900 -1.2952   1.9250 -1.3079   1.9600 -1.3264   1.9775 -1.3393
+%   1.9950 -1.3534
+% /
+% \setquadratic \plot
+%   1.9950 -1.3592   1.9425 -1.3581   1.8900 -1.3673   1.8550 -1.3768
+%   1.7908 -1.4000   1.7327 -1.4275   1.6839 -1.4550   1.6450 -1.4799
+%   1.6023 -1.5100
+% /
+% \setquadratic \plot
+%   1.3955 -1.7025   1.3300 -1.7811   1.2659 -1.8675   1.1937 -1.9775
+%   1.1200 -2.1056   1.0338 -2.2800    .9625 -2.4483    .9531 -2.4725
+%    .9426 -2.5000
+% /
+% \setquadratic \plot
+%   1.0996 -2.5000   1.1900 -2.3103   1.2950 -2.1234   1.3650 -2.0150
+%   1.4350 -1.9173   1.4875 -1.8501   1.5422 -1.7850   1.5916 -1.7300
+%   1.6441 -1.6750   1.6800 -1.6393   1.7288 -1.5925   1.7585 -1.5650
+%   1.7889 -1.5375   1.8200 -1.5099   1.8550 -1.4793   1.8822 -1.4550
+%   1.9075 -1.4334   1.9250 -1.4183   1.9600 -1.3878   1.9719 -1.3725
+%   1.9950 -1.3650
+% /
+% \setquadratic \plot
+%   2.2254 -2.3075   2.3100 -2.2365   2.3975 -2.1791   2.4500 -2.1540
+%   2.5200 -2.1334   2.5900 -2.1303   2.6425 -2.1441   2.6775 -2.1609
+%   2.6950 -2.1791
+% /
+% \setquadratic \plot
+%   2.6950 -2.1847   2.6425 -2.1822   2.5900 -2.1963   2.5375 -2.2192
+%   2.4850 -2.2490   2.4500 -2.2725   2.4034 -2.3075
+% /
+% \setquadratic \plot
+%   2.4150 -2.4399   2.4653 -2.3900   2.5200 -2.3377
+% /
+% \setquadratic \plot
+%   2.5522 -2.3075   2.5725 -2.2891   2.6075 -2.2568   2.6250 -2.2412
+%   2.6600 -2.2097   2.6687 -2.1975   2.6950 -2.1902
+% /
+% \setquadratic \plot
+%   2.1419 -2.3900   2.0915 -2.4450   2.0442 -2.5000
+% /
+% \endpicture\vspace{-5pt}
+%\centerline{$\Re z$}\vspace{5pt}
+%\centerline{\bf Modulus and phase of $w(z).$}
+%
+\subparagraph{Accuracy Tests}
+
+The accuracy of the approximations was analyzed by Poppe and Wijers. They
+concluded that relative accuracy is maintained within~14 significant digits,
+except inside a circle of radius~0.126 around a zero of the function (all
+zeros of $w(z)$ are in the lower half-plane), where absolute accuracy is
+retained but relative accuracy is not. They also compared the accuracy of $%
+w(z)$ to $\erfc z$ for several purely imaginary values of $z$. Their testing
+procedure is reported in \cite{Poppe:1990:MEC}.
+
+We tested CWOFZ in four regions along the imaginary axis, where $w(z)$ is
+real, on an IBM PC/AT, by comparing to DERFCE. Each region was divided into
+500 subregions, and a point was randomly selected in each subregion. The
+maximum errors are shown below, where ULP means ``error in units of last
+position of the reference result," and $\rho \approx 1.192\times 10^{- 7}$ is the
+round-off level for IEEE single precision arithmetic.\vspace{-5pt}
+\begin{center}
+\begin{tabular}{lrrr}
+\multicolumn{1}{c}{\bf Range} & {\bf ULP} &
+\multicolumn{1}{c}{\bf Absolute} & \multicolumn{1}{c}{\bf Relative}\\
+$[$0..0.75$]$ & 2.42 & 1.21 $\rho $\rule{.1in}{0pt} & 2.29 $\rho $\rule{.05in}{0pt}\\
+$[$0.75..1.2848$]$ & 19.05 & 4.76 $\rho $\rule{.1in}{0pt} & 12.95 $\rho $\rule{.05in}{0pt}\\
+$[$1.2848..4.4$]$ & 6.05 & 1.23 $\rho $\rule{.1in}{0pt} & 3.49 $\rho $\rule{.05in}{0pt}\\
+$[$4.4..100$]$ & 2.19 & 0.12 $\rho $\rule{.1in}{0pt} & 1.43 $\rho $\rule{.05in}{0pt}
+\end{tabular}
+\end{center}\vspace{-5pt}
+In the range [0.75..1.2848] errors grow as $x$ increases. Errors are four
+times larger near~1.2848 than near~0.75.
+
+We tested ZWOFZ in five regions along the imaginary axis, where $w(z)$ is
+real, on an IBM PC/AT, by comparing to an extended precision calculation of $%
+\exp (x^2) \erfc x.$ Each region was divided into~200 subregions, and a
+point was randomly selected in each subregion. The maximum errors are shown
+below, where $\rho \approx 2.22\times 10^{-16}$ is the round-off level for IEEE
+double precision arithmetic.\vspace{-5pt}
+\begin{center}
+\begin{tabular}{lrrr}
+\multicolumn{1}{c}{\bf Range} & {\bf ULP} &
+\multicolumn{1}{c}{\bf Absolute} & \multicolumn{1}{c}{\bf Relative}\\
+$[$0..0.75$]$ & 1.47 & 0.73 $\rho $\rule{.1in}{0pt} & 1.35 $\rho $\rule{.05in}{0pt}\\
+$[$0.75..1.2848$]$ & 14.29 & 3.57 $\rho $\rule{.1in}{0pt} & 9.84 $\rho $\rule{.05in}{0pt}\\
+$[$1.2848..3.4469$]$ & 6.23 & 0.78 $\rho $\rule{.1in}{0pt} & 4.44 $\rho $\rule{.05in}{0pt}\\
+$[$3.4469..4.4$]$ & 14.20 & 1.78 $\rho $\rule{.1in}{0pt} & 13.42 $\rho $\rule{.05in}{0pt}\\
+$[$4.4..100$]$ & 3.02 & 0.19 $\rho $\rule{.1in}{0pt} & 1.52 $\rho $\rule{.05in}{0pt}
+\end{tabular}
+\end{center}\vspace{-5pt}
+In the range [0.75..1.2848] errors grow as $x$ increases. Errors are four
+times larger near~1.2848 than near~0.75.
+
+We tested ZWOFZ in four regions along the real axis on an IBM PC/AT, by
+comparing the imaginary part of the result to an extended precision
+calculation of Dawson's integral, $F(x)$. Each region was divided into~200
+subregions, and a point was randomly selected in each subregion. The maximum
+errors are as follows.\vspace{-5pt}
+\begin{center}
+\begin{tabular}{lrrr}
+\multicolumn{1}{c}{\bf Range} & {\bf ULP} &
+\multicolumn{1}{c}{\bf Absolute} & \multicolumn{1}{c}{\bf Relative}\\
+$[$0..1.83960$]$ & 2.21 & 0.93 $\rho $\rule{.1in}{0pt} & 1.73 $\rho $\rule{.05in}{0pt}\\
+$[$1.8396..2.95$]$ & 17.28 & 3.90 $\rho $\rule{.1in}{0pt} & 11.20 $\rho $\rule{.05in}{0pt}\\
+$[$2.95..6.3$]$ & 8.99 & 1.12 $\rho $\rule{.1in}{0pt} & 6.24 $\rho $\rule{.05in}{0pt}\\
+$[$6.3..100$]$ & 1.59 & 0.06 $\rho $\rule{.1in}{0pt} & 0.90 $\rho $\rule{.05in}{0pt}
+\end{tabular}
+\end{center}\vspace{-5pt}
+We tested ZWOFZ along the real axis on an IBM PC/AT, by comparing the real
+part of the result to an extended precision calculation of $\exp (-x^2)$, in
+the range [0..10]. The maximum error was 2.04~ULP; the maximum absolute
+error was 0.26\ $\rho $; the maximum relative error was 0.45\ $\rho $. The
+largest errors occurred near the change of method at $x = 1.8396.$
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+$w(z)$ is computable throughout the upper half plane without restriction. To
+compute $w(z)$ in the lower half plane we use $w(-z) = 2 \exp (-z^2)-w(z)$.
+Since $\exp (-z^2) = \exp (\Re z^2) [\cos (\Im z^2) + i \sin(\Im z^2)]$, we
+must have $x^2 - y^2 < \ln \ \Omega $, where $\Omega $ is the largest
+representable floating point number. Argument reduction in computing sin and
+cos causes loss of precision, and so we restrict $2|xy| < \rho ^{-1/2}$,
+where $\rho $ is the smallest positive number such that the floating point
+representation of $1.0 + \rho $ is different from~1.0. If $y < 0$ and $x^2 -
+y^2 \geq \ln \ \Omega $ the error processor (see Chapter~19.2) is invoked
+with LEVEL = 2, and IFLAG is set to $-$1. If $y < 0$ and $2|xy| \geq \rho
+^{-1/2}$ the error message processor is invoked with LEVEL = 2, and IFLAG is
+set to +1. The usual action of the error message processor when invoked with
+LEVEL = 2 is to halt execution of the program. This action may be altered by
+calling ERMSET (see Chapter~19.2).
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+CWOFZ & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, CWOFZ, ERFIN, ERMOR, ERMSG, SERV1\rule[-5pt]{0pt}{8pt}}\\ZWOFZ & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERV1, ERFIN, ERMOR, ERMSG, ZWOFZ\rule[-5pt]{0pt}{8pt}}\\\end{tabular}
+
+Present version converted from ACM TOMS Algorithm~680, \cite{Poppe:1990:AEC}, by W.
+V. Snyder, 1991.
+
+
+\begcodenp
+
+\medskip\
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRCWOFZ}\vspace{5pt}
+\lstinputlisting{\codeloc{cwofz}}
+
+\vspace{10pt}\centerline{\bf \large ODCWOFZ}\vspace{5pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{cwofz}}
+\closegraphsfile
+\end{document}

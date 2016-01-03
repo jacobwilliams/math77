@@ -1,0 +1,656 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 4.1  Square Nonsingular Systems of Equations
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+For a square nonsingular matrix, $A$, of order N, subroutines are provided
+for solving systems of equations involving the matrix $A$ or $A^t (A^h$ in the
+complex case), and for computing the inverse, determinant, or (reciprocal)
+condition number of $A$. Versions are provided for REAL, DOUBLE PRECISION and
+COMPLEX data types.
+
+\subsection{Usage}
+
+The individual subroutines are described as follows:
+\begin{description}
+\item[B.1 SGEFS] Factor and solve.
+
+\item[B.2 SGEFSC] Factor, solve, and reciprocal condition number.
+
+\item[B.3 SGEFA] Factor.
+
+\item[B.4 SGECO] Factor and reciprocal condition number.
+
+\item[B.5 SGESLD] Solve $A{\bf x} = {\bf c}.$
+
+\item[B.6 SGESLT] Solve $A^t{\bf x} = {\bf c}$. $(A^h{\bf x} = {\bf c}$ for the complex case.)
+
+\item[B.7 SGED] Determinant.
+
+\item[B.8 SGEI] Inverse.
+
+\item[B.9] Modifications for double-precision and complex.
+\end{description}
+
+Subroutine SGEFA is the fundamental subroutine of this set. It does the
+forward pass of Gaussian elimination with partial pivoting, replacing the
+matrix $A$, given in the array A(,), with two triangular matrices representing
+its LU factorization and storing a record in IPVT() of the row interchanges
+done during the factorization. The other subroutines of this set either call
+SGEFA to accomplish this factorization, or else must be used after the
+factorization has already been computed by SGEFA.
+
+This code is all derived from LINPACK \cite{Dongarra:1979:LUG}, but the
+organization of the code into separate subroutines differs from LINPACK.
+
+\subsubsection{Usage to factor and solve}
+
+Use SGEFS to factor $A$ and solve the system, $AX = B$, where $A$ is an
+N$\times $N square nonsingular matrix and $B$ is an N$\times $NB matrix.
+The N$\times $NB
+solution matrix, $X$, will overwrite the given matrix, $B$, and the factors
+of $A$ will overwrite A. SGEFS calls SGEFA to factor $A$, and calls SGESLD, NB
+times, to compute the columns of $X$.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, LDB, NB, IPVT}($\geq $N){\bf , INFO}
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N){\bf , B}(LDB, $\geq $NB)
+
+\end{description}
+
+Assign values to A(,), LDA, N, B(,), LDB, and NB.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SGEFS (A, LDA, N, B,\\
+LDB, NB, IPVT, INFO)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in A(,), B(,), IPVT(), and INFO.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[A(,)] \ [inout] On entry contains the N$\times $N matrix $A$. On return contains
+the LU factorization of $A$ as computed by SGEFA.
+
+\item[LDA] \ [in] Leading dimensioning parameter for the array A(,). Require LDA $
+\geq $ N.
+
+\item[N] \ [in] The order of the matrix $A$ and number of rows in the matrices $B$
+and $X$.
+
+\item[B(,)] \ [inout] On entry contains the N$\times $NB matrix, $B$. On return
+contains the N$\times $NB solution matrix, $X$. The array B(,) can be
+declared as singly subscripted if NB = 1. No solution will be computed if
+the returned value of INFO is nonzero.
+
+\item[LDB] \ [in] Leading dimensioning parameter for the array B(,). Require LDB $
+\geq $ N.
+
+\item[NB] \ [in] Number of columns in the matrices $B$ and $X$. If NB $< 1$, the
+matrix, $A$, will be factored but no reference will be made to the array B(,).
+
+\item[IPVT()] \ [out] Integer array of length at least N. On return will contain a
+record of the row interchanges done during factorization of $A$.
+
+\item[INFO] \ [out] Set to zero if all diagonal elements in the $U$ matrix of the LU
+factorization are nonzero. If nonzero, INFO is the index of the first
+diagonal element of $U$ that is zero. In this latter case the solution $X$
+will not be computed.
+
+\end{description}
+
+\subsubsection{Usage to factor, solve, and compute reciprocal condition number}
+
+Use SGEFSC to factor $A$ and solve the system, $AX = B$, where $A$ is an
+N$\times $N nonsingular matrix and $B$ is an N$\times $NB matrix. The
+N$\times $NB solution matrix, $X$, will overwrite the given matrix, B, and
+the factors of $A$ will overwrite A. In addition SGEFSC sets RCOND to the
+reciprocal condition number of $A$.
+
+SGEFSC calls SGECO to factor $A$ and compute RCOND, and then calls SGESLD, NB
+times, to compute the columns of $X$.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, LDB, NB, IPVT}($\geq $N)
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N){\bf , B}(LDB, $\geq $NB){\bf , RCOND,
+Z}($\geq $N)
+
+\end{description}
+
+Assign values to A(,), LDA, N, B(,), LDB, and NB.
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SGEFSC(A, LDA, N, B, LDB,\\
+NB, IPVT, RCOND, Z)\\
+\end{tabular}}
+\end{center}
+
+Computed quantities are returned in A(,), B(,), IPVT(), RCOND, and Z().
+
+\paragraph{Argument Definitions}
+
+The first seven arguments for SGEFSC have the same meaning as for SGEFS. The
+final two arguments are defined as follows:
+\begin{description}
+\item[RCOND] \ [out] An estimate for the reciprocal condition number of $A$.
+Will satisfy $0.0 \leq \text{RCOND} \leq 1.0$. A zero value indicates a
+singular matrix. Larger values indicate a better conditioned matrix.
+
+\item[Z()] \ [scratch] An array of length N used as working space in SGEFSC. The
+contents on return will generally not be of interest to the user. It will be
+an N-vector, ${\bf z}$, that satisfies
+\begin{equation*}
+\|A{\bf z}\| = RCOND \cdot \|A\| \cdot \|{\bf z}\|
+\end{equation*}
+If $A$ is nearly singular then ${\bf z}$ will be an approximate null vector.
+\end{description}
+
+\subsubsection{Usage to factor only}
+
+Use SGEFA to factor a given N$\times $N matrix, $A$, obtaining matrices, $L$
+and $U$, satisfying $LU =A$, where $U$ is upper triangular and $L$ is a
+permutation of a lower triangular matrix. $U$ and a representation
+of $L^{-1}$ will be returned in the array A(,), and a record of the
+permutations will be returned in IPVT().
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, IPVT}($\geq $N){\bf , INFO}
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N)
+
+\end{description}
+
+Assign values to A(,), LDA, and N.
+$$
+\fbox{\bf CALL SGEFA(A, LDA, N, IPVT, INFO)}
+$$
+Computed quantities are returned in A(,), IPVT(), and INFO.
+
+\paragraph{Argument Definitions}
+
+The arguments have the same meaning as the arguments of the same names for
+the subroutine SGEFS described above in Section~B.1.
+
+\subsubsection{Usage to factor and compute reciprocal condition number}
+
+SGECO calls SGEFA to factor the given matrix, $A$, and then computes RCOND as
+an estimate of the reciprocal condition number of $A$.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, IPVT}($\geq $N)
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N){\bf , RCOND, Z}($\geq $N)
+
+\end{description}
+
+Assign values to A(,), LDA, and N.
+$$
+\fbox{\bf CALL SGECO(A, LDA, N, IPVT, RCOND, Z)}
+$$
+Computed quantities are returned in A(,), IPVT(), RCOND, and Z().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,), LDA, N, IPVT()] \ See description in Section~B.1 above.
+
+\item[RCOND, Z()] \ See description in Section~B.2 above.
+\end{description}
+
+\subsubsection{Usage to solve the direct system, $A{\bf x} = {\bf c}$}
+
+Given A(,) and IPVT() containing factorization results produced by SGEFA for
+a matrix, $A$, use SGESLD to solve the direct system, $A{\bf x} = {\bf c}.$
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, IPVT}($\geq $N)
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N){\bf , C}($\geq $N)
+
+\end{description}
+
+Values must initially be present in A(,), LDA, N, IPVT(), and C().
+$$
+\fbox{\bf CALL SGESLD(A, LDA, N, IPVT, C)}
+$$
+Computed quantities are returned in C().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)] \ [in] On entry contains the N$\times $N set of numbers representing the
+LU decomposition of a matrix $A$ as computed by SGEFA. The contents of A(,) are
+not altered by this subroutine.
+
+\item[LDA] \ [in] Leading dimensioning parameter for the array A(,). Require LDA $
+\geq\ $N.
+
+\item[N] \ [in] The order of the original matrix $A$.
+
+\item[IPVT()] \ [in] Integer array of length at least N. On entry contains a record
+of the row interchanges done during factorization of $A$.
+
+\item[C()] \ [inout] On entry must contain the right-side N-vector for the
+problem, $A{\bf x} = {\bf c}$. On return, if $A$ is nonsingular, C() will contain the
+solution N-vector, ${\bf x}$. See Section~E for discussion of singularity.
+\end{description}
+
+\subsubsection{Usage to solve the transposed system, $A^t{\bf x} = {\bf c}$}
+
+Given A(,) and IPVT() containing factorization results produced by SGEFA for
+a matrix, $A$, use SGESLT to solve the transposed system, $A^t{\bf x} = {\bf c}$. In the
+complex case, $i.e$. using CGEFA rather than SGEFA, the problem solved is $%
+A^h{\bf x} = {\bf c}$, where $A^h$ denotes the conjugate transpose of $A$.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, IPVT}($\geq $N)
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N){\bf , C}($\geq $N)
+
+\end{description}
+
+Values must initially be present in A(,), LDA, N, IPVT(), and C().
+$$
+\fbox{\bf CALL SGESLT(A, LDA, N, IPVT, C)}
+$$
+Computed quantities are returned in C().
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,), LDA, N, IPVT()] \ [in] See description in Section~B.5 above.
+
+\item[C()] \ [inout] On entry must contain the right-side N-vector for the
+problem, $A^t{\bf x} = {\bf c}$. On return, if $A$ is nonsingular, C() will contain the
+solution N-vector, ${\bf x}$. See Section~E for discussion of singularity.
+\end{description}
+
+\subsubsection{Usage to compute the determinant of $A$}
+
+Given A(,) and IPVT() containing factorization results produced by SGEFA for
+a matrix, $A$, use SGED to compute the determinant of $A$.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, IPVT}($\geq $N)
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N){\bf , DET}(2)
+
+\end{description}
+
+Values must initially be present in A(,), LDA, N, and IPVT().
+$$
+\fbox{\bf CALL SGED(A, LDA, N, IPVT, DET)}
+$$
+Computed quantities are returned in DET(1) and DET(2).
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,), LDA, N, IPVT()] \ [in] See description in Section~B.5 above.
+
+\item[DET()] \ [out] DET(1) and DET(2) will be set to values representing the
+determinant of $A$ in the form:
+\begin{equation*}
+\text{Determinant = DET}(1) \times  10^{\text{DET}(2)}
+\end{equation*}
+DET(2) will contain an integer value, which may be positive, negative, or
+zero.
+
+If the determinant is zero, both DET(1) and DET(2) will be zero.
+
+If the determinant is nonzero, DET(1) and DET(2) will be some choice among
+the many pairs of values that could be used to represent the value of the
+determinant. The algorithm tends to produce a representation with DET(2) = 0
+if the magnitude of the determinant is not extremely large or small,
+however it is not designed to select this representation in all possible
+cases. See Section~D for further explanation.
+\end{description}
+
+\subsubsection{Usage to compute the inverse matrix of A}
+
+Given A(,) and IPVT() containing factorization results produced by SGEFA for
+a matrix, $A$, use SGEI to compute the inverse matrix of $A$.
+
+\paragraph{Program Prototype, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf LDA, N, IPVT}($\geq $N)
+
+\item[REAL] \ {\bf A}(LDA, $\geq $N){\bf , WORK}($\geq $N)
+
+\end{description}
+
+Values must initially be present in A(,), LDA, N, and IPVT().
+$$
+\fbox{\bf CALL SGEI(A, LDA, N, IPVT, WORK)}
+$$
+Computed quantities are returned in A(,).
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+\item[A(,)] \ [inout] On entry contains an N$\times $N set of numbers representing
+the LU decomposition of a matrix $A$ as computed by SGEFA. On return, if $A$ is
+nonsingular, contains the inverse matrix of $A$. See Section~E for
+discussion of singularity.
+
+\item[LDA, N, IPVT()] [in] See description in Section~B.5 above.
+
+\item[WORK()] \ [scratch] An array of at least N locations used as internal work
+space.
+\end{description}
+
+\subsubsection{Modifications for Double Precision or Complex}
+
+For double-precision usage change the initial letter of each subroutine name
+from S to D, and change the REAL declarations to DOUBLE PRECISION.
+
+For complex usage change the initial letter of each subroutine name from S
+to C, and change the REAL declarations to COMPLEX, with the exception that
+the argument, RCOND, must remain REAL.
+
+Note that the COMPLEX subroutine CGESLT solves $A^h{\bf x} = {\bf c}$, where $A^h$
+denotes the conjugate transpose of $A$.
+
+\subsection{Examples and Remarks}
+
+Program DRSGEFSC illustrates the use of subroutine SGEFSC to solve a system
+of linear equations and compute the reciprocal condition number of the
+matrix of the system. Output is shown in ODSGEFSC. The data for this problem
+were chosen so the exact solution has components 2, $-$5, and~3.
+
+\subparagraph{Avoiding computation of the inverse}
+
+If $A$ is a nonsingular matrix, the relations $AX = B$ and $X = A^{%
+-1}B$ are mathematically equivalent. Thus, given $A$ and $B$,
+where $B$ and thus $X$ may be either a matrix or a vector, one could either
+solve the system $AX = B$ for $X$, or one could compute $A^{-1}$
+and then multiply $A^{-1}$ times $B$ to obtain $X$. The
+former approach will be faster as it requires fewer arithmetic operations.
+It will also generally be slightly more accurate. Thus wherever an inverse
+matrix appears in an expression to be computed, it is preferable to
+formulate the computation in terms of solving systems rather than computing
+inverses, unless the inverse matrix is needed for another reason.
+
+\subsection{Functional Description}
+
+This code is all derived from LINPACK \cite{Dongarra:1979:LUG}.  Reference
+\cite{Dongarra:1979:LUG} gives complete descriptions of the algorithms
+implemented.
+
+SGEFA and SGECO are the same in name, argument list, and functionality in
+Fortran~77 as the LINPACK subroutines of the same name. SGESLD and SGESLT
+provide the two distinct functionalities provided by the LINPACK subroutine,
+SGESL. SGED and SGEI provide the two distinct functionalities provided by
+the LINPACK subroutine, SGEDI. SGEFS and SGEFSC are shell subroutines added
+to package certain convenient sequences of calls to the other subroutines.
+
+\subsubsection{Factorization}
+
+The fundamental subroutine of this set is SGEFA. SGEFA performs the forward
+pass of Gaussian elimination with partial pivoting. Partial pivoting means
+row interchanges are used to bring the element of largest magnitude, at or
+below the diagonal position in the pivot column, to the diagonal position at
+each stage of the elimination process. A record of the row interchanges is
+kept in IPVT(). This algorithm has very good numerical stability and
+efficiency, the count of arithmetic operations being $n^3/3 + O(n^2)$
+additions and multiplications.
+
+The result of this process is a factorization of the given matrix, $A$, of the
+form
+\begin{equation*}
+A = LU = P_1K_1P_2K_2 \cdots P_{n-1}K_{n-1}U
+\end{equation*}
+where $U$ is an upper triangular matrix, each $P_i$ is a permutation matrix
+representing the permutation of the index $i$ with an index $\geq i$, and
+each $K_i$ differs from the identity only by having nonzero elements below
+the diagonal in column $i$. SGEFA stores a convenient representation of this
+factorization in the arrays A(,) and IPVT(). Each of the subroutines SGESLD,
+SGESLT, SGED, and SGEI is designed to use this factorization as the starting
+point for its computation.
+
+\subsubsection{Scaling}
+
+Even with partial pivoting, the accuracy of the solution can be adversely
+affected if the scaling is extremely bad. There is no universally applicable
+algorithmic criterion for determining a ``good" scaling, and consequently
+the LINPACK subroutines do not introduce any scaling. The user should assure
+that the scaling is reasonable for his or her application. One reasonable
+approach is to scale the rows and columns of $A$ so that, if possible, the
+absolute size of the uncertainty in each element of the matrix, $A$, is nearly
+the same for all elements.
+
+\subsubsection{Solving equations using SGESLD or SGESLT}
+
+SGESLD completes the solution of the problem, $A{\bf x} = {\bf b}$. Given the
+factorization, $A = LU$, this is done by first solving $L{\bf y} = {\bf b}$, and then
+solving $U{\bf x} = {\bf y}.$
+
+SGESLT completes the solution of the problem, $A^t{\bf x} = {\bf b}$. Given the
+factorization, $A = LU$, this is done by first solving $U^t{\bf y} = {\bf b}$, and then
+solving $L^t{\bf x} = {\bf y}.$
+
+Each of these two subroutines has an operation count of $n^2 + O(n)$
+additions and multiplications.
+
+\subsubsection{Computing $A^{-1}$}
+
+SGEI completes the computation of $A^{-1}$. Given the
+factorization, $A = LU$, $A^{-1}$ can be expressed as $A^{%
+-1} = U^{-1}L^{-1}$. SGEI first
+computes the triangular matrix $U^{-1}$, overwriting $U$. It
+then does the two steps of forming $L^{-1}$ and multiplying $%
+U^{-1}$ times $L^{-1}$ in an interleaved manner
+to conserve storage. The algorithm uses $n^2$ locations in A(,) and $n$
+locations in WORK(). Operations required are $(2/3)n^3 + O(n^2)$ additions
+and multiplications.
+
+\subsubsection{Estimating the reciprocal condition number}
+
+The condition number of an $n\times n$ nonsingular matrix, $A$, is defined
+as $\kappa = \|A\|\times \|A^{-1}\|$, a quantity that is never less than
+unity.  This is the largest factor by which the relative error in a
+vector, ${\bf y}$, can be amplified as a result of multiplication by $A$
+or by $A^{-1}$.  Roughly speaking, if $\kappa = 10^k$ and the components
+of the vector ${\bf b}$ in the problem, $A{\bf x} = {\bf b}$, are known to
+$d$ decimal digits, and the components of $A$ are known to more than $d$
+decimal digits, and the problem is solved using precision greater than $d$
+decimal digits, then the solution will be known to about $d-k$ decimal
+digits.  In particular, if $k \geq d$, the solution may have no reliable
+digits at all.  (See \cite{Dongarra:1979:LUG} for a more precise
+discussion of the relation between $\kappa $ and the accuracy of ${\bf
+x}$.)
+
+Any method of computing $\kappa $ beginning with $A$ appears to require at
+least $n^3$ additions and multiplications. The authors of LINPACK, in
+collaboration with J. H. Wilkinson, developed an algorithm for estimating $%
+\kappa $ (actually $\kappa ^{-1})$ that requires only $3n^2 +
+O(n)$ additions and multiplications following the factorization produced by
+SGEFA.
+
+Subroutine SGECO first computes $\|A\|$ as a maximum of the absolute sum
+norms of the columns of $A$.  It then calls SGEFA to factorize $A$, and
+finally executes the LINPACK algorithm for condition number estimation,
+returning RCOND as its estimate of $\kappa ^{-1}$.  Let $C = RCOND^{%
+-1}$.  The hope is that $C/\kappa $ will always be close to unity.  It can
+be shown that with exact arithmetic one would always have $C/\kappa \leq
+1$, but no theoretical lower bound is known.  In a test with 1250~cases
+reported in \cite{Dongarra:1979:LUG}, the lowest value that $C/\kappa $
+attained was~0.062, {\em i.e.}\ the condition number was slightly more
+than 16 times what was estimated.
+
+\subsubsection{Computing the determinant of $A$}
+
+SGED completes the computation of the determinant of $A$. In the
+factorization, $A = LU$, we have $Det(L) = \pm 1$ and $U$ is triangular.
+Thus SGED computes $Det(A)$ by forming the product of the diagonal elements of
+$U$, and attaching a sign determined by analysis of the permutation record
+in IPVT(). This process may be represented as
+\begin{align*}
+d_0 &= 1\\
+d_i &= \pm u_{i,i}d_{i-1},\quad i = 1,\ \ldots,\ n
+\end{align*}
+determinant $= d_n$
+
+For a matrix of large order it is not uncommon for the determinant to be of
+extremely large or small magnitude. Consequently the LINPACK approach
+computes and stores the determinant as a pair of numbers, permitting a very
+large exponent range.
+
+SGED differs, however, from the LINPACK subroutine SGEDI in the two-number
+representation selected. If all of the quantities, $|u_{i,i}|$ and $|d_i|$,
+in the above equations lie between the square roots of the underflow and
+overflow limits of the host computer system, the returned value of DET(2)
+will be zero. Thus in many problems of moderate order and having moderate
+scaling, DET(1) by itself will be the determinant value. Besides increasing
+the likelihood of DET(2) being zero, this modification reduces significantly
+the number of multiplications used for scaling.
+
+\subsubsection{Other types of matrices and problems handled in
+LINPACK}
+
+The subroutines described here represent only a small part of the full
+LINPACK collection. It is thus desirable to have LINPACK as well as the MATH
+77 library. LINPACK provides functionalities analogous to those described
+here for the following special types of matrices:
+
+\begin{tabular}{@{}l@{}l}
+General band & Hermitian indefinite\\
+Positive definite & Hermitian indefinite packed\\
+Positive definite packed & Triangular\\
+Positive definite band & General tridiagonal\\
+Symmetric indefinite & Positive definite tridiagonal\\
+Symmetric indefinite packed & \
+\end{tabular}
+
+LINPACK also provides subroutines for least-squares problems.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+The LU factorization can be completed for a singular matrix, however the
+subroutines of this set are not capable of solving equations using a
+singular matrix. The inverse matrix does not exist for a singular matrix.
+
+A singular matrix is indicated by the returned value of INFO being nonzero
+or RCOND being zero. In either of these cases the subroutines SGESLD,
+SGESLT, and SGEI cannot compute their usual outputs. If any of these latter
+three subroutines encounters a zero diagonal element in the $U$ matrix, it
+will issue an error message using the subroutines of Chapter~19.2
+with an error level of zero and return with incomplete results.
+
+These subroutines all require N $\geq 1$ and LDA $\geq $ N. Subroutines SGEFS
+and SGEFSC also require LDB $\geq $ N. These conditions are not checked and
+their violation causes unpredictable effects.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+LINPACK was developed as an NSF funded project from~1974 through~1976. This
+library of high-quality public-domain portable Fortran linear algebra
+software is widely used in the U.S. and throughout the world.
+
+The subroutines described here were adapted from LINPACK to Fortran~77 for
+the JPL MATH77 library by C. L. Lawson and S. Y. Chiu, JPL, August~1987.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+CGECO & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+CAXPY, CDOTC, CGECO, CGEFA, CSCAL, CSSCAL, ICAMAX, SCASUM\rule[-5pt]{0pt}{8pt}}\\
+CGED & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright AMACH, CGED\rule[-5pt]{0pt}{8pt}}\\
+CGEFA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+CAXPY, CGEFA, CSCAL, ICAMAX\rule[-5pt]{0pt}{8pt}}\\
+CGEFS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+CAXPY, CGEFA, CGEFS, CGESLD, CSCAL, ERFIN, ERMSG, ICAMAX\rule[-5pt]{0pt}{8pt}}\\
+CGEFSC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright CAXPY, CDOTC,
+CGECO, CGEFA, CGEFSC, CGESLD, CSCAL, CSSCAL, ERFIN, ERMSG, ICAMAX, SCASUM\rule[-5pt]{0pt}{8pt}}\\
+CGEI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+CAXPY, CGEI, CSCAL, CSWAP, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+CGESLD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+CAXPY, CGESLD, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+CGESLT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+CDOTC, CGESLT, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+DGECO & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DASUM, DAXPY, DDOT, DGECO, DGEFA, DSCAL, IDAMAX\rule[-5pt]{0pt}{8pt}}\\
+DGED & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright AMACH, DGED\rule[-5pt]{0pt}{8pt}}\\
+DGEFA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DAXPY, DGEFA, DSCAL, IDAMAX\rule[-5pt]{0pt}{8pt}}\\
+DGEFS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DAXPY, DGEFA, DGEFS, DGESLD, DSCAL, ERFIN, ERMSG, IDAMAX}\\
+\ & \ \\\end{tabular}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DGEFSC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright DASUM, DAXPY,
+DDOT, DGECO, DGEFA, DGEFSC, DGESLD, DSCAL, ERFIN, ERMSG, IDAMAX\rule[-5pt]{0pt}{8pt}}\\
+DGEI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DAXPY, DGEI, DSCAL, DSWAP, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+DGESLD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DAXPY, DGESLD, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+DGESLT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DDOT, DGESLT, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+SGECO & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ISAMAX, SASUM, SAXPY, SDOT, SGECO, SGEFA, SSCAL\rule[-5pt]{0pt}{8pt}}\\
+SGED & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright AMACH, SGED\rule[-5pt]{0pt}{8pt}}\\
+SGEFA & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ISAMAX, SAXPY, SGEFA, SSCAL\rule[-5pt]{0pt}{8pt}}\\
+SGEFS & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, ISAMAX, SAXPY, SGEFA, SGEFS, SGESLD, SSCAL\rule[-5pt]{0pt}{8pt}}\\
+SGEFSC & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright ERFIN, ERMSG,
+ISAMAX, SASUM, SAXPY, SDOT, SGECO, SGEFA, SGEFSC, SGESLD, SSCAL\rule[-5pt]{0pt}{8pt}}\\
+SGEI & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, SAXPY, SGEI, SSCAL, SSWAP\rule[-5pt]{0pt}{8pt}}\\
+SGESLD & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, SAXPY, SGESLD\rule[-5pt]{0pt}{8pt}}\\
+SGESLT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ERFIN, ERMSG, SDOT, SGESLT\rule[-5pt]{0pt}{8pt}}\\\end{tabular}
+
+\begcodenp
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSGEFSC}\vspace{0pt}
+\lstinputlisting{\codeloc{sgefsc}}
+
+\vspace{10pt}\centerline{\bf \large ODSGEFSC}\vspace{-10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{sgefsc}}
+\end{document}

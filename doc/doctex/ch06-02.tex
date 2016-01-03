@@ -1,0 +1,202 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 6.2  Extended Vector and Matrix Output
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+The subroutines described here print vectors and matrices in an attractive
+format. They differ from those in Chapter~6.1 primarily by allowing the user
+to indicate the length of the line, the unit number, and the number of
+significant digits to print.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Vector Output, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf N , LWIDTH, LUNIT, NUMDIG}
+
+\item[REAL] \ {\bf V}($\geq $N)
+
+\end{description}
+
+Assign values to all subroutine arguments
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SVECPR(V, N, $^{\prime}$Text$^{\prime}$, LWIDTH,\\
+LUNIT, NUMDIG)\\
+\end{tabular}}
+\end{center}
+
+The Vector in V() will now have been printed.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[V()] \ [in] The vector to be printed.
+
+\item[N] \ [in] The number of elements in the vector V().
+
+\item[$^{\prime}$Text$^{\prime}$] \ [in] Text to be printed as a heading
+for the output.  If the first character is ``0" it is used for Fortran vertical
+format control, $i.e$. it gives an extra blank line, else the first
+character is treated as part of the text.
+
+\item[LWIDTH] \ [in] The width of the output line. Fortran vertical format
+control is not counted as part of the line. Note that on many CRT displays
+that have 80~character lines, if exactly 80~characters are printed an extra
+blank line is generated. (If LWIDTH $\leq$ 20, the current default line width
+is used; see the message routine MESS, Chapter~19.3.)
+
+\item[LUNIT] \ [in] Fortran unit number for the output. If LUNIT is 0 output is
+printed on the standard output unit with Fortran vertical format control,
+else it is printed to a file without Fortran vertical format control.
+
+(If LUNIT $< 0$, the current default is used; see the message routine
+MESS.)
+
+\item[NUMDIG] \ [in] Number of digits to print for each item.
+(If NUMDIG $\leq $ 0, the current default is used, which is the full
+floating point precision unless this default has been changed with a call
+to the message routine MESS.)
+
+\end{description}
+
+\subsubsection{Program Prototype, Matrix Output, Single Precision}
+
+\begin{description}
+
+\item[INTEGER] \ {\bf IDIMA, M, N, LWIDTH, LUNIT, NUMDIG}
+
+\item[REAL] \ {\bf A}(IDIMA, $\geq $N)
+
+\end{description}
+
+Assign values to all subroutine arguments
+
+\begin{center}
+\fbox{\begin{tabular}{@{\bf }c}
+CALL SMATPR(A, IDIMA, M, N, $^{\prime}$Text$^{\prime}$,\\
+LWIDTH, LUNIT, NUMDIG)\\
+\end{tabular}}
+\end{center}
+
+The Matrix in A will now have been printed.
+
+\paragraph{Argument Definitions}
+
+\begin{description}
+
+\item[A(,)] \ [in] The matrix to be printed.
+
+\item[IDIMA] \ [in] The declared first dimension of A(,).
+
+\item[M] \ [in] The number of rows from A(,) to be printed.
+
+\item[N] \ [in] The number of columns from A(,) to be printed.
+
+\item[$^{\prime}$Text$^{\prime}$] \ [in] Text to be printed as a heading for the
+output, as for SVECPR above.
+
+\item[LWIDTH, LUNIT, NUMDIG] \ [in] all are defined as for SVECPR above.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision usage change the names SVECPR and SMATPR to DVECPR and
+DMATPR, and change the REAL declarations to DOUBLE PRECISION.
+
+\subsubsection{Modifications for Integer}
+
+For integer usage change the names SVECPR and SMATPR to IVECPR and IMATPR,
+change the REAL declarations to INTEGER, and omit the argument NUMDIG.
+
+\subsection{Examples and Remarks}
+
+The programs DRVECPR and DRMATPR illustrate the use of these routines to
+print vectors and matrices respectively. Output is shown in ODVECPR and
+ODMATPR.
+
+\subsection{Functional Description}
+
+The contents of the character string are always printed. If no
+heading is desired,  use $^\prime~~^\prime$. If one wants the heading on
+a separate line from the first line of the vector output, one should pad the
+text with enough blanks to fill all but the last character of the line.
+Numbers are printed using the fewest number of characters possible, subject
+to keeping the numbers from one line to the next aligned, and in the case of
+floating point, printing all the digits requested.
+
+The vector output prints $``i-j:"$ at the beginning of every line after the
+first, where $i$ is the index for the first component of the vector printed
+on that line, and $j$ the index of the last.  If there is more than one
+line, the first line is offset so that numbers on following lines line
+up with those on the first line.
+
+The matrix output prints ``Col $i"$ at the head of each column, and ``Row $j"
+$ at the left of each row, where $i$ is the index for the column and $j$ is
+the index for the row.
+
+These routines are short routines that call the message processors
+described in Chapter~19.3.  More flexibility in the printing of text
+can be obtained by calling SMESS, DMESS, or MESS directly.
+
+\subsection{Error Procedures and Restrictions}
+
+No vector is printed if N $\leq 0$, and no matrix is printed if N,
+M, or IDIMA $\leq $ 0.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+Algorithm and code due to F. T. Krogh, JPL, November~1991.
+
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DMATPR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DMATPR, DMESS, MESS\rule[-5pt]{0pt}{8pt}}\\
+DVECPR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DMESS, DVECPR, MESS\rule[-5pt]{0pt}{8pt}}\\
+IMATPR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+IMATPR, MESS\rule[-5pt]{0pt}{8pt}}\\
+IVECPR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+IVECPR, MESS\rule[-5pt]{0pt}{8pt}}\\
+SMATPR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, MESS, SMATPR, SMESS\rule[-5pt]{0pt}{8pt}}\\
+SVECPR & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, MESS, SMESS, SVECPR}\\
+\end{tabular}
+
+\begcode
+
+\medskip\
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRVECPR}\vspace{10pt}
+\lstinputlisting{\codeloc{vecpr}}
+
+\vspace{30pt}\centerline{\bf \large ODVECPR}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{vecpr}}
+
+\newpage
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRMATPR}\vspace{10pt}
+\lstinputlisting{\codeloc{matpr}}
+
+\vspace{30pt}\centerline{\bf \large ODMATPR}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{matpr}}
+\end{document}

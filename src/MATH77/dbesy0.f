@@ -1,0 +1,75 @@
+      DOUBLE PRECISION FUNCTION DBESY0 (X)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+c>> 1996-03-30 DBESY0 Krogh  Added external statement.
+C>> 1995-11-13 DBESY0 Krogh  Changes to simplify conversion to C.
+C>> 1994-11-11 DBESY0 Krogh   Declared all vars.
+C>> 1994-10-20 DBESY0 Krogh  Changes to use M77CON
+C>> 1990-11-29 DBESY0 CLL
+C>> 1985-08-02 DBESY0 Lawson  Initial code.
+C JULY 1977 EDITION.  W. FULLERTON, C3, LOS ALAMOS SCIENTIFIC LAB.
+C C.L.LAWSON & S.CHAN, JPL, 1984 FEB ADAPTED TO JPL MATH77 LIBRARY.
+c     ------------------------------------------------------------------
+c--D replaces "?": ?BESY0, ?BESJ0, ?BMP0, ?INITS, ?CSEVL, ?ERM1
+c     ------------------------------------------------------------------
+      EXTERNAL D1MACH, DBESJ0, DCSEVL
+      INTEGER NTY0
+      DOUBLE PRECISION X, BY0CS(19), AMPL, THETA, TWODPI, XSML,
+     1  Y, D1MACH, DCSEVL, DBESJ0
+C
+C SERIES FOR BY0        ON THE INTERVAL  0.          TO  1.60000D+01
+C                                        WITH WEIGHTED ERROR   8.14D-32
+C                                         LOG WEIGHTED ERROR  31.09
+C                               SIGNIFICANT FIGURES REQUIRED  30.31
+C                                    DECIMAL PLACES REQUIRED  31.73
+C
+      SAVE NTY0, XSML
+C
+      DATA BY0CS / -.1127783939286557321793980546028D-1,
+     *  -.1283452375604203460480884531838D+0,
+     *  -.1043788479979424936581762276618D+0,
+     *  +.2366274918396969540924159264613D-1,
+     *  -.2090391647700486239196223950342D-2,
+     *  +.1039754539390572520999246576381D-3,
+     *  -.3369747162423972096718775345037D-5,
+     *  +.7729384267670667158521367216371D-7,
+     *  -.1324976772664259591443476068964D-8,
+     *  +.1764823261540452792100389363158D-10,
+     *  -.1881055071580196200602823012069D-12,
+     *  +.1641865485366149502792237185749D-14,
+     *  -.1195659438604606085745991006720D-16,
+     *  +.7377296297440185842494112426666D-19,
+     *  -.3906843476710437330740906666666D-21,
+     *  +.1795503664436157949829120000000D-23,
+     *  -.7229627125448010478933333333333D-26,
+     *  +.2571727931635168597333333333333D-28,
+     *  -.8141268814163694933333333333333D-31     /
+C
+      DATA TWODPI / 0.636619772367581343075535053490057D0 /
+      DATA NTY0, XSML / 0, 0.D0 /
+C     ------------------------------------------------------------------
+      IF (NTY0 .eq. 0) then
+      call DINITS (BY0CS, 19, 0.1D0*D1MACH(3), NTY0)
+      XSML = SQRT (4.0D0*D1MACH(3))
+      endif
+C
+      IF (X .LE. 0.D0) THEN
+        DBESY0 = 0.D0
+        CALL DERM1 ('DBESY0',1,0,'X IS ZERO OR NEGATIVE','X',X,'.')
+      ELSE IF (X .LE. 4.D0) THEN
+        IF (X .LE. XSML) THEN
+          Y = 0.D0
+        ELSE
+          Y = X * X
+        END IF
+        DBESY0 = TWODPI*LOG(0.5D0*X)*DBESJ0(X) + .375D0 +
+     *            DCSEVL (.125D0*Y-1.D0, BY0CS, NTY0)
+      ELSE
+        CALL DBMP0 (X, AMPL, THETA)
+        DBESY0 = AMPL * SIN(THETA)
+      END IF
+C
+      RETURN
+C
+      END

@@ -1,0 +1,467 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 2.15  Procedures to Avoid Loss of Precision: $\ln (1+x)$, etc.
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+These procedures compute expressions involving logarithm, exponential, sine,
+cosine, hyperbolic sine, hyperbolic cosine, and the gamma function, some
+having arguments that are expressions, more accurately than is possible
+using the Fortran intrinsic functions, or the gamma function described in
+Chapter~2.3. See also discussion of the function SRCVAL in Section C
+of Chapter~2.9.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision,\newline  $\ln (1+x)$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SLNREL}
+
+\item[EXTERNAL] \ {\bf  SLNREL}
+
+\end{description}
+
+Assign a value to X and obtain U $= \ln (1+\text{X})$ by using
+$$
+\fbox{\bf U = SLNREL(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline $x - \ln (1+x)$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SRLOG1}
+
+\item[EXTERNAL] \ {\bf  SRLOG1}
+
+\end{description}
+
+Assign a value to X and obtain U $= \text{X} - \ln (1+\text{X})$ by using
+$$
+\fbox{\bf U = SRLOG1(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline $x - 1 - \ln (x)$}
+
+{\bf REAL \ X, U, SRLOG}
+
+{\bf EXTERNAL \ SRLOG}
+
+Assign a value to X and obtain U $= \text{X} - 1 - \ln (\text{X})$ by using
+$$
+\fbox{\bf U = SRLOG(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $\exp (x) - 1$}
+
+\begin{description}
+
+\item[REAL] \ {\bf X, U, SREXP}
+
+\item[EXTERNAL] \ {\bf SREXP}
+
+\end{description}
+
+Assign a value to X and obtain U $= \exp (\text{X}) - 1$ by using
+$$
+\fbox{\bf U = SREXP(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $\sin (\pi x)$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SSINPX}
+
+\item[EXTERNAL] \ {\bf  SSINPX}
+
+\end{description}
+
+Assign a value to X and obtain U $= \sin (\pi \text{X})$ by using
+$$
+\fbox{\bf U = SSINPX(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $\cos (\pi x)$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SCOSPX}
+
+\item[EXTERNAL] \ {\bf  SCOSPX}
+
+\end{description}
+
+Assign a value to X and obtain U $= \cos (\pi \text{X})$ by using
+$$
+\fbox{\bf U = SCOSPX(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $(x-\sin (x))/x^3$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SSIN1}
+
+\item[EXTERNAL] \ {\bf  SSIN1}
+
+\end{description}
+
+Assign a value to X and obtain U $= (\text{X}-\sin (\text{X}))/\text{X}^3$ by using
+$$
+\fbox{\bf U = SSIN1(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $(1-\cos (x))/x^2$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SCOS1}
+
+\item[EXTERNAL] \ {\bf  SCOS1}
+
+\end{description}
+
+Assign a value to X and obtain U $= (1-\cos (\text{X}))/\text{X}^2$ by using
+$$
+\fbox{\bf U = SCOS1(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $\sinh(x) - x$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SSINHM}
+
+\item[EXTERNAL] \ {\bf  SSINHM}
+
+\end{description}
+
+Assign a value to X and obtain U $= \sinh(\text{X}) - \text{X}$ by using
+$$
+\fbox{\bf U = SSINHM(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $\cosh(x) - 1$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SCOSHM}
+
+\item[EXTERNAL] \ {\bf  SCOSHM}
+
+\end{description}
+
+Assign a value to X and obtain U $= \cosh(\text{X}) - 1$ by using
+$$
+\fbox{\bf U = SCOSHM(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $\cosh(x) -
+ 1 - \frac 12 x^2$}
+
+{\bf REAL X, U, SCSHMM}
+
+{\bf EXTERNAL SCSHMM}
+
+Assign a value to X and obtain U $= \cosh(\text{X}) - 1 - \frac{1}{2} \text{X}^2$ by using
+$$
+\fbox{\bf U = SCSHMM(X)}
+$$
+\subsubsection{Program Prototype, Single Precision,\newline  $1/\Gamma (x+1) - 1$}
+
+\begin{description}
+
+\item[REAL] \ {\bf  X, U, SGAM1}
+
+\item[EXTERNAL] \ {\bf  SGAM1}
+
+\end{description}
+
+Assign a value to X and obtain U $= 1/\Gamma (1+\text{X}) - 1$ by
+using
+$$
+\fbox{\bf U = SGAM1(X)}
+$$
+\subsubsection{Argument Definitions}
+
+\begin{description}
+
+\item[X] \ [in] Argument of functions. Argument values may be constrained as
+described in Section E below.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+For double precision computation, change the REAL type statement to DOUBLE
+PRECISION and change the initial letter of the function name to D. Since
+these functions are not generic intrinsic functions, it is important to
+declare them explicitly to be DOUBLE PRECISION, because the default implicit
+type would be REAL. The approximations used in SSINHM, SCOSHM and SCSHMM are
+accurate to~14 decimal digits, so the REAL versions of these procedures
+could be used to advantage on some platforms by changing the function type
+and all internal variable types, constants, and arithmetic to double
+precision.
+
+\subsection{Example and Remarks}
+
+See DRDLNREL and ODDLNREL for an example of the usage of these subprograms.
+
+MATH77 does not include a special procedure to compute $\sin (x)/x$. On all
+machines tested, $\sin (x)/x$ could be computed with good relative accuracy,
+even for very small $x$, by using the Fortran intrinsic SIN function. The
+only difficulty is that the user must test whether $x$ is exactly zero, and
+use 1.0 for the result. The procedure SSIN1, described above, can be used to
+compute $1-\sin (x)/x$ without loss of precision.
+
+\subsection{Functional Description}
+
+\subsubsection{Method}
+\begin{description}
+\item[For xLNREL,] when $1/\sqrt 2 < 1+x < \sqrt 2$, use approximation~2707 from
+Hart, et. al., \cite{Hart:1968:CA}. Otherwise, use the Fortran intrinsic logarithm
+function.
+
+\item[For xRLOG1,] when $-0.39 \leq  x \leq  0.57$, use
+rational approximations due to Alfred H. Morris, Jr., \cite{ahm:lib}. Otherwise,
+use the Fortran intrinsic logarithm function.
+
+\item[For xRLOG,] when $0.61 \leq  x \leq  1.57$, use rational
+approximations due to Alfred H. Morris, Jr., \cite{ahm:lib}. Otherwise, use the
+Fortran intrinsic logarithm function.
+
+\item[For xREXP,] when $|x| \leq  0.15$, use rational approximations due
+to Alfred H. Morris, Jr., \cite{ahm:lib}. Otherwise, use the Fortran intrinsic
+exponential function.
+
+\item[For xSINPX and xCOSPX,] for all values of $x$, use rational approximations
+due to Alfred H. Morris, Jr., \cite{ahm:lib}.
+
+\item[For xSIN1,] use Taylor's series for $|x| < 0.25$. Otherwise, use the Fortran
+intrinsic sine function.
+
+\item[For xCOS1,] when $\cos (x) \geq 0$ use $1-\cos (x) = \sin ^2(x) / (1+\cos (x))$%
+. Otherwise, use $1-\cos (x)$. In both cases, use the Fortran intrinsic
+functions.
+
+\item[For SSINHM,] when $|x| < 1.65$, use rational approximations due to A. K.
+Cline and R. J. Renka, \cite{ahm:lib}. Otherwise, use the Fortran intrinsic SINH
+function.
+
+\item[For SCOSHM,] when $|x| < 1.2$, use rational approximations due to A. K. Cline
+and R. J. Renka, \cite{ahm:lib}. Otherwise, use the Fortran intrinsic COSH function.
+
+\item[For SCSHMM,] when $|x| < 2.7$, use rational approximations due to A. K. Cline
+and R. J. Renka, \cite{ahm:lib}. Otherwise, use the Fortran intrinsic COSH function.
+
+\item[For xGAM1,] when $-0.5 \leq  x \leq  1.5$,
+use rational approximations due to Alfred H. Morris, Jr., \cite{ahm:lib}.
+Otherwise, use the xGAMMA routine from Chapter~2.3.
+\end{description}
+\subsubsection{Accuracy Tests}
+
+The single precision subprograms were tested on an IBM PC/AT using IEEE
+arithmetic, by comparison with the double precision Fortran intrinsic
+functions (except the reference value for SGAM1 used DGAMMA from Chapter
+2.3) at 2000~points. For each function except SSINPX and SCOSPX, the points
+were chosen to cover the entire domain over which a special approximation is
+used. For SSINPX and SCOSPX, 2000~points were chosen randomly in the region $%
+0<x<2$, and SSINPX($10^x$), $\sin (10^x\pi )$, SCOSPX($10^x$) and $\cos
+(10^x\pi )$ were then computed. For SSIN1 and SCOS1, 2000~points were chosen
+randomly in the region $-8<x<-1$, then $y=10^x$,
+SSIN1($y)$, $(y-\sin (y))/y^3$, SCOS1($y)$ and $(1-\cos (y))/y^2$ were
+computed. The results of these tests may be summarized as follows:
+\begin{table*}
+\begin{center}
+\begin{tabular}{l*{11}{r}}
+ & \multicolumn{11}{c}{\bf Percentage of samples with specified number of
+bits wrong\rule[-8pt]{0pt}{8pt}}\\
+{\bf Function} & {\bf 0} & {\bf 1} & {\bf 2} & {\bf 3} & {\bf 4} &
+{\bf 5} & {\bf 6} & {\bf 7} & {\bf 8} & {\bf 9} & {\bf $\geq 10$}\\
+SLNREL & 100.0\\
+$\ln (x+1)$ & 61.7 & 24.6 & 13.8\\
+SRLOG1 & 57.3 & 23.7 & 10.9 & 6.7 & 1.5\\
+$x-\ln (x+1)$ & 3.9 & 4.6 & 9.0 & 11.9 & 17.9 & 16.9 & 11.0 & 7.0 & 5.3 &
+4.1 & 8.5\\
+SRLOG & 56.7 & 23.9 & 10.9 & 6.9 & 1.6\\
+$x-1-\ln (x)$ & 4.2 & 3.9 & 7.3 & 12.1 & 19.4 & 15.9 & 11.4 & 8.6 & 5.6 &
+3.4 & 8.5\\
+SREXP & 71.7 & 26.5 & 1.9\\
+$\exp (x)-1$ & 8.2 & 8.8 & 16.9 & 26.0 & 18.8 & 10.8 & 5.2 & 2.8 & 1.6 &
+0.4 & 0.6\\
+SSINPX & 10.6 & 7.6 & 9.9 & 11.9 & 13.0 & 12.1 & 12.1 & 8.7 & 5.8 & 3.3 & 5.2\\
+$\sin (\pi x)$ & 4.9 & 4.8 & 8.8 & 11.8 & 12.9 & 13.2 & 13.6 & 11.4 &
+8.2 & 5.2 & 5.4\\
+SCOSPX & 11.4 & 7.1 & 11.4 & 11.8 & 11.4 & 12.2 & 11.1 & 10.1 & 6.0 &
+3.9 & 3.9\\
+$\cos (\pi x)$ & 5.1 & 4.3 & 9.4 & 10.9 & 12.7 & 13.7 & 13.4 & 11.9 &
+7.8 & 5.3 & 5.6\\
+SSIN1 & 91.1 & 8.9\\
+$(x-\sin (x))/x^3$ & 54.2 & 20.1 & 2.0 & 2.3 & 2.0 & 2.2 & 2.1 & 1.5 &
+1.6 & 1.8 & 9.8\\
+SCOS1 & 76.5 & 15.8 & 7.7 & 0.1\\
+$(1-\cos (x))/x^2$ & 57.5 & 18.6 & 4.3 & 2.0 & 1.7 & 2.4 & 1.6 & 2.2 &
+2.1 & 1.8 & 6.1\\
+SSINHM & 66.3 & 29.4 & 4.3\\
+$\sinh(x)-x$ & 13.4 & 12.3 & 23.6 & 17.0 & 8.5 & 7.7 & 5.0 & 3.7 & 2.5 &
+2.0 & 4.3\\
+SCOSHM & 68.7 & 28.3 & 3.0\\
+$\cosh(x)-1$ & 18.8 & 19.1 & 17.5 & 13.7 & 8.5 & 6.0 & 5.0 & 3.5 & 2.8 &
+1.6 & 3.7\\
+SCSHMM & 46.5 & 32.9 & 19.8 & 0.8\\
+$\cosh(x)-1-x^2/2$ & 12.0 & 11.4 & 16.9 & 13.7 & 10.4 & 5.7 & 5.0 & 4.0 &
+3.0 & 3.3 & 14.7\\
+SGAM1 & 63.3 & 27.5 & 8.9\\
+$1/\Gamma (1+x)-1$ & 8.2 & 8.7 & 13.9 & 20.7 & 22.1 & 14.7 & 5.4 & 3.7 &
+1.5 & 0.6 & 0.7\\
+\end{tabular}
+\end{center}\vspace{-10pt}
+\end{table*}
+
+\begin{tabular}{@{}l@{}rrr}
+{\bf Function} & {\bf avg $|\text{E}|$} &
+{\bf $\max |\text{E}|$} & {\bf std. dev.}\\
+SLNREL & 0.25 & 0.50 & 0.14\\
+$\ln (x+1)$ & 0.50 & 1.49 & 1.49\\
+SRLOG1 & 0.46 & 3.28 & 0.43\\
+$x-\ln (x+1)$ & 8075.58 & $\approx 7.9\times 10^6$ & $\approx 1.9\times 10^5$\\
+SRLOG & 0.47 & 3.10 & 0.43\\
+$x-1-\ln (x)$ & 3341.24 & $\approx 2.9\times 10^6$ & $\approx 7.3\times 10^4$\\
+SREXP & 0.37 & 1.39 & 0.26\\
+$\exp (x)-1$ & 16.51 & 7402.74 & 190.13\\
+SSINPX & 58.32 & 5795.79 & 253.07\\
+$\sin (\pi x)$ & 119.20 & 48061.18 & 1193.09\\
+SCOSPX & 84.64 & 35894.27 & 965.42\\
+$\cos (\pi x)$ & 94.27 & 19712.38 & 588.76\\
+SSIN1 & 0.32 & 0.97 & 0.13\\
+$(x-\sin (x))/x^3$ & 407.81 & 28944.33 & 2091.66\\
+SCOS1 & 0.25 & 2.02 & 0.38\\
+$(x-\cos (x))/x^2$ & 102.36 & 7931.0 & 525.75\\
+SSINHM & 0.35 & 1.36 & 0.35\\
+$\sinh(x)-x$ & 2584.93 & $\approx 2.6\times 10^6$ & $\approx 6.7\times 10^4$\\
+SCOSHM & 0.39 & 1.35 & 0.27\\
+$\cosh(x)-1$ & 2302.36 & $\approx 3.7\times 10^6$ & $\approx 8.3\times 10^4$\\
+SCSHMM & 0.65 & 23.00 & 0.68\\
+\multicolumn{2}{@{}l}{$\cosh(x)-1-x^2/2$}\\
+ & $\approx 1.9\times 10^5$ & $>10^7$ & $\approx 1.6\times
+10^6$\\
+SGAM1 & 0.46 & 2.44 & 0.37\\
+$1/\Gamma (1+x)-1$ & 32.94 & 28016.70 & 686.03\\
+\end{tabular}
+
+For the functions SLNREL, SRLOG1, SRLOG, SREXP, SSINHM, SCOSHM and SGAM1 the
+error in units of the least significant digit was approximately constant over
+the entire region. For SSINPX and SCOSPX the error in units of the least
+significant digit and the absolute error both increased as the argument
+increased. For SCSHMM the error in units of the least significant digit was
+nearly constant over the entire region, except that one sample had 5 wrong
+bits near the zero of the function.
+
+When $\ln (1+x)$, $x-\ln (1+x)$, $x-1-\ln (x)$, $(x-\sin (x))/x^3$, $%
+(1-\cos (x))/x^2$, $\sinh (x)-x$, $\cosh(x)-1$, $\cosh (x)-1-x^2/2$
+and $1/\Gamma (1+x)-1$ were computed
+using single precision intrinsic functions and single precision
+arithmetic, there was substantial increase in the error in units of the least
+significant digit near the zeros of the functions, even though the absolute
+error approached zero. For $\sin (\pi x)$ and $\cos (\pi x)$ the error
+in units of
+the least significant digit and the absolute error increased as the argument
+increased. The average, maximum and standard deviation of the errors in
+units of the
+least significant digit are summarized in the table at left, in units of $%
+\rho = 2^{-23} \approx 1.192 \times 10^{-7}$, the relative precision of IEEE
+single precision arithmetic.
+
+For arguments in the range $0<x<1$, SSINPX and SCOSPX commit approximately
+the same error as equivalent expressions constructed from the intrinsic SIN
+and COS functions.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+If the argument of xLNREL or xRLOG1 $\leq  -1.0$ or the argument of
+xRLOG $\leq $ 0.0, the Fortran intrinsic logarithm function will
+produce an error message. If the argument of xGAM1 $\leq -1.0$ the
+xGAMMA function will produce an error message. If the magnitude of
+the argument of SSINPX, DSINPX, SCOSPX or DCOSPX $> 1 / \rho $, where
+$\rho $ is the smallest number that can be added to one and give a
+result different from one, these routines will issue an error message
+using the error message processor, described in Chapter~19.2, at
+level~2. If error termination is suppressed by using ERMSET, SSINPX
+and DSINPX return 0.0, while SCOSPX and DCOSPX return~1.0.
+
+\subsection{Supporting Information}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in}\bf Required Files\vspace{2pt}\\
+DCOS1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DCOS1\rule[-5pt]{0pt}{8pt}}\\
+DCOSHM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCOSHM\rule[-5pt]{0pt}{8pt}}\\
+DCOSPX & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, DCOSPX, DERM1, DERV1\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in}\bf Required Files\vspace{2pt}\\
+DCSHMM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DCSHMM\rule[-5pt]{0pt}{8pt}}\\
+DGAM1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DERM1, DERV1, DGAM1, DGAMMA, ERFIN, ERMSG\rule[-5pt]{0pt}{8pt}}\\
+DLNREL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DLNREL\rule[-5pt]{0pt}{8pt}}\\
+DREXP & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DREXP\rule[-5pt]{0pt}{8pt}}\\
+DRLOG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DRLOG\rule[-5pt]{0pt}{8pt}}\\
+DRLOG1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+DRLOG\rule[-5pt]{0pt}{8pt}}\\
+DSIN1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DSIN1\rule[-5pt]{0pt}{8pt}}\\
+DSINHM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, DSINHM\rule[-5pt]{0pt}{8pt}}\\
+DSINPX & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, DERM1, DERV1, DSINPX\rule[-5pt]{0pt}{8pt}}\\
+SCOS1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SCOS1\rule[-5pt]{0pt}{8pt}}\\
+SCOSHM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SCOSHM\rule[-5pt]{0pt}{8pt}}\\
+SCOSPX & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SCOSPX, SERM1, SERV1\rule[-5pt]{0pt}{8pt}}\\
+SCSHMM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SCSHMM\rule[-5pt]{0pt}{8pt}}\\
+SGAM1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SGAM1, SGAMMA\rule[-5pt]{0pt}{8pt}}\\
+SLNREL & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SLNREL\rule[-5pt]{0pt}{8pt}}\\
+SREXP & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SREXP\rule[-5pt]{0pt}{8pt}}\\
+SRLOG & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SRLOG\rule[-5pt]{0pt}{8pt}}\\
+SRLOG1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SRLOG\rule[-5pt]{0pt}{8pt}}\\
+SSIN1 & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, SSIN1\rule[-5pt]{0pt}{8pt}}\\
+SSINHM & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+SSINHM\rule[-5pt]{0pt}{8pt}}\\
+SSINPX & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+AMACH, ERFIN, ERMSG, SERM1, SERV1, SSINPX\rule[-5pt]{0pt}{8pt}}\\
+\end{tabular}
+
+Designed and programmed by W. V. Snyder, JPL 1991 and 1993.
+
+
+\begcode
+
+\medskip\
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRDLNREL}\vspace{10pt}
+\lstinputlisting{\codeloc{dlnrel}}
+\newpage
+
+\vspace{30pt}\centerline{\bf \large ODDLNREL}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{dlnrel}}
+\end{document}
+

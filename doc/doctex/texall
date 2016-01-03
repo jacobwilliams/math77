@@ -1,0 +1,20 @@
+#!/bin/bash
+## When have more time would be nice to do this with a make file.
+cp MATH77.dvi.cls MATH77.cls
+export t="app*.tex c*.tex index.tex quote.tex spine.tex t*.tex"
+echo -e "\nRun latex and then bibtex on all the files.\n"
+for f in $t; do latex $f; bibtex `basename $f .tex`; done
+echo -e "\nRun mf on all the pl*.mf files.\n"
+for f in pl*.mf; do mf `basename $f .mf`; gftopk `basename $f .mf`.300gf; done
+echo -e "\nRun latex and then bibtex again on the ch*.tex files.\n"
+for f in ch*.tex; do latex $f; bibtex `basename $f .tex`; done
+echo -e "\nRun dvi2ps on all of the tex files.\n"
+for f in $t; do dvi2ps `basename $f .tex`; done
+echo -e "\nConvert MATH&&.cls to make the pdf files.\n"
+cp MATH77.pdf.cls MATH77.cls
+echo -e "\nRun pdflatex on all of the tex files.\n"
+for f in $t; do pdflatex $f; done
+echo -e "\nRun mpost on all of the pl*.mf files and then pdflatex again.\n"
+for f in pl*.mf; do mpost `basename $f .mf`.mp; pdflatex `basename $f .mf |sed -e "s/pl/ch/"`; done
+cp MATH77.dvi.cls MATH77.cls
+echo "When this is done, run /m/tex/math77/texmove as ROOT"

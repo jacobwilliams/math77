@@ -1,0 +1,218 @@
+\documentclass[twoside]{MATH77}
+\usepackage{multicol}
+\usepackage[fleqn,reqno,centertags]{amsmath}
+\begin{document}
+\begmath 10.4 Multi-Dimensional Real Fourier Transform
+
+\silentfootnote{$^\copyright$1997 Calif. Inst. of Technology, \thisyear \ Math \`a la Carte, Inc.}
+
+\subsection{Purpose}
+
+This subroutine computes Real Fourier Transforms for real data in up to six
+dimensions using the fast Fourier transform. In ND dimensions, the relations
+between the values $x$ and the Fourier coefficients $\xi $ have the form%
+\begin{multline*}
+x(j_1,j_2,...,j_{ND})=\sum_{k_1=0}^{N_1-1}\cdots\sum_{k_{ND}=0}^{N_{ND}-1}%
+\xi (k_1,k_2,...,k_{ND})\\
+\times W_1^{j_1k_1}\cdots W_{ND}^{j_{ND}k_{ND}},
+\end{multline*}
+where $N_\ell=2^{\text{M}(\ell)}$, $W_\ell=e^{2\pi i/N_\ell}$, 0 $\leq $ $j_\ell
+\leq N_\ell-1$, $x$ is real and $\xi $ is complex.
+
+\subsection{Usage}
+
+\subsubsection{Program Prototype, Single Precision}
+
+\begin{description}
+\item[\bf REAL]  \ {\bf A}$(N_1$, $N_2$, ..., $\geq N_{ND})$\quad $%
+[N_k=2^{\text{M}(k)}]$
+
+\item[\bf REAL]  \ {\bf S}$(\geq \max (\nu _1$, $\nu _2$, ..., $\nu
+_{ND})-1)$\  $[\nu _k=2^{\text{M}(k)}-^2]$
+
+\item[\bf INTEGER]  \ {\bf M}$(\geq $ ND){\bf , ND, MS}
+
+\item[\bf CHARACTER]  \ {\bf MODE}
+\end{description}
+On the initial call set MS to~0 to indicate the array S() does not yet
+contain a sine table. Assign values to A(), MODE, M(), and ND.
+$$
+\fbox{{\bf CALL SRFT(A, MODE, M, ND, MS, S)}}
+$$
+On return A() will contain computed results. S() will contain the sine table
+used in computing the Fourier transform. MS may have been changed.
+
+\subsubsection{Argument Definitions}
+
+\begin{description}
+\item[A()]  [inout] If the argument MODE selects Analysis, A() contains
+values $x$ on entry and the Fourier coefficients $\xi $ on exit. If MODE
+selects Synthesis, A() contains the Fourier coefficients $\xi $ on entry and
+the values $x$ on exit. The Functional Description below describes the way $x
+$ and $\xi $ are stored in A().
+
+\item[MODE]  [in] The character variable MODE selects Analysis or Synthesis.
+
+'A' or 'a' selects Analysis, transforming $x$'s to $\xi ^{\prime }s.
+$
+
+'S' or 's' selects Synthesis, transforming $\xi $'s to $x^{\prime
+}s.$
+
+\item[M()]  [in] Defines $N_k=2^{\text{M}(k)}$, the number of real data points in
+the $k^{th}$ dimension. Require $0\leq \text{M}(k)\leq 31$ for all $k$%
+, and M($1)=0$ only if M($k)\equiv 0$ for all $k$. No action is taken with
+respect to dimensions for which M($k)=0.$
+
+\item[ND]  [in] Number of dimensions. Require 1 $\leq $ ND $\leq $ 6.
+
+\item[MS]  [inout] Gives the state of the sine table in $S()$.  Let
+$\text{MS}_{in}\text{ and MS}_{out}$ denote the values of MS on entry
+and return respectively. If the sine table has not previously been
+computed, set $\text{MS}_{in} = 0$ or $-$1 before the call. Otherwise
+the value of $\text{MS}_{out}$ from the previous call using the same
+S() array can be used as $\text{MS}_{in}$ for the current call.
+
+Certain error conditions described in Section E cause the subroutine
+to set $\text{MS}_{out} = -2$ and return.  Otherwise, with $\max _i
+\{\text{M}(i)\} > 0$, the subroutine sets $\text{MS}_{out} = \max
+($M(1), M(2), ..., M(ND), $\text{MS}_{in}).$
+
+If $\text{MS}_{out} > \max (2, \text{MS}_{in}),$ the subroutine sets
+NT = $2^{\text{MS}_{out}-2}$ and fills S() with NT $-$ 1 sine values.
+
+If $\text{MS}_{in}=-1$, the subroutine returns after the above
+actions, not transforming the data in A().  This is intended to allow
+the use of the sine table for data alteration before a subsequent Fourier
+transform, as discussed in Section G of Chapter~16.0.
+
+\item[S()]  [inout] When the sine table has been computed, S($j)=\sin \pi
+j/(2\times {\textstyle NT})$, $j=1$, 2, ..., NT $-$ 1, see MS above.
+\end{description}
+
+\subsubsection{Modifications for Double Precision}
+
+Change SRFT to DRFT and the REAL type statements to DOUBLE PRECISION.
+
+\subsection{Examples and Remarks}
+
+A ``smooth'' function that approximates%
+\begin{equation*}
+A(i,j)=
+\begin{cases}
+0 & \text{if}\ |9-i|+|9-j|>4 \\
+1 & \text{if}\ |9-i|+|9-j|\leq 4
+\end{cases}
+\ 1\leq i,\ j\leq 16.
+\end{equation*}
+is desired. The example at the end of the chapter does this by computing
+the two dimensional transform of A, applying sigma factors (see Section
+G of Chapter~16.0), and then transforming back. Results are printed only
+for 1 $\leq $ $i,\ j\leq 9$ since, to within round-off limitations, A($%
+9+m,9-n)={\textstyle A}(9-m,9-n)$, $1\leq 9\pm m\leq 16$ and $1\leq $ $9\pm
+n\leq 16.$
+
+\subsection{Functional Description}
+
+The multi-dimensional real Fourier transform is done by changing it to a
+problem in complex variables, doing a multi-dimensional complex Fourier
+transform, and then adjusting the results to obtain the solution for the
+original problem.
+
+Taking complex conjugates in Eq.\,(1) and using the fact that $x$ is real, it
+can be verified that%
+\begin{equation*}
+\xi (N_1-k_1,\;N_2-k_2,...,N_d-k_d)=\overline{\xi }(k_1,k_2,...,k_d),
+\end{equation*}
+where $N_i-k_i$ is interpreted modulo $N_i$. (Thus $N_i-k_i=0$ if $k_i$ is
+0.) Using the above, it is possible to pack the nonredundant $\xi ^{\prime
+}s $ in the same space as is required for $x$.
+
+Storage of $\xi $ in A() for the case $d=2$ is illustrated in Table~1. The
+rows and columns in the table correspond to rows and columns in the array
+A(). Only the subscripts $k_1$, $k_2$ of the $\xi $'s are given.
+The symbols $J_1$ and $J_2$ are used as abbreviations for $N_1/2$ and $N_2/2$
+respectively. The coefficients with subscripts (0,0), $(J_1,0)$, $(0,J_2)$,
+and $(J_1,J_2)$ are real and occupy single array elements as shown. For the
+other coefficients, the subscript $``k_1,k_2"$ identifies the location of
+the real part of $\xi (k_1$, $k_2)$, and an ``I'' immediately below such a
+subscript gives the location of the imaginary part of $\xi (k_1$,\ $k_2).$
+
+The first column (with the second subscript ignored) gives the storage
+scheme for the case $d=1$. For $d>2$, and with $\nu =$ the smallest value of
+$i(>1)$ for which $k_i\neq 0$ and $k_i\neq N_\nu /2$, the storage scheme
+generalizes as follows.
+
+If $1 < k_1 < N_1$ (A$(2k_1+1$, $k_2+1$, ..., $k_d+1),$ A$(2k_1+2$,
+$k_2+1$, ..., $k_d+1))$ contains $\xi (k_1,k_2,...,k_d)$.  Else
+(A(1, $k_2+1$, ..., $k_d+1),$ A(2, $k_2+1$, ..., $k_d+1))$ contains
+\begin{alignat*}{2}
+&\xi (0,k_2,...,k_d) &\ &1\leq k_\nu <N_\nu /2\\
+&\xi (N_1/2,k_2,...,k_d)&\ \qquad &N_\nu /2<k_\nu <N_\nu
+\end{alignat*}
+and when $k_i$ is either 0 or $N_i/2$ for all i,
+(A(1, $k_2+1$, ..., $k_d+1),$ A(2, $k_2+1$, ..., $k_d+1))$ contains $(\xi
+(0,k_2,...,k_d),~\xi (N_1/2,k_2,...,k_d)).$ Note that in this last case both
+$\xi $'s are real.
+
+More details can be found in \cite{Krogh:1970:RFT}.
+
+\bibliography{math77}
+\bibliographystyle{math77}
+
+\subsection{Error Procedures and Restrictions}
+
+Require $0 \leq \text{M}(k)\leq 31$ and $1 \leq \text{ND} \leq $ 6.  MODE
+must contain one of the allowed values.  If any of these conditions are
+violated the subroutine will issue an error message using the error
+processing procedures of Chapter~19.2 with a severity level of~2 to cause
+execution to stop.  A return is made with $\text{MS}=-2$ instead of
+stopping if the statement ``CALL\ ERMSET($-$1)'' is executed before
+calling this subroutine.
+
+If the sine table does not appear to have valid data, an error message is
+printed, and the sine table and then the transform are computed.
+
+\subsection{Supporting Information}
+
+The source language is ANSI Fortran~77.
+
+\begin{tabular}{@{\bf}l@{\hspace{5pt}}l}
+\bf Entry & \hspace{.35in} {\bf Required Files}\vspace{2pt} \\
+DRFT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ DFFT, DRFT, ERFIN, ERMSG, IERM1, IERV1\rule[-5pt]{0pt}{8pt}}\\
+SRFT & \parbox[t]{2.7in}{\hyphenpenalty10000 \raggedright
+ ERFIN, ERMSG, IERM1, IERV1, SFFT, SRFT}\\
+\end{tabular}
+
+Subroutine designed and written by: Fred T. Krogh, JPL, October~1969,
+revised January~1988.
+
+
+\end{multicols}
+
+\begin{table} \centering
+  \begin{tabular}{cccccccc}
+     0,0 & 0,1 & $\cdots$ & 0,$J_2-1$ & 0,$J_2$ & $J_1$,$J_2+1$ & $\cdots$ & $J_1$,$N_2 -1$ \\
+     $J_1$, 0 & I & $\cdots$ & I & $J_1$,$J_2$ & I & $\cdots$ & I \\
+      1,0 & 1,1 & $\cdots$ & 1,$J_2-1$ & 1,$J_2$ & 1,$J_2+1$ & $\cdots$ & 1,$N_2 -1$ \\
+     I & I & $\cdots$ & I & I & I & $\cdots$ & I \\
+    $\cdots$ & & & & $\cdots$ & & & $\cdots$ \\
+     $J_1 -1$,0 & $J_1-1$,1 & $\cdots$ & $J_1-1$,$J_2-1$ & $J_1-1$, $J_2$ & $J_1-1$,$J_2+1$ & $\cdots$ & $J_1-1$,$N_2 -1$ \\
+    I & I & $\cdots$ & I & I & I & $\cdots$ & I \\
+  \end{tabular}
+  \caption{Storage of $\xi$ in A() for Two Dimensions}
+\end{table}
+
+\begcodenm
+
+\lstset{language=[77]Fortran,showstringspaces=false}
+\lstset{xleftmargin=.8in}
+
+\centerline{\bf \large DRSRFT}\vspace{10pt}
+\lstinputlisting{\codeloc{srft}}
+
+\vspace{30pt}\centerline{\bf \large ODSRFT}\vspace{10pt}
+\lstset{language={}}
+\lstinputlisting{\outputloc{srft}}
+\end{document}

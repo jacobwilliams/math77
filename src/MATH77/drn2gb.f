@@ -1,0 +1,2165 @@
+      SUBROUTINE DRN2GB(B, D, DR, IV, LIV, LV, N, ND, N1, N2, P, R,
+     1                  RD, V, X)
+c Copyright (c) 1996 California Institute of Technology, Pasadena, CA.
+c ALL RIGHTS RESERVED.
+c Based on Government Sponsored Research NAS7-03001.
+c File: DRN2GB.for       Subrs used by the
+c       David Gay & Linda Kaufman nonlinear LS package.
+c       Needed for versions that allow Bounded variables.
+c       DRN2GB is called by DNLAFB, DNLAGB, & DRNSGB.
+c       The other subrs in this file are needed by DRN2GB.
+c
+C>> 1998-10-29 DRN2GB Krogh  Moved external statement up for mangle.
+c>> 1996-05-16 DRN2GB Krogh  Changes for conversion to C.
+c>> 1994-11-02 DRN2GB Krogh  Changes to use M77CON
+c>> 1993-03-10 DRN2GB CLL Moved stmt NN = ... to follow IF (IV1 ...
+c>> 1992-04-27 CLL Removed unreferenced stmt labels.
+c>> 1991-06-06 CLL Corrected declarations in [D/S]S7DMP
+c>> 1991-05-21 CLL Changed (1) to (*) in declarations.
+c>> 1990-06-12 CLL (Revised DRN2GB and DG7ITB from DMG)
+c>> 1990-03-20 CLL @ JPL
+c>> 1990-03-14 CLL @ JPL
+c>> 1990-02-21 CLL @ JPL
+c>> 1990-02-16 Cll @ JPL
+*** from netlib, Wed Feb  7 19:41:53 EST 1990 ***
+c>> 1990-06-12 CLL
+c>> 1990-04-23 CLL (Recent revision by DMG)
+*** from netlib, Thu Apr 19 11:58:57 EDT 1990 ***
+c--D replaces "?": ?RN2GB,?IVSET,?D7TPR,?D7UPD,?G7ITB,?ITSUM,?L7VML
+c--& ?Q7APL,?Q7RAD,?R7TVM,?V7CPY,?V7SCP,?V2NRM,?RN2G,?A7SST,?F7DHB
+c--& ?G7QSB,?L7MSB,?L7SQR,?L7TVM,?PARCK,?Q7RSH,?RLDST,?S7DMP,?S7IPR
+c--& ?S7LUP,?S7LVM,?V2AXY,?V7IPR,?V7VMP,?H2RFG,?H2RFA,?G7QTS,?S7BQN
+c--& ?D7MLP,?L7MST,?L7ITV,?L7IVM,?R7MDC,?V7SHF,?NLAFB,?NLAGB,?RNSGB
+C
+C  ***  REVISED ITERATION DRIVER FOR NL2SOL WITH SIMPLE BOUNDS  ***
+C
+      INTEGER LIV, LV, N, ND, N1, N2, P
+      INTEGER IV(LIV)
+      DOUBLE PRECISION B(2,P), D(P), DR(ND,P), R(ND), RD(ND), V(LV),
+     1                 X(P)
+C
+C
+C ------------------------  PARAMETER USAGE  --------------------------
+C
+C B........ BOUNDS ON X.
+C D........ SCALE VECTOR.
+C DR....... DERIVATIVES OF R AT X.
+C IV....... INTEGER VALUES ARRAY.
+C LIV...... LENGTH OF IV... LIV MUST BE AT LEAST P + 80.
+C LV....... LENGTH OF V...  LV  MUST BE AT LEAST 105 + P*(2*P+16).
+C N........ TOTAL NUMBER OF RESIDUALS.
+C ND....... MAX. NO. OF RESIDUALS PASSED ON ONE CALL.
+C N1....... LOWEST  ROW INDEX FOR RESIDUALS SUPPLIED THIS TIME.
+C N2....... HIGHEST ROW INDEX FOR RESIDUALS SUPPLIED THIS TIME.
+C P........ NUMBER OF PARAMETERS (COMPONENTS OF X) BEING ESTIMATED.
+C R........ RESIDUALS.
+C V........ FLOATING-POINT VALUES ARRAY.
+C X........ PARAMETER VECTOR BEING ESTIMATED (INPUT = INITIAL GUESS,
+C             OUTPUT = BEST VALUE FOUND).
+C
+C  ***  DISCUSSION  ***
+C
+C     THIS ROUTINE CARRIES OUT ITERATIONS FOR SOLVING NONLINEAR
+C  LEAST SQUARES PROBLEMS.  IT IS SIMILAR TO  DRN2G, EXCEPT THAT
+C  THIS ROUTINE ENFORCES THE BOUNDS  B(1,I) .LE. X(I) .LE. B(2,I),
+C  I = 1(1)P.
+C
+C  ***  GENERAL  ***
+C
+C     CODED BY DAVID M. GAY.
+C
+C ++++++++++++++++++++++++++++  DECLARATIONS  ++++++++++++++++++++++++++
+C
+C  ***  EXTERNAL FUNCTIONS AND SUBROUTINES  ***
+C
+      EXTERNAL DIVSET, DD7TPR,DD7UPD, DG7ITB,DITSUM,DL7VML, DQ7APL,
+     1        DQ7RAD, DR7TVM,DV7CPY, DV7SCP, DV2NRM
+      DOUBLE PRECISION DD7TPR, DV2NRM
+c     ------------------------------------------------------------------
+C DIVSET.... PROVIDES DEFAULT IV AND V INPUT COMPONENTS.
+C DD7TPR... COMPUTES INNER PRODUCT OF TWO VECTORS.
+C DD7UPD...  UPDATES SCALE VECTOR D.
+C DG7ITB... PERFORMS BASIC MINIMIZATION ALGORITHM.
+C DITSUM.... PRINTS ITERATION SUMMARY, INFO ABOUT INITIAL AND FINAL X.
+C DL7VML.... COMPUTES L * V, V = VECTOR, L = LOWER TRIANGULAR MATRIX.
+C DQ7APL... APPLIES QR TRANSFORMATIONS STORED BY DQ7RAD.
+C DQ7RAD.... ADDS A NEW BLOCK OF ROWS TO QR DECOMPOSITION.
+C DR7TVM... MULT. VECTOR BY TRANS. OF UPPER TRIANG. MATRIX FROM QR FACT.
+C DV7CPY.... COPIES ONE VECTOR TO ANOTHER.
+C DV7SCP... SETS ALL ELEMENTS OF A VECTOR TO A SCALAR.
+C DV2NRM... RETURNS THE 2-NORM OF A VECTOR.
+C
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      INTEGER G1, GI, I, IV1, IVMODE, JTOL1, L, LH, NN, QTR1,
+     1        RD1, RMAT1, YI, Y1
+      DOUBLE PRECISION T
+C
+      DOUBLE PRECISION HALF, ZERO
+C
+C  ***  SUBSCRIPTS FOR IV AND V  ***
+C
+      INTEGER DINIT, DTYPE, DTINIT, D0INIT, F, G, JCN, JTOL, MODE,
+     1        NEXTV, NF0, NF00, NF1, NFCALL, NFCOV, NFGCAL, QTR, RDREQ,
+     2        REGD, RESTOR, RLIMIT, RMAT, TOOBIG, VNEED
+C
+C  ***  IV SUBSCRIPT VALUES  ***
+C
+      PARAMETER (DTYPE=16, G=28, JCN=66, JTOL=59, MODE=35, NEXTV=47,
+     1   NF0=68, NF00=81, NF1=69, NFCALL=6, NFCOV=52, NFGCAL=7,
+     2   QTR=77, RDREQ=57, RESTOR=9, REGD=67, RMAT=78, TOOBIG=2,
+     3   VNEED=4)
+C
+C  ***  V SUBSCRIPT VALUES  ***
+C
+      PARAMETER (DINIT=38, DTINIT=39, D0INIT=40, F=10, RLIMIT=46)
+      PARAMETER (HALF=0.5D+0, ZERO=0.D+0)
+C
+C ++++++++++++++++++++++++++++++  BODY  ++++++++++++++++++++++++++++++++
+C
+      LH = P * (P+1) / 2
+      IF (IV(1) .EQ. 0) CALL DIVSET(1, IV, LIV, LV, V)
+      IV1 = IV(1)
+      IF (IV1 .GT. 2) GO TO 10
+         NN = N2 - N1 + 1
+         IV(RESTOR) = 0
+         I = IV1 + 4
+         IF (IV(TOOBIG) .EQ. 0) GO TO (150, 130, 150, 120, 120, 150), I
+         IF (I .NE. 5) IV(1) = 2
+         GO TO 40
+C
+C  ***  FRESH START OR RESTART -- CHECK INPUT INTEGERS  ***
+C
+ 10   IF (ND .LE. 0) GO TO 220
+      IF (P .LE. 0) GO TO 220
+      IF (N .LE. 0) GO TO 220
+      IF (IV1 .EQ. 14) GO TO 30
+      IF (IV1 .GT. 16) GO TO 270
+      IF (IV1 .LT. 12) GO TO 40
+      IF (IV1 .EQ. 12) IV(1) = 13
+      IF (IV(1) .NE. 13) GO TO 20
+      IV(VNEED) = IV(VNEED) + P*(P+15)/2
+ 20   CALL DG7ITB(B, D, X, IV, LIV, LV, P, P, V, X, X)
+      IF (IV(1) .NE. 14) GO TO 999
+C
+C  ***  STORAGE ALLOCATION  ***
+C
+      IV(G) = IV(NEXTV)
+      IV(JCN) = IV(G) + 2*P
+      IV(RMAT) = IV(JCN) + P
+      IV(QTR) = IV(RMAT) + LH
+      IV(JTOL) = IV(QTR) + 2*P
+      IV(NEXTV) = IV(JTOL) + 2*P
+C  ***  TURN OFF COVARIANCE COMPUTATION  ***
+      IV(RDREQ) = 0
+      IF (IV1 .EQ. 13) GO TO 999
+C
+ 30   JTOL1 = IV(JTOL)
+      IF (V(DINIT) .GE. ZERO) CALL DV7SCP(P, D, V(DINIT))
+      IF (V(DTINIT) .GT. ZERO) CALL DV7SCP(P, V(JTOL1), V(DTINIT))
+      I = JTOL1 + P
+      IF (V(D0INIT) .GT. ZERO) CALL DV7SCP(P, V(I), V(D0INIT))
+      IV(NF0) = 0
+      IV(NF1) = 0
+      IF (ND .GE. N) GO TO 40
+C
+C  ***  SPECIAL CASE HANDLING OF FIRST FUNCTION AND GRADIENT EVALUATION
+C  ***  -- ASK FOR BOTH RESIDUAL AND JACOBIAN AT ONCE
+C
+      G1 = IV(G)
+      Y1 = G1 + P
+      CALL DG7ITB(B, D, V(G1), IV, LIV, LV, P, P, V, X, V(Y1))
+      IF (IV(1) .NE. 1) GO TO 260
+      V(F) = ZERO
+      CALL DV7SCP(P, V(G1), ZERO)
+      IV(1) = -1
+      QTR1 = IV(QTR)
+      CALL DV7SCP(P, V(QTR1), ZERO)
+      IV(REGD) = 0
+      RMAT1 = IV(RMAT)
+      GO TO 100
+C
+ 40   G1 = IV(G)
+      Y1 = G1 + P
+      CALL DG7ITB(B, D, V(G1), IV, LIV, LV, P, P, V, X, V(Y1))
+      IF (IV(1) - 2) 50, 60, 260
+C
+ 50   V(F) = ZERO
+      IF (IV(NF1) .EQ. 0) GO TO 240
+      IF (IV(RESTOR) .NE. 2) GO TO 240
+      IV(NF0) = IV(NF1)
+      CALL DV7CPY(N, RD, R)
+      IV(REGD) = 0
+      GO TO 240
+C
+ 60   CALL DV7SCP(P, V(G1), ZERO)
+      IF (IV(MODE) .GT. 0) GO TO 230
+      RMAT1 = IV(RMAT)
+      QTR1 = IV(QTR)
+      RD1 = QTR1 + P
+      CALL DV7SCP(P, V(QTR1), ZERO)
+      IV(REGD) = 0
+      IF (ND .LT. N) GO TO 90
+      IF (N1 .NE. 1) GO TO 90
+      IF (IV(MODE) .LT. 0) GO TO 100
+      IF (IV(NF1) .EQ. IV(NFGCAL)) GO TO 70
+         IF (IV(NF0) .NE. IV(NFGCAL)) GO TO 90
+            CALL DV7CPY(N, R, RD)
+            GO TO 80
+ 70   CALL DV7CPY(N, RD, R)
+ 80   CALL DQ7APL(ND, N, P, DR, RD, 0)
+      CALL DR7TVM(ND, P, V(Y1), V(RD1), DR, RD)
+      IV(REGD) = 0
+      GO TO 110
+C
+ 90   IV(1) = -2
+      IF (IV(MODE) .LT. 0) IV(1) = -3
+ 100  CALL DV7SCP(P, V(Y1), ZERO)
+ 110  CALL DV7SCP(LH, V(RMAT1), ZERO)
+      GO TO 240
+C
+C  ***  COMPUTE F(X)  ***
+C
+ 120  T = DV2NRM(NN, R)
+      IF (T .GT. V(RLIMIT)) GO TO 210
+      V(F) = V(F)  +  HALF * T**2
+      IF (N2 .LT. N) GO TO 250
+      IF (N1 .EQ. 1) IV(NF1) = IV(NFCALL)
+      GO TO 40
+C
+C  ***  COMPUTE Y  ***
+C
+ 130  Y1 = IV(G) + P
+      YI = Y1
+      DO 140 L = 1, P
+         V(YI) = V(YI) + DD7TPR(NN, DR(1,L), R)
+         YI = YI + 1
+ 140     CONTINUE
+      IF (N2 .LT. N) GO TO 250
+         IV(1) = 2
+         IF (N1 .GT. 1) IV(1) = -3
+         GO TO 240
+C
+C  ***  COMPUTE GRADIENT INFORMATION  ***
+C
+ 150  G1 = IV(G)
+      IVMODE = IV(MODE)
+      IF (IVMODE .LT. 0) GO TO 170
+      IF (IVMODE .EQ. 0) GO TO 180
+      IV(1) = 2
+C
+C  ***  COMPUTE GRADIENT ONLY (FOR USE IN COVARIANCE COMPUTATION)  ***
+C
+      GI = G1
+      DO 160 L = 1, P
+         V(GI) = V(GI) + DD7TPR(NN, R, DR(1,L))
+         GI = GI + 1
+ 160     CONTINUE
+      GO TO 200
+C
+C  *** COMPUTE INITIAL FUNCTION VALUE WHEN ND .LT. N ***
+C
+ 170  IF (N .LE. ND) GO TO 180
+         T = DV2NRM(NN, R)
+         IF (T .GT. V(RLIMIT)) GO TO 210
+         V(F) = V(F)  +  HALF * T**2
+C
+C  ***  UPDATE D IF DESIRED  ***
+C
+ 180  IF (IV(DTYPE) .GT. 0)
+     1      CALL DD7UPD(D, DR, IV, LIV, LV, N, ND, NN, N2, P, V)
+C
+C  ***  COMPUTE RMAT AND QTR  ***
+C
+      QTR1 = IV(QTR)
+      RMAT1 = IV(RMAT)
+      CALL DQ7RAD(NN, ND, P, V(QTR1), .TRUE., V(RMAT1), DR, R)
+      IV(NF1) = 0
+      IF (N1 .GT. 1) GO TO 200
+      IF (N2 .LT. N) GO TO 250
+C
+C  ***  SAVE DIAGONAL OF R FOR COMPUTING Y LATER  ***
+C
+      RD1 = QTR1 + P
+      L = RMAT1 - 1
+      DO 190 I = 1, P
+         L = L + I
+         V(RD1) = V(L)
+         RD1 = RD1 + 1
+ 190     CONTINUE
+C
+ 200  IF (N2 .LT. N) GO TO 250
+      IF (IVMODE .GT. 0) GO TO 40
+      IV(NF00) = IV(NFGCAL)
+C
+C  ***  COMPUTE G FROM RMAT AND QTR  ***
+C
+      CALL DL7VML(P, V(G1), V(RMAT1), V(QTR1))
+      IV(1) = 2
+      IF (IVMODE .EQ. 0) GO TO 40
+      IF (N .LE. ND) GO TO 40
+C
+C  ***  FINISH SPECIAL CASE HANDLING OF FIRST FUNCTION AND GRADIENT
+C
+      Y1 = G1 + P
+      IV(1) = 1
+      CALL DG7ITB(B, D, V(G1), IV, LIV, LV, P, P, V, X, V(Y1))
+      IF (IV(1) .NE. 2) GO TO 260
+      GO TO 40
+C
+C  ***  MISC. DETAILS  ***
+C
+C     ***  X IS OUT OF RANGE (OVERSIZE STEP)  ***
+C
+ 210  IV(TOOBIG) = 1
+      GO TO 40
+C
+C     ***  BAD N, ND, OR P  ***
+C
+ 220  IV(1) = 66
+      GO TO 270
+C
+C  ***  RECORD EXTRA EVALUATIONS FOR FINITE-DIFFERENCE HESSIAN  ***
+C
+ 230  IV(NFCOV) = IV(NFCOV) + 1
+      IV(NFCALL) = IV(NFCALL) + 1
+      IV(NFGCAL) = IV(NFCALL)
+      IV(1) = -1
+C
+C  ***  RETURN FOR MORE FUNCTION OR GRADIENT INFORMATION  ***
+C
+ 240  N2 = 0
+ 250  N1 = N2 + 1
+      N2 = N2 + ND
+      IF (N2 .GT. N) N2 = N
+      GO TO 999
+C
+C  ***  PRINT SUMMARY OF FINAL ITERATION AND OTHER REQUESTED ITEMS  ***
+C
+ 260  G1 = IV(G)
+ 270  CALL DITSUM(D, V(G1), IV, LIV, LV, P, V, X)
+C
+ 999  RETURN
+C  ***  LAST CARD OF DRN2GB FOLLOWS  ***
+      END
+c     ==================================================================
+      SUBROUTINE DG7ITB(B, D, GG, IV, LIV, LV, P, PS, V, X, Y)
+c>> 1990-06-12 CLL @ JPL
+c>> 1990-04-23 CLL (Recent revision by DMG)
+*** from netlib, Mon Apr 23 20:37:24 EDT 1990 ***
+c>> 1990-02-20 CLL @ JPL
+C
+C  ***  CARRY OUT NL2SOL-LIKE ITERATIONS FOR GENERALIZED LINEAR   ***
+C  ***  HAVING SIMPLE BOUNDS ON THE PARAMETERS BEING ESTIMATED.   ***
+C
+C  ***  PARAMETER DECLARATIONS  ***
+C
+      INTEGER LIV, LV, P, PS
+      INTEGER IV(LIV)
+      DOUBLE PRECISION B(2,P), D(P), GG(P), V(LV), X(P), Y(P)
+C
+C -------------------------  PARAMETER USAGE  --------------------------
+C
+C B.... VECTOR OF LOWER AND UPPER BOUNDS ON X.
+C D.... SCALE VECTOR.
+C IV... INTEGER VALUE ARRAY.
+C LIV.. LENGTH OF IV.  MUST BE AT LEAST 80.
+C LH... LENGTH OF H = P*(P+1)/2.
+C LV... LENGTH OF V.  MUST BE AT LEAST P*(3*P + 19)/2 + 7.
+C GG... GRADIENT AT X (WHEN IV(1) = 2).
+C HC... GAUSS-NEWTON HESSIAN AT X (WHEN IV(1) = 2).
+C P.... NUMBER OF PARAMETERS (COMPONENTS IN X).
+C PS... NUMBER OF NONZERO ROWS AND COLUMNS IN S.
+C V.... FLOATING-POINT VALUE ARRAY.
+C X.... PARAMETER VECTOR.
+C Y.... PART OF YIELD VECTOR (WHEN IV(1)= 2, SCRATCH OTHERWISE).
+C
+C  ***  DISCUSSION  ***
+C
+C        DG7ITB IS SIMILAR TO DG7LIT, EXCEPT FOR THE EXTRA PARAMETER B
+C     -- DG7ITB ENFORCES THE BOUNDS  B(1,I) .LE. X(I) .LE. B(2,I),
+C     I = 1(1)P.
+C        DG7ITB PERFORMS NL2SOL-LIKE ITERATIONS FOR A VARIETY OF
+C     REGRESSION PROBLEMS THAT ARE SIMILAR TO NONLINEAR LEAST-SQUARES
+C     IN THAT THE HESSIAN IS THE SUM OF TWO TERMS, A READILY-COMPUTED
+C     FIRST-ORDER TERM AND A SECOND-ORDER TERM.  THE CALLER SUPPLIES
+C     THE FIRST-ORDER TERM OF THE HESSIAN IN HC (LOWER TRIANGLE, STORED
+C     COMPACTLY BY ROWS), AND DG7ITB BUILDS AN APPROXIMATION, S, TO THE
+C     SECOND-ORDER TERM.  THE CALLER ALSO PROVIDES THE FUNCTION VALUE,
+C     GRADIENT, AND PART OF THE YIELD VECTOR USED IN UPDATING S.
+C     DG7ITB DECIDES DYNAMICALLY WHETHER OR NOT TO USE S WHEN CHOOSING
+C     THE NEXT STEP TO TRY...  THE HESSIAN APPROXIMATION USED IS EITHER
+C     HC ALONE (GAUSS-NEWTON MODEL) OR HC + S (AUGMENTED MODEL).
+C     IF PS .LT. P, THEN ROWS AND COLUMNS PS+1...P OF S ARE KEPT
+C     CONSTANT.  THEY WILL BE ZERO UNLESS THE CALLER SETS IV(INITS) TO
+C     1 OR 2 AND SUPPLIES NONZERO VALUES FOR THEM, OR THE CALLER SETS
+C     IV(INITS) TO 3 OR 4 AND THE FINITE-DIFFERENCE INITIAL S THEN
+C     COMPUTED HAS NONZERO VALUES IN THESE ROWS.
+C
+C        IF IV(INITS) IS 3 OR 4, THEN THE INITIAL S IS COMPUTED BY
+C     FINITE DIFFERENCES.  3 MEANS USE FUNCTION DIFFERENCES, 4 MEANS
+C     USE GRADIENT DIFFERENCES.  FINITE DIFFERENCING IS DONE THE SAME
+C     WAY AS IN COMPUTING A COVARIANCE MATRIX (WITH IV(COVREQ) = -1, -2,
+C     1, OR 2).
+C
+C        FOR UPDATING S, DG7ITB ASSUMES THAT THE GRADIENT HAS THE FORM
+C     OF A SUM OVER I OF RHO(I,X)*GRAD(R(I,X)), WHERE GRAD DENOTES THE
+C     GRADIENT WITH RESPECT TO X.  THE TRUE SECOND-ORDER TERM THEN IS
+C     THE SUM OVER I OF RHO(I,X)*HESSIAN(R(I,X)).  IF X = X0 + STEP,
+C     THEN WE WISH TO UPDATE S SO THAT S*STEP IS THE SUM OVER I OF
+C     RHO(I,X)*(GRAD(R(I,X)) - GRAD(R(I,X0))).  THE CALLER MUST SUPPLY
+C     PART OF THIS IN Y, NAMELY THE SUM OVER I OF
+C     RHO(I,X)*GRAD(R(I,X0)), WHEN CALLING DG7ITB WITH IV(1) = 2 AND
+C     IV(MODE) = 0 (WHERE MODE = 38).  GG THEN CONTANS THE OTHER PART,
+C     SO THAT THE DESIRED YIELD VECTOR IS GG - Y.  IF PS .LT. P, THEN
+C     THE ABOVE DISCUSSION APPLIES ONLY TO THE FIRST PS COMPONENTS OF
+C     GRAD(R(I,X)), STEP, AND Y.
+C
+C        PARAMETERS IV, P, V, AND X ARE THE SAME AS THE CORRESPONDING
+C     ONES TO  DN2GB (AND NL2SOL), EXCEPT THAT V CAN BE SHORTER
+C     (SINCE THE PART OF V THAT  DN2GB USES FOR STORING D, J, AND R IS
+C     NOT NEEDED).  MOREOVER, COMPARED WITH  DN2GB (AND NL2SOL), IV(1)
+C     MAY HAVE THE TWO ADDITIONAL OUTPUT VALUES 1 AND 2, WHICH ARE
+C     EXPLAINED BELOW, AS IS THE USE OF IV(TOOBIG) AND IV(NFGCAL).
+C     THE VALUES IV(D), IV(J), AND IV(R), WHICH ARE OUTPUT VALUES FROM
+C      DN2GB (AND  DN2FB), ARE NOT REFERENCED BY DG7ITB OR THE
+C     SUBROUTINES IT CALLS.
+C
+C        WHEN DG7ITB IS FIRST CALLED, I.E., WHEN DG7ITB IS CALLED WITH
+C     IV(1) = 0 OR 12, V(F), GG, AND HC NEED NOT BE INITIALIZED.  TO
+C     OBTAIN THESE STARTING VALUES, DG7ITB RETURNS FIRST WITH IV(1) = 1,
+C     THEN WITH IV(1) = 2, WITH IV(MODE) = -1 IN BOTH CASES.  ON
+C     SUBSEQUENT RETURNS WITH IV(1) = 2, IV(MODE) = 0 IMPLIES THAT
+C     Y MUST ALSO BE SUPPLIED.  (NOTE THAT Y IS USED FOR SCRATCH -- ITS
+C     INPUT CONTENTS ARE LOST.  BY CONTRAST, HC IS NEVER CHANGED.)
+C     ONCE CONVERGENCE HAS BEEN OBTAINED, IV(RDREQ) AND IV(COVREQ) MAY
+C     IMPLY THAT A FINITE-DIFFERENCE HESSIAN SHOULD BE COMPUTED FOR USE
+C     IN COMPUTING A COVARIANCE MATRIX.  IN THIS CASE DG7ITB WILL MAKE
+C     A NUMBER OF RETURNS WITH IV(1) = 1 OR 2 AND IV(MODE) POSITIVE.
+C     WHEN IV(MODE) IS POSITIVE, Y SHOULD NOT BE CHANGED.
+C
+C IV(1) = 1 MEANS THE CALLER SHOULD SET V(F) (I.E., V(10)) TO F(X), THE
+C             FUNCTION VALUE AT X, AND CALL DG7ITB AGAIN, HAVING CHANGED
+C             NONE OF THE OTHER PARAMETERS.  AN EXCEPTION OCCURS IF F(X)
+C             CANNOT BE EVALUATED (E.G. IF OVERFLOW WOULD OCCUR), WHICH
+C             MAY HAPPEN BECAUSE OF AN OVERSIZED STEP.  IN THIS CASE
+C             THE CALLER SHOULD SET IV(TOOBIG) = IV(2) TO 1, WHICH WILL
+C             CAUSE DG7ITB TO IGNORE V(F) AND TRY A SMALLER STEP.  NOTE
+C             THAT THE CURRENT FUNCTION EVALUATION COUNT IS AVAILABLE
+C             IN IV(NFCALL) = IV(6).  THIS MAY BE USED TO IDENTIFY
+C             WHICH COPY OF SAVED INFORMATION SHOULD BE USED IN COM-
+C             PUTING GG, HC, AND Y THE NEXT TIME DG7ITB RETURNS WITH
+C             IV(1) = 2.  SEE MLPIT FOR AN EXAMPLE OF THIS.
+C IV(1) = 2 MEANS THE CALLER SHOULD SET GG TO GG(X), THE GRADIENT OF F
+C             AT X.  THE CALLER SHOULD ALSO SET HC TO THE GAUSS-NEWTON
+C             HESSIAN AT X.  IF IV(MODE) = 0, THEN THE CALLER SHOULD
+C             ALSO COMPUTE THE PART OF THE YIELD VECTOR DESCRIBED ABOVE.
+C             THE CALLER SHOULD THEN CALL DG7ITB AGAIN (WITH IV(1) = 2).
+C             THE CALLER MAY ALSO CHANGE D AT THIS TIME, BUT SHOULD NOT
+C             CHANGE X.  NOTE THAT IV(NFGCAL) = IV(7) CONTAINS THE
+C             VALUE THAT IV(NFCALL) HAD DURING THE RETURN WITH
+C             IV(1) = 1 IN WHICH X HAD THE SAME VALUE AS IT NOW HAS.
+C             IV(NFGCAL) IS EITHER IV(NFCALL) OR IV(NFCALL) - 1.  MLPIT
+C             IS AN EXAMPLE WHERE THIS INFORMATION IS USED.  IF GG OR HC
+C             CANNOT BE EVALUATED AT X, THEN THE CALLER MAY SET
+C             IV(NFGCAL) TO 0, IN WHICH CASE DG7ITB WILL RETURN WITH
+C             IV(1) = 15.
+C
+C  ***  GENERAL  ***
+C
+C     CODED BY DAVID M. GAY.
+C
+C        (SEE NL2SOL FOR REFERENCES.)
+c     ------------------------------------------------------------------
+c     References to the function STOPX have been commented out of this
+c     subroutine.  If one wishes to be able to terminate this package
+c     gracefully using a keybord "Break" key, one can provide a STOPX
+c     function that returns .true. if the Break key has been pressed
+c     since the last call to STOPX, and otherwise returns .false., and
+c     then uncomment the references to STOPX in this subr.
+c                                                       -- CLL 6/12/90
+c     Commented out references to RSTRST which was set but not fetched.
+c                                                       -- CLL 6/15/90
+C ++++++++++++++++++++++++++  DECLARATIONS  ++++++++++++++++++++++++++++
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      LOGICAL HAVQTR, HAVRM
+c     integer DUMMY, RSTRST
+      INTEGER DIG1, G01, H1, HC1, I, I1, IPI, IPIV0, IPIV1,
+     1        IPIV2, IPN, J, K, L, LMAT1, LSTGST, P1, P1LEN, PP1, PP1O2,
+     2        QTR1, RMAT1, STEP1, STPMOD, S1, TD1, TEMP1, TEMP2,
+     3        TG1, W1, WLM1, X01
+      DOUBLE PRECISION E, GI, STTSST, T, T1, XI
+C
+C     ***  CONSTANTS  ***
+C
+      DOUBLE PRECISION HALF, NEGONE, ONE, ONEP2, ZERO
+c     Fortran intrinsic functions: abs
+C
+C  ***  EXTERNAL FUNCTIONS AND SUBROUTINES  ***
+C
+c     external STOPX
+c     LOGICAL STOPX
+      EXTERNAL DA7SST, DD7TPR, DF7DHB, DG7QSB,I7COPY, I7PNVR, I7SHFT,
+     1        DITSUM, DL7MSB, DL7SQR, DL7TVM,DL7VML,DPARCK, DQ7RSH,
+     2         DRLDST, DS7DMP, DS7IPR, DS7LUP, DS7LVM,      DV2NRM,
+     3        DV2AXY,DV7CPY, DV7IPR, DV7SCP, DV7VMP
+      DOUBLE PRECISION DD7TPR, DRLDST, DV2NRM
+c     ------------------------------------------------------------------
+C DA7SST.... ASSESSES CANDIDATE STEP.
+C DD7TPR... RETURNS INNER PRODUCT OF TWO VECTORS.
+C DF7DHB... COMPUTE FINITE-DIFFERENCE HESSIAN (FOR INIT. S MATRIX).
+C DG7QSB... COMPUTES GOLDFELD-QUANDT-TROTTER STEP (AUGMENTED MODEL).
+C I7COPY.... COPIES ONE INTEGER VECTOR TO ANOTHER.
+C I7PNVR... INVERTS PERMUTATION ARRAY.
+C I7SHFT... SHIFTS AN INTEGER VECTOR.
+C DITSUM.... PRINTS ITERATION SUMMARY AND INFO ON INITIAL AND FINAL X.
+C DL7MSB... COMPUTES LEVENBERG-MARQUARDT STEP (GAUSS-NEWTON MODEL).
+C DL7SQR... COMPUTES L * L**T FROM LOWER TRIANGULAR MATRIX L.
+C DL7TVM... COMPUTES L**T * V, V = VECTOR, L = LOWER TRIANGULAR MATRIX.
+C DL7VML.... COMPUTES L * V, V = VECTOR, L = LOWER TRIANGULAR MATRIX.
+C DPARCK.... CHECK VALIDITY OF IV AND V INPUT COMPONENTS.
+C DQ7RSH... SHIFTS A QR FACTORIZATION.
+C DRLDST... COMPUTES V(RELDX) = RELATIVE STEP SIZE.
+C DS7DMP... MULTIPLIES A SYM. MATRIX FORE AND AFT BY A DIAG. MATRIX.
+C DS7IPR... APPLIES PERMUTATION TO (LOWER TRIANG. OF) SYM. MATRIX.
+C DS7LUP... PERFORMS QUASI-NEWTON UPDATE ON COMPACTLY STORED LOWER TRI-
+C             ANGLE OF A SYMMETRIC MATRIX.
+C DS7LVM... MULTIPLIES COMPACTLY STORED SYM. MATRIX TIMES VECTOR.
+C STOPX... RETURNS .TRUE. IF THE BREAK KEY HAS BEEN PRESSED.
+c            Call to STOPX commented out. -- CLL 6/12/90
+C DV2NRM... RETURNS THE 2-NORM OF A VECTOR.
+C DV2AXY.... COMPUTES SCALAR TIMES ONE VECTOR PLUS ANOTHER.
+C DV7CPY.... COPIES ONE VECTOR TO ANOTHER.
+C DV7IPR... APPLIES A PERMUTATION TO A VECTOR.
+C DV7SCP... SETS ALL ELEMENTS OF A VECTOR TO A SCALAR.
+C DV7VMP... MULTIPLIES (DIVIDES) VECTORS COMPONENTWISE.
+C
+C  ***  SUBSCRIPTS FOR IV AND V  ***
+C
+      INTEGER CNVCOD, COSMIN, COVMAT, COVREQ, DGNORM, DIG,
+     1        DSTNRM, F, FDH, FDIF, FUZZ, F0, GTSTEP, H, HC, IERR,
+     2        INCFAC, INITS, IPIVOT, IRC, IVNEED, KAGQT, KALM, LMAT,
+     3        LMAX0, LMAXS, MODE, MODEL, MXFCAL, MXITER, NEXTIV, NEXTV,
+     4        NFCALL, NFGCAL, NFCOV, NGCOV, NGCALL, NITER, NVSAVE, P0,
+     5        PC, PERM, PHMXFC, PREDUC, QTR, RADFAC, RADINC, RADIUS,
+     6        RAD0, RDREQ, REGD, RELDX, RESTOR, RMAT, S, SIZE, STEP,
+     7        STGLIM, STPPAR, SUSED, SWITCH, TOOBIG, TUNER4, TUNER5,
+     8        VNEED, VSAVE, W, WSCALE, XIRC, X0
+C
+C  ***  IV SUBSCRIPT VALUES  ***
+C
+C  ***  (NOTE THAT P0 AND PC ARE STORED IN IV(G0) AND IV(STLSTG) RESP.)
+C
+      PARAMETER (CNVCOD=55, COVMAT=26, COVREQ=15, DIG=37, FDH=74, H=56,
+     1   HC=71, IERR=75, INITS=25, IPIVOT=76, IRC=29, IVNEED=3,
+     2   KAGQT=33, KALM=34, LMAT=42, MODE=35, MODEL=5,
+     3   MXFCAL=17, MXITER=18, NEXTIV=46, NEXTV=47, NFCALL=6,
+     4   NFGCAL=7, NFCOV=52, NGCOV=53, NGCALL=30, NITER=31,
+     5   P0=48, PC=41, PERM=58, QTR=77, RADINC=8, RDREQ=57,
+     6   REGD=67, RESTOR=9, RMAT=78, S=62, STEP=40, STGLIM=11,
+     7   SUSED=64, SWITCH=12, TOOBIG=2, VNEED=4, VSAVE=60, W=65,
+     8   XIRC=13, X0=43)
+C
+C  ***  V SUBSCRIPT VALUES  ***
+C
+      PARAMETER (COSMIN=47, DGNORM=1, DSTNRM=2, F=10, FDIF=11, FUZZ=45,
+     1           F0=13, GTSTEP=4, INCFAC=23, LMAX0=35, LMAXS=36,
+     2           NVSAVE=9, PHMXFC=21, PREDUC=7, RADFAC=16, RADIUS=8,
+     3           RAD0=9, RELDX=17, SIZE=55, STPPAR=5, TUNER4=29,
+     4           TUNER5=30, WSCALE=56)
+      PARAMETER (HALF=0.5D+0, NEGONE=-1.D+0, ONE=1.D+0, ONEP2=1.2D+0,
+     1           ZERO=0.D+0)
+C
+C ++++++++++++++++++++++++++++++  BODY  ++++++++++++++++++++++++++++++++
+C
+      I = IV(1)
+      IF (I .EQ. 1) GO TO 50
+      IF (I .EQ. 2) GO TO 60
+C
+      IF (I .LT. 12) GO TO 10
+      IF (I .GT. 13) GO TO 10
+         IV(VNEED) = IV(VNEED) + P*(3*P + 25)/2 + 7
+         IV(IVNEED) = IV(IVNEED) + 4*P
+ 10   CALL DPARCK(1, D, IV, LIV, LV, P, V)
+      I = IV(1) - 2
+      IF (I .GT. 12) GO TO 999
+      GO TO (360, 360, 360, 360, 360, 360, 240, 190, 240, 20, 20, 30), I
+C
+C  ***  STORAGE ALLOCATION  ***
+C
+ 20   PP1O2 = P * (P + 1) / 2
+      IV(S) = IV(LMAT) + PP1O2
+      IV(X0) = IV(S) + PP1O2
+      IV(STEP) = IV(X0) + 2*P
+      IV(DIG) = IV(STEP) + 3*P
+      IV(W) = IV(DIG) + 2*P
+      IV(H) = IV(W) + 4*P + 7
+      IV(NEXTV) = IV(H) + PP1O2
+      IV(IPIVOT) = IV(PERM) + 3*P
+      IV(NEXTIV) = IV(IPIVOT) + P
+      IF (IV(1) .NE. 13) GO TO 30
+         IV(1) = 14
+         GO TO 999
+C
+C  ***  INITIALIZATION  ***
+C
+ 30   IV(NITER) = 0
+      IV(NFCALL) = 1
+      IV(NGCALL) = 1
+      IV(NFGCAL) = 1
+      IV(MODE) = -1
+      IV(STGLIM) = 2
+      IV(TOOBIG) = 0
+      IV(CNVCOD) = 0
+      IV(COVMAT) = 0
+      IV(NFCOV) = 0
+      IV(NGCOV) = 0
+      IV(RADINC) = 0
+      IV(PC) = P
+      V(RAD0) = ZERO
+      V(STPPAR) = ZERO
+      V(RADIUS) = V(LMAX0) / (ONE + V(PHMXFC))
+C
+C  ***  CHECK CONSISTENCY OF B AND INITIALIZE IP ARRAY  ***
+C
+      IPI = IV(IPIVOT)
+      DO 40 I = 1, P
+         IV(IPI) = I
+         IPI = IPI + 1
+         IF (B(1,I) .GT. B(2,I)) GO TO 680
+ 40      CONTINUE
+C
+C  ***  SET INITIAL MODEL AND S MATRIX  ***
+C
+      IV(MODEL) = 1
+      IV(1) = 1
+      IF (IV(S) .LT. 0) GO TO 710
+      IF (IV(INITS) .GT. 1) IV(MODEL) = 2
+      S1 = IV(S)
+      IF (IV(INITS) .EQ. 0 .OR. IV(INITS) .GT. 2)
+     1   CALL DV7SCP(P*(P+1)/2, V(S1), ZERO)
+      GO TO 710
+C
+C  ***  NEW FUNCTION VALUE  ***
+C
+ 50   IF (IV(MODE) .EQ. 0) GO TO 360
+      IF (IV(MODE) .GT. 0) GO TO 590
+C
+      IF (IV(TOOBIG) .EQ. 0) GO TO 690
+         IV(1) = 63
+         GO TO 999
+C
+C  ***  MAKE SURE GRADIENT COULD BE COMPUTED  ***
+C
+ 60   IF (IV(TOOBIG) .EQ. 0) GO TO 70
+         IV(1) = 65
+         GO TO 999
+C
+C  ***  NEW GRADIENT  ***
+C
+ 70   IV(KALM) = -1
+      IV(KAGQT) = -1
+      IV(FDH) = 0
+      IF (IV(MODE) .GT. 0) GO TO 590
+      IF (IV(HC) .LE. 0 .AND. IV(RMAT) .LE. 0) GO TO 670
+C
+C  ***  CHOOSE INITIAL PERMUTATION  ***
+C
+      IPI = IV(IPIVOT)
+      IPN = IPI + P - 1
+      IPIV2 = IV(PERM) - 1
+      K = IV(PC)
+      P1 = P
+      PP1 = P + 1
+      RMAT1 = IV(RMAT)
+      HAVRM = RMAT1 .GT. 0
+      QTR1 = IV(QTR)
+      HAVQTR = QTR1 .GT. 0
+C     *** MAKE SURE V(QTR1) IS LEGAL (EVEN WHEN NOT REFERENCED) ***
+      W1 = IV(W)
+      IF (.NOT. HAVQTR) QTR1 = W1 + P
+C
+      DO 100 I = 1, P
+         I1 = IV(IPN)
+         IPN = IPN - 1
+         IF (B(1,I1) .GE. B(2,I1)) GO TO 80
+         XI = X(I1)
+         GI = GG(I1)
+         IF (XI .LE. B(1,I1) .AND. GI .GT. ZERO) GO TO 80
+         IF (XI .GE. B(2,I1) .AND. GI .LT. ZERO) GO TO 80
+C           *** DISALLOW CONVERGENCE IF X(I1) HAS JUST BEEN FREED ***
+            J = IPIV2 + I1
+            IF (IV(J) .GT. K) IV(CNVCOD) = 0
+            GO TO 100
+ 80      IF (I1 .GE. P1) GO TO 90
+            I1 = PP1 - I
+            CALL I7SHFT(P1, I1, IV(IPI))
+            IF (HAVRM)
+     1          CALL DQ7RSH(I1, P1, HAVQTR, V(QTR1), V(RMAT1), V(W1))
+ 90      P1 = P1 - 1
+ 100     CONTINUE
+      IV(PC) = P1
+C
+C  ***  COMPUTE V(DGNORM) (AN OUTPUT VALUE IF WE STOP NOW)  ***
+C
+      V(DGNORM) = ZERO
+      IF (P1 .LE. 0) GO TO 110
+      DIG1 = IV(DIG)
+      CALL DV7VMP(P, V(DIG1), GG, D, -1)
+      CALL DV7IPR(P, IV(IPI), V(DIG1))
+      V(DGNORM) = DV2NRM(P1, V(DIG1))
+ 110  IF (IV(CNVCOD) .NE. 0) GO TO 580
+      IF (IV(MODE) .EQ. 0) GO TO 510
+      IV(MODE) = 0
+      V(F0) = V(F)
+      IF (IV(INITS) .LE. 2) GO TO 170
+C
+C  ***  ARRANGE FOR FINITE-DIFFERENCE INITIAL S  ***
+C
+      IV(XIRC) = IV(COVREQ)
+      IV(COVREQ) = -1
+      IF (IV(INITS) .GT. 3) IV(COVREQ) = 1
+      IV(CNVCOD) = 70
+      GO TO 600
+C
+C  ***  COME TO NEXT STMT AFTER COMPUTING F.D. HESSIAN FOR INIT. S  ***
+C
+ 120  H1 = IV(FDH)
+      IF (H1 .LE. 0) GO TO 660
+      IV(CNVCOD) = 0
+      IV(MODE) = 0
+      IV(NFCOV) = 0
+      IV(NGCOV) = 0
+      IV(COVREQ) = IV(XIRC)
+      S1 = IV(S)
+      PP1O2 = PS * (PS + 1) / 2
+      HC1 = IV(HC)
+      IF (HC1 .LE. 0) GO TO 130
+         CALL DV2AXY(PP1O2, V(S1), NEGONE, V(HC1), V(H1))
+         GO TO 140
+ 130  RMAT1 = IV(RMAT)
+      LMAT1 = IV(LMAT)
+      CALL DL7SQR(P, V(LMAT1), V(RMAT1))
+      IPI = IV(IPIVOT)
+      IPIV1 = IV(PERM) + P
+      CALL I7PNVR(P, IV(IPIV1), IV(IPI))
+      CALL DS7IPR(P, IV(IPIV1), V(LMAT1))
+      CALL DV2AXY(PP1O2, V(S1), NEGONE, V(LMAT1), V(H1))
+C
+C     *** ZERO PORTION OF S CORRESPONDING TO FIXED X COMPONENTS ***
+C
+ 140  DO 160 I = 1, P
+         IF (B(1,I) .LT. B(2,I)) GO TO 160
+         K = S1 + I*(I-1)/2
+         CALL DV7SCP(I, V(K), ZERO)
+         IF (I .GE. P) GO TO 170
+         K = K + 2*I - 1
+         I1 = I + 1
+         DO 150 J = I1, P
+            V(K) = ZERO
+            K = K + J
+ 150        CONTINUE
+ 160     CONTINUE
+C
+ 170  IV(1) = 2
+C
+C
+C ----------------------------  MAIN LOOP  -----------------------------
+C
+C
+C  ***  PRINT ITERATION SUMMARY, CHECK ITERATION LIMIT  ***
+C
+ 180  CALL DITSUM(D, GG, IV, LIV, LV, P, V, X)
+ 190  K = IV(NITER)
+      IF (K .LT. IV(MXITER)) GO TO 200
+         IV(1) = 10
+         GO TO 999
+ 200  IV(NITER) = K + 1
+C
+C  ***  UPDATE RADIUS  ***
+C
+      IF (K .EQ. 0) GO TO 220
+      STEP1 = IV(STEP)
+      DO 210 I = 1, P
+         V(STEP1) = D(I) * V(STEP1)
+         STEP1 = STEP1 + 1
+ 210     CONTINUE
+      STEP1 = IV(STEP)
+      T = V(RADFAC) * DV2NRM(P, V(STEP1))
+      IF (V(RADFAC) .LT. ONE .OR. T .GT. V(RADIUS)) V(RADIUS) = T
+C
+C  ***  INITIALIZE FOR START OF NEXT ITERATION  ***
+C
+ 220  X01 = IV(X0)
+      V(F0) = V(F)
+      IV(IRC) = 4
+      IV(H) = -abs(IV(H))
+      IV(SUSED) = IV(MODEL)
+C
+C     ***  COPY X TO X0  ***
+C
+      CALL DV7CPY(P, V(X01), X)
+C
+C  ***  CHECK STOPX AND FUNCTION EVALUATION LIMIT  ***
+C
+ 230  continue
+c     if (STOPX(DUMMY)) then
+c        IV(1) = 11
+c        GO TO 260
+c     else
+         go to 250
+c     endif
+C
+C     ***  COME HERE WHEN RESTARTING AFTER FUNC. EVAL. LIMIT OR STOPX.
+C
+ 240  IF (V(F) .GE. V(F0)) GO TO 250
+         V(RADFAC) = ONE
+         K = IV(NITER)
+         GO TO 200
+C
+ 250  IF (IV(NFCALL) .LT. IV(MXFCAL) + IV(NFCOV)) GO TO 270
+         IV(1) = 9
+c 260 continue
+      IF (V(F) .GE. V(F0)) GO TO 999
+C
+C        ***  IN CASE OF STOPX OR FUNCTION EVALUATION LIMIT WITH
+C        ***  IMPROVED V(F), EVALUATE THE GRADIENT AT X.
+C
+              IV(CNVCOD) = IV(1)
+              GO TO 500
+C
+C. . . . . . . . . . . . .  COMPUTE CANDIDATE STEP  . . . . . . . . . .
+C
+ 270  STEP1 = IV(STEP)
+      TG1 = IV(DIG)
+      TD1 = TG1 + P
+      X01 = IV(X0)
+      W1 = IV(W)
+      H1 = IV(H)
+      P1 = IV(PC)
+      IPI = IV(PERM)
+      IPIV1 = IPI + P
+      IPIV2 = IPIV1 + P
+      IPIV0 = IV(IPIVOT)
+      IF (IV(MODEL) .EQ. 2) GO TO 280
+C
+C        ***  COMPUTE LEVENBERG-MARQUARDT STEP IF POSSIBLE...
+C
+         RMAT1 = IV(RMAT)
+         IF (RMAT1 .LE. 0) GO TO 280
+         QTR1 = IV(QTR)
+         IF (QTR1 .LE. 0) GO TO 280
+         LMAT1 = IV(LMAT)
+         WLM1 = W1 + P
+         CALL DL7MSB(B, D, GG, IV(IERR), IV(IPIV0), IV(IPIV1),
+     1               IV(IPIV2), IV(KALM), V(LMAT1), LV, P, IV(P0),
+     2               IV(PC), V(QTR1), V(RMAT1), V(STEP1), V(TD1),
+     3               V(TG1), V, V(W1), V(WLM1), X, V(X01))
+C        *** H IS STORED IN THE END OF W AND HAS JUST BEEN OVERWRITTEN,
+C        *** SO WE MARK IT INVALID...
+         IV(H) = -abs(H1)
+C        *** EVEN IF H WERE STORED ELSEWHERE, IT WOULD BE NECESSARY TO
+C        *** MARK INVALID THE INFORMATION DG7QTS MAY HAVE STORED IN V...
+         IV(KAGQT) = -1
+         GO TO 330
+C
+ 280  IF (H1 .GT. 0) GO TO 320
+C
+C     ***  SET H TO  D**-1 * (HC + T1*S) * D**-1.  ***
+C
+         P1LEN = P1*(P1+1)/2
+         H1 = -H1
+         IV(H) = H1
+         IV(FDH) = 0
+         IF (P1 .LE. 0) GO TO 320
+C        *** MAKE TEMPORARY PERMUTATION ARRAY ***
+         CALL I7COPY(P, IV(IPI), IV(IPIV0))
+         J = IV(HC)
+         IF (J .GT. 0) GO TO 290
+            J = H1
+            RMAT1 = IV(RMAT)
+            CALL DL7SQR(P1, V(H1), V(RMAT1))
+            GO TO 300
+ 290     CALL DV7CPY(P*(P+1)/2, V(H1), V(J))
+         CALL DS7IPR(P, IV(IPI), V(H1))
+ 300     IF (IV(MODEL) .EQ. 1) GO TO 310
+            LMAT1 = IV(LMAT)
+            S1 = IV(S)
+            CALL DV7CPY(P*(P+1)/2, V(LMAT1), V(S1))
+            CALL DS7IPR(P, IV(IPI), V(LMAT1))
+            CALL DV2AXY(P1LEN, V(H1), ONE, V(LMAT1), V(H1))
+ 310     CALL DV7CPY(P, V(TD1), D)
+         CALL DV7IPR(P, IV(IPI), V(TD1))
+         CALL DS7DMP(P1, V(H1), V(H1), V(TD1), -1)
+         IV(KAGQT) = -1
+C
+C  ***  COMPUTE ACTUAL GOLDFELD-QUANDT-TROTTER STEP  ***
+C
+ 320  LMAT1 = IV(LMAT)
+      CALL DG7QSB(B, D, V(H1), GG, IV(IPI), IV(IPIV1), IV(IPIV2),
+     1            IV(KAGQT), V(LMAT1), LV, P, IV(P0), P1, V(STEP1),
+     2            V(TD1), V(TG1), V, V(W1), X, V(X01))
+      IF (IV(KALM) .GT. 0) IV(KALM) = 0
+C
+ 330  IF (IV(IRC) .NE. 6) GO TO 340
+         IF (IV(RESTOR) .NE. 2) GO TO 360
+c        RSTRST = 2
+         GO TO 370
+C
+C  ***  CHECK WHETHER EVALUATING F(X0 + STEP) LOOKS WORTHWHILE  ***
+C
+ 340  IV(TOOBIG) = 0
+      IF (V(DSTNRM) .LE. ZERO) GO TO 360
+      IF (IV(IRC) .NE. 5) GO TO 350
+      IF (V(RADFAC) .LE. ONE) GO TO 350
+      IF (V(PREDUC) .GT. ONEP2 * V(FDIF)) GO TO 350
+         IF (IV(RESTOR) .NE. 2) GO TO 360
+c        RSTRST = 0
+         GO TO 370
+C
+C  ***  COMPUTE F(X0 + STEP)  ***
+C
+ 350  X01 = IV(X0)
+      STEP1 = IV(STEP)
+      CALL DV2AXY(P, X, ONE, V(STEP1), V(X01))
+      IV(NFCALL) = IV(NFCALL) + 1
+      IV(1) = 1
+      GO TO 710
+C
+C. . . . . . . . . . . . .  ASSESS CANDIDATE STEP  . . . . . . . . . . .
+C
+ 360  continue
+c     RSTRST = 3
+ 370  X01 = IV(X0)
+      V(RELDX) = DRLDST(P, D, X, V(X01))
+      CALL DA7SST(IV, LIV, LV, V)
+      STEP1 = IV(STEP)
+      LSTGST = X01 + P
+      I = IV(RESTOR) + 1
+      GO TO (410, 380, 390, 400), I
+ 380  CALL DV7CPY(P, X, V(X01))
+      GO TO 410
+ 390   CALL DV7CPY(P, V(LSTGST), V(STEP1))
+       GO TO 410
+ 400     CALL DV7CPY(P, V(STEP1), V(LSTGST))
+         CALL DV2AXY(P, X, ONE, V(STEP1), V(X01))
+         V(RELDX) = DRLDST(P, D, X, V(X01))
+C
+C  ***  IF NECESSARY, SWITCH MODELS  ***
+C
+ 410  IF (IV(SWITCH) .EQ. 0) GO TO 420
+         IV(H) = -abs(IV(H))
+         IV(SUSED) = IV(SUSED) + 2
+         L = IV(VSAVE)
+         CALL DV7CPY(NVSAVE, V, V(L))
+ 420  CALL DV2AXY(P, V(STEP1), NEGONE, V(X01), X)
+      L = IV(IRC) - 4
+      STPMOD = IV(MODEL)
+      IF (L .GT. 0) GO TO (440,450,460,460,460,460,460,460,570,510), L
+C
+C  ***  DECIDE WHETHER TO CHANGE MODELS  ***
+C
+      E = V(PREDUC) - V(FDIF)
+      S1 = IV(S)
+      CALL DS7LVM(PS, Y, V(S1), V(STEP1))
+      STTSST = HALF * DD7TPR(PS, V(STEP1), Y)
+      IF (IV(MODEL) .EQ. 1) STTSST = -STTSST
+      IF (abs(E + STTSST) * V(FUZZ) .GE. abs(E)) GO TO 430
+C
+C     ***  SWITCH MODELS  ***
+C
+         IV(MODEL) = 3 - IV(MODEL)
+         IF (-2 .LT. L) GO TO 470
+              IV(H) = -abs(IV(H))
+              IV(SUSED) = IV(SUSED) + 2
+              L = IV(VSAVE)
+              CALL DV7CPY(NVSAVE, V(L), V)
+              GO TO 230
+C
+ 430  IF (-3 .LT. L) GO TO 470
+C
+C     ***  RECOMPUTE STEP WITH DIFFERENT RADIUS  ***
+C
+ 440  V(RADIUS) = V(RADFAC) * V(DSTNRM)
+      GO TO 230
+C
+C  ***  COMPUTE STEP OF LENGTH V(LMAXS) FOR SINGULAR CONVERGENCE TEST
+C
+ 450  V(RADIUS) = V(LMAXS)
+      GO TO 270
+C
+C  ***  CONVERGENCE OR FALSE CONVERGENCE  ***
+C
+ 460  IV(CNVCOD) = L
+      IF (V(F) .GE. V(F0)) GO TO 580
+         IF (IV(XIRC) .EQ. 14) GO TO 580
+              IV(XIRC) = 14
+C
+C. . . . . . . . . . . .  PROCESS ACCEPTABLE STEP  . . . . . . . . . . .
+C
+ 470  IV(COVMAT) = 0
+      IV(REGD) = 0
+C
+C  ***  SEE WHETHER TO SET V(RADFAC) BY GRADIENT TESTS  ***
+C
+      IF (IV(IRC) .NE. 3) GO TO 500
+         STEP1 = IV(STEP)
+         TEMP1 = STEP1 + P
+         TEMP2 = IV(X0)
+C
+C     ***  SET  TEMP1 = HESSIAN * STEP  FOR USE IN GRADIENT TESTS  ***
+C
+         HC1 = IV(HC)
+         IF (HC1 .LE. 0) GO TO 480
+              CALL DS7LVM(P, V(TEMP1), V(HC1), V(STEP1))
+              GO TO 490
+ 480     RMAT1 = IV(RMAT)
+         IPIV0 = IV(IPIVOT)
+         CALL DV7CPY(P, V(TEMP1), V(STEP1))
+         CALL DV7IPR(P, IV(IPIV0), V(TEMP1))
+         CALL DL7TVM(P, V(TEMP1), V(RMAT1), V(TEMP1))
+         CALL DL7VML(P, V(TEMP1), V(RMAT1), V(TEMP1))
+         IPIV1 = IV(PERM) + P
+         CALL I7PNVR(P, IV(IPIV1), IV(IPIV0))
+         CALL DV7IPR(P, IV(IPIV1), V(TEMP1))
+C
+ 490     IF (STPMOD .EQ. 1) GO TO 500
+              S1 = IV(S)
+              CALL DS7LVM(PS, V(TEMP2), V(S1), V(STEP1))
+              CALL DV2AXY(PS, V(TEMP1), ONE, V(TEMP2), V(TEMP1))
+C
+C  ***  SAVE OLD GRADIENT AND COMPUTE NEW ONE  ***
+C
+ 500  IV(NGCALL) = IV(NGCALL) + 1
+      G01 = IV(W)
+      CALL DV7CPY(P, V(G01), GG)
+      GO TO 690
+C
+C  ***  INITIALIZATIONS -- G0 = GG - G0, ETC.  ***
+C
+ 510  G01 = IV(W)
+      CALL DV2AXY(P, V(G01), NEGONE, V(G01), GG)
+      STEP1 = IV(STEP)
+      TEMP1 = STEP1 + P
+      TEMP2 = IV(X0)
+      IF (IV(IRC) .NE. 3) GO TO 540
+C
+C  ***  SET V(RADFAC) BY GRADIENT TESTS  ***
+C
+C     ***  SET  TEMP1 = D**-1 * (HESSIAN * STEP  +  (GG(X0) - G(X))) ***
+C
+         K = TEMP1
+         L = G01
+         DO 520 I = 1, P
+              V(K) = (V(K) - V(L)) / D(I)
+              K = K + 1
+              L = L + 1
+ 520          CONTINUE
+C
+C        ***  DO GRADIENT TESTS  ***
+C
+         IF (DV2NRM(P, V(TEMP1)) .LE. V(DGNORM) * V(TUNER4))  GO TO 530
+              IF (DD7TPR(P, GG, V(STEP1))
+     1                  .GE. V(GTSTEP) * V(TUNER5))  GO TO 540
+ 530               V(RADFAC) = V(INCFAC)
+C
+C  ***  COMPUTE Y VECTOR NEEDED FOR UPDATING S  ***
+C
+ 540  CALL DV2AXY(PS, Y, NEGONE, Y, GG)
+C
+C  ***  DETERMINE SIZING FACTOR V(SIZE)  ***
+C
+C     ***  SET TEMP1 = S * STEP  ***
+      S1 = IV(S)
+      CALL DS7LVM(PS, V(TEMP1), V(S1), V(STEP1))
+C
+      T1 = abs(DD7TPR(PS, V(STEP1), V(TEMP1)))
+      T = abs(DD7TPR(PS, V(STEP1), Y))
+      V(SIZE) = ONE
+      IF (T .LT. T1) V(SIZE) = T / T1
+C
+C  ***  SET G0 TO WCHMTD CHOICE OF FLETCHER AND AL-BAALI  ***
+C
+      HC1 = IV(HC)
+      IF (HC1 .LE. 0) GO TO 550
+         CALL DS7LVM(PS, V(G01), V(HC1), V(STEP1))
+         GO TO 560
+C
+ 550  RMAT1 = IV(RMAT)
+      IPIV0 = IV(IPIVOT)
+      CALL DV7CPY(P, V(G01), V(STEP1))
+      I = G01 + PS
+      IF (PS .LT. P) CALL DV7SCP(P-PS, V(I), ZERO)
+      CALL DV7IPR(P, IV(IPIV0), V(G01))
+      CALL DL7TVM(P, V(G01), V(RMAT1), V(G01))
+      CALL DL7VML(P, V(G01), V(RMAT1), V(G01))
+      IPIV1 = IV(PERM) + P
+      CALL I7PNVR(P, IV(IPIV1), IV(IPIV0))
+      CALL DV7IPR(P, IV(IPIV1), V(G01))
+C
+ 560  CALL DV2AXY(PS, V(G01), ONE, Y, V(G01))
+C
+C  ***  UPDATE S  ***
+C
+      CALL DS7LUP(V(S1), V(COSMIN), PS, V(SIZE), V(STEP1), V(TEMP1),
+     1            V(TEMP2), V(G01), V(WSCALE), Y)
+      IV(1) = 2
+      GO TO 180
+C
+C. . . . . . . . . . . . . .  MISC. DETAILS  . . . . . . . . . . . . . .
+C
+C  ***  BAD PARAMETERS TO ASSESS  ***
+C
+ 570  IV(1) = 64
+      GO TO 999
+C
+C
+C  ***  CONVERGENCE OBTAINED -- SEE WHETHER TO COMPUTE COVARIANCE  ***
+C
+ 580  IF (IV(RDREQ) .EQ. 0) GO TO 660
+      IF (IV(FDH) .NE. 0) GO TO 660
+      IF (IV(CNVCOD) .GE. 7) GO TO 660
+      IF (IV(REGD) .GT. 0) GO TO 660
+      IF (IV(COVMAT) .GT. 0) GO TO 660
+      IF (abs(IV(COVREQ)) .GE. 3) GO TO 640
+      IF (IV(RESTOR) .EQ. 0) IV(RESTOR) = 2
+      GO TO 600
+C
+C  ***  COMPUTE FINITE-DIFFERENCE HESSIAN FOR COMPUTING COVARIANCE  ***
+C
+ 590  IV(RESTOR) = 0
+ 600  CALL DF7DHB(B, D, GG, I, IV, LIV, LV, P, V, X)
+      GO TO (610, 620, 630), I
+ 610  IV(NFCOV) = IV(NFCOV) + 1
+      IV(NFCALL) = IV(NFCALL) + 1
+      IV(1) = 1
+      GO TO 710
+C
+ 620  IV(NGCOV) = IV(NGCOV) + 1
+      IV(NGCALL) = IV(NGCALL) + 1
+      IV(NFGCAL) = IV(NFCALL) + IV(NGCOV)
+      GO TO 690
+C
+ 630  IF (IV(CNVCOD) .EQ. 70) GO TO 120
+      GO TO 660
+C
+ 640  H1 = abs(IV(H))
+      IV(FDH) = H1
+      IV(H) = -H1
+      HC1 = IV(HC)
+      IF (HC1 .LE. 0) GO TO 650
+           CALL DV7CPY(P*(P+1)/2, V(H1), V(HC1))
+           GO TO 660
+ 650  RMAT1 = IV(RMAT)
+      CALL DL7SQR(P, V(H1), V(RMAT1))
+C
+ 660  IV(MODE) = 0
+      IV(1) = IV(CNVCOD)
+      IV(CNVCOD) = 0
+      GO TO 999
+C
+C  ***  SPECIAL RETURN FOR MISSING HESSIAN INFORMATION -- BOTH
+C  ***  IV(HC) .LE. 0 AND IV(RMAT) .LE. 0
+C
+ 670  IV(1) = 1400
+      GO TO 999
+C
+C  ***  INCONSISTENT B  ***
+C
+ 680  IV(1) = 70
+      GO TO 999
+C
+C  *** SAVE, THEN INITIALIZE IPIVOT ARRAY BEFORE COMPUTING GG ***
+C
+ 690  IV(1) = 2
+      J = IV(IPIVOT)
+      IPI = IV(PERM)
+      CALL I7PNVR(P, IV(IPI), IV(J))
+      DO 700 I = 1, P
+         IV(J) = I
+         J = J + 1
+ 700     CONTINUE
+C
+C  ***  PROJECT X INTO FEASIBLE REGION (PRIOR TO COMPUTING F OR GG)  ***
+C
+ 710  DO 720 I = 1, P
+         IF (X(I) .LT. B(1,I)) X(I) = B(1,I)
+         IF (X(I) .GT. B(2,I)) X(I) = B(2,I)
+ 720     CONTINUE
+      IV(TOOBIG) = 0
+C
+ 999  RETURN
+C
+C  ***  LAST LINE OF DG7ITB FOLLOWS  ***
+      END
+c     ==================================================================
+      SUBROUTINE DR7TVM(N, P, Y, D, U, X)
+C
+C  ***  SET Y TO R*X, WHERE R IS THE UPPER TRIANGULAR MATRIX WHOSE
+C  ***  DIAGONAL IS IN D AND WHOSE STRICT UPPER TRIANGLE IS IN U.
+C
+C  ***  X AND Y MAY SHARE STORAGE.
+C
+      INTEGER N, P
+      DOUBLE PRECISION Y(P), D(P), U(N,P), X(P)
+C
+      EXTERNAL DD7TPR
+      DOUBLE PRECISION DD7TPR
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      INTEGER I, II, PL, PP1
+      DOUBLE PRECISION T
+C
+C  ***  BODY  ***
+C
+      PL = min(N-1, P)
+      PP1 = PL + 1
+      DO 10 II = 1, PL
+         I = PP1 - II
+         T = X(I) * D(I)
+         IF (I .GT. 1) T = T + DD7TPR(I-1, U(1,I), X)
+         Y(I) = T
+ 10      CONTINUE
+C  ***  LAST LINE OF DR7TVM FOLLOWS  ***
+      END
+      SUBROUTINE DF7DHB(B, D, GG, IRT, IV, LIV, LV, P, V, X)
+C
+C  ***  COMPUTE FINITE-DIFFERENCE HESSIAN, STORE IT IN V STARTING
+C  ***  AT V(IV(FDH)) = V(-IV(H)).  HONOR SIMPLE BOUNDS IN B.
+C
+C  ***  IF IV(COVREQ) .GE. 0 THEN DF7DHB USES GRADIENT DIFFERENCES,
+C  ***  OTHERWISE FUNCTION DIFFERENCES.  STORAGE IN V IS AS IN DG7LIT.
+C
+C IRT VALUES...
+C     1 = COMPUTE FUNCTION VALUE, I.E., V(F).
+C     2 = COMPUTE GG.
+C     3 = DONE.
+C
+C
+C  ***  PARAMETER DECLARATIONS  ***
+C
+      INTEGER IRT, LIV, LV, P
+      INTEGER IV(LIV)
+      DOUBLE PRECISION B(2,P), D(P), GG(P), V(LV), X(P)
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      LOGICAL OFFSID
+      INTEGER GSAVE1, HES, HMI, HPI, HPM, I, K, KIND, L, M, MM1, MM1O2,
+     1        NEWM1, PP1O2, STPI, STPM, STP0
+      DOUBLE PRECISION DEL, DEL0, T, XM, XM1
+      DOUBLE PRECISION HALF, HLIM, NEGPT5, ONE, TWO, ZERO
+C
+C  ***  EXTERNAL SUBROUTINES  ***
+C
+      EXTERNAL DV7CPY, DV7SCP
+C
+C DV7CPY.... COPY ONE VECTOR TO ANOTHER.
+C DV7SCP... COPY SCALAR TO ALL COMPONENTS OF A VECTOR.
+C
+C  ***  SUBSCRIPTS FOR IV AND V  ***
+C
+      INTEGER COVREQ, DELTA, DELTA0, DLTFDC, F, FDH, FX, H, KAGQT, MODE,
+     1        NFGCAL, SAVEI, SWITCH, TOOBIG, W, XMSAVE
+C
+      PARAMETER (HALF=0.5D+0, HLIM=0.1D+0, NEGPT5=-0.5D+0, ONE=1.D+0,
+     1     TWO=2.D+0, ZERO=0.D+0)
+C
+      PARAMETER (COVREQ=15, DELTA=52, DELTA0=44, DLTFDC=42, F=10,
+     1           FDH=74, FX=53, H=56, KAGQT=33, MODE=35, NFGCAL=7,
+     2           SAVEI=63, SWITCH=12, TOOBIG=2, W=65, XMSAVE=51)
+C
+C ++++++++++++++++++++++++++++++  BODY  ++++++++++++++++++++++++++++++++
+C
+      IRT = 4
+      KIND = IV(COVREQ)
+      M = IV(MODE)
+      IF (M .GT. 0) GO TO 10
+         HES = abs(IV(H))
+         IV(H) = -HES
+         IV(FDH) = 0
+         IV(KAGQT) = -1
+         V(FX) = V(F)
+C        *** SUPPLY ZEROS IN CASE B(1,I) = B(2,I) FOR SOME I ***
+         CALL DV7SCP(P*(P+1)/2, V(HES), ZERO)
+ 10   IF (M .GT. P) GO TO 999
+      IF (KIND .LT. 0) GO TO 120
+C
+C  ***  COMPUTE FINITE-DIFFERENCE HESSIAN USING BOTH FUNCTION AND
+C  ***  GRADIENT VALUES.
+C
+      GSAVE1 = IV(W) + P
+      IF (M .GT. 0) GO TO 20
+C        ***  FIRST CALL ON DF7DHB.  SET GSAVE = GG, TAKE FIRST STEP ***
+         CALL DV7CPY(P, V(GSAVE1), GG)
+         IV(SWITCH) = IV(NFGCAL)
+         GO TO 80
+C
+ 20   DEL = V(DELTA)
+      X(M) = V(XMSAVE)
+      IF (IV(TOOBIG) .EQ. 0) GO TO 30
+C
+C     ***  HANDLE OVERSIZE V(DELTA)  ***
+C
+         DEL0 = V(DELTA0) * max(ONE/D(M), abs(X(M)))
+         DEL = HALF * DEL
+         IF (abs(DEL/DEL0) .LE. HLIM) GO TO 140
+C
+ 30   HES = -IV(H)
+C
+C  ***  SET  GG = (GG - GSAVE)/DEL  ***
+C
+      DEL = ONE / DEL
+      DO 40 I = 1, P
+         GG(I) = DEL * (GG(I) - V(GSAVE1))
+         GSAVE1 = GSAVE1 + 1
+ 40      CONTINUE
+C
+C  ***  ADD GG AS NEW COL. TO FINITE-DIFF. HESSIAN MATRIX  ***
+C
+      K = HES + M*(M-1)/2
+      L = K + M - 2
+      IF (M .EQ. 1) GO TO 60
+C
+C  ***  SET  H(I,M) = 0.5 * (H(I,M) + GG(I))  FOR I = 1 TO M-1  ***
+C
+      MM1 = M - 1
+      DO 50 I = 1, MM1
+         IF (B(1,I) .LT. B(2,I)) V(K) = HALF * (V(K) + GG(I))
+         K = K + 1
+ 50      CONTINUE
+C
+C  ***  ADD  H(I,M) = GG(I)  FOR I = M TO P  ***
+C
+ 60   L = L + 1
+      DO 70 I = M, P
+         IF (B(1,I) .LT. B(2,I)) V(L) = GG(I)
+         L = L + I
+ 70      CONTINUE
+C
+ 80   M = M + 1
+      IV(MODE) = M
+      IF (M .GT. P) GO TO 340
+      IF (B(1,M) .GE. B(2,M)) GO TO 80
+C
+C  ***  CHOOSE NEXT FINITE-DIFFERENCE STEP, RETURN TO GET GG THERE  ***
+C
+      DEL = V(DELTA0) * max(ONE/D(M), abs(X(M)))
+      XM = X(M)
+      IF (XM .LT. ZERO) GO TO 90
+         XM1 = XM + DEL
+         IF (XM1 .LE. B(2,M)) GO TO 110
+           XM1 = XM - DEL
+           IF (XM1 .GE. B(1,M)) GO TO 100
+           GO TO 280
+ 90    XM1 = XM - DEL
+       IF (XM1 .GE. B(1,M)) GO TO 100
+       XM1 = XM + DEL
+       IF (XM1 .LE. B(2,M)) GO TO 110
+       GO TO 280
+C
+ 100  DEL = -DEL
+ 110  V(XMSAVE) = XM
+      X(M) = XM1
+      V(DELTA) = DEL
+      IRT = 2
+      GO TO 999
+C
+C  ***  COMPUTE FINITE-DIFFERENCE HESSIAN USING FUNCTION VALUES ONLY.
+C
+ 120  STP0 = IV(W) + P - 1
+      MM1 = M - 1
+      MM1O2 = M*MM1/2
+      HES = -IV(H)
+      IF (M .GT. 0) GO TO 130
+C        ***  FIRST CALL ON DF7DHB.  ***
+         IV(SAVEI) = 0
+         GO TO 240
+C
+ 130  IF (IV(TOOBIG) .EQ. 0) GO TO 150
+C        ***  PUNT IN THE EVENT OF AN OVERSIZE STEP  ***
+ 140     IV(FDH) = -2
+         GO TO 350
+ 150  I = IV(SAVEI)
+      IF (I .GT. 0) GO TO 190
+C
+C  ***  SAVE F(X + STP(M)*E(M)) IN H(P,M)  ***
+C
+      PP1O2 = P * (P-1) / 2
+      HPM = HES + PP1O2 + MM1
+      V(HPM) = V(F)
+C
+C  ***  START COMPUTING ROW M OF THE FINITE-DIFFERENCE HESSIAN H.  ***
+C
+      NEWM1 = 1
+      GO TO 260
+ 160  HMI = HES + MM1O2
+      IF (MM1 .EQ. 0) GO TO 180
+      HPI = HES + PP1O2
+      DO 170 I = 1, MM1
+         T = ZERO
+         IF (B(1,I) .LT. B(2,I)) T = V(FX) - (V(F) + V(HPI))
+         V(HMI) = T
+         HMI = HMI + 1
+         HPI = HPI + 1
+ 170     CONTINUE
+ 180  V(HMI) = V(F) - TWO*V(FX)
+      IF (OFFSID) V(HMI) = V(FX) - TWO*V(F)
+C
+C  ***  COMPUTE FUNCTION VALUES NEEDED TO COMPLETE ROW M OF H.  ***
+C
+      I = 0
+      GO TO 200
+C
+ 190  X(I) = V(DELTA)
+C
+C  ***  FINISH COMPUTING H(M,I)  ***
+C
+      STPI = STP0 + I
+      HMI = HES + MM1O2 + I - 1
+      STPM = STP0 + M
+      V(HMI) = (V(HMI) + V(F)) / (V(STPI)*V(STPM))
+ 200  I = I + 1
+      IF (I .GT. M) GO TO 230
+         IF (B(1,I) .LT. B(2,I)) GO TO 210
+         GO TO 200
+C
+ 210  IV(SAVEI) = I
+      STPI = STP0 + I
+      V(DELTA) = X(I)
+      X(I) = X(I) + V(STPI)
+      IRT = 1
+      IF (I .LT. M) GO TO 999
+      NEWM1 = 2
+      GO TO 260
+ 220  X(M) = V(XMSAVE) - DEL
+      IF (OFFSID) X(M) = V(XMSAVE) + TWO*DEL
+      GO TO 999
+C
+ 230  IV(SAVEI) = 0
+      X(M) = V(XMSAVE)
+C
+ 240  M = M + 1
+      IV(MODE) = M
+      IF (M .GT. P) GO TO 330
+      IF (B(1,M) .LT. B(2,M)) GO TO 250
+      GO TO 240
+C
+C  ***  PREPARE TO COMPUTE ROW M OF THE FINITE-DIFFERENCE HESSIAN H.
+C  ***  COMPUTE M-TH STEP SIZE STP(M), THEN RETURN TO OBTAIN
+C  ***  F(X + STP(M)*E(M)), WHERE E(M) = M-TH STD. UNIT VECTOR.
+C
+ 250  V(XMSAVE) = X(M)
+      NEWM1 = 3
+ 260  XM = V(XMSAVE)
+      DEL = V(DLTFDC) * max(ONE/D(M), abs(XM))
+      XM1 = XM + DEL
+      OFFSID = .FALSE.
+      IF (XM1 .LE. B(2,M)) GO TO 270
+         OFFSID = .TRUE.
+         XM1 = XM - DEL
+         IF (XM - TWO*DEL .GE. B(1,M)) GO TO 300
+         GO TO 280
+ 270   IF (XM-DEL .GE. B(1,M)) GO TO 290
+       OFFSID = .TRUE.
+       IF (XM + TWO*DEL .LE. B(2,M)) GO TO 310
+C
+ 280  IV(FDH) = -2
+      GO TO 350
+C
+ 290  IF (XM .GE. ZERO) GO TO 310
+      XM1 = XM - DEL
+ 300  DEL = -DEL
+ 310  GO TO (160, 220, 320), NEWM1
+ 320  X(M) = XM1
+      STPM = STP0 + M
+      V(STPM) = DEL
+      IRT = 1
+      GO TO 999
+C
+C  ***  HANDLE SPECIAL CASE OF B(1,P) = B(2,P) -- CLEAR SCRATCH VALUES
+C  ***  FROM LAST ROW OF FDH...
+C
+ 330  IF (B(1,P) .LT. B(2,P)) GO TO 340
+         I = HES + P*(P-1)/2
+         CALL DV7SCP(P, V(I), ZERO)
+C
+C  ***  RESTORE V(F), ETC.  ***
+C
+ 340  IV(FDH) = HES
+ 350  V(F) = V(FX)
+      IRT = 3
+      IF (KIND .LT. 0) GO TO 999
+         IV(NFGCAL) = IV(SWITCH)
+         GSAVE1 = IV(W) + P
+         CALL DV7CPY(P, GG, V(GSAVE1))
+         GO TO 999
+C
+ 999  RETURN
+C  ***  LAST LINE OF DF7DHB FOLLOWS  ***
+      END
+      DOUBLE PRECISION FUNCTION DH2RFG(A, B, X, Y, Z)
+C
+C  ***  DETERMINE X, Y, Z SO  I + (1,Z)**T * (X,Y)  IS A 2X2
+C  ***  HOUSEHOLDER REFLECTION SENDING (A,B)**T INTO (C,0)**T,
+C  ***  WHERE  C = -SIGN(A)*SQRT(A**2 + B**2)  IS THE VALUE DH2RFG
+C  ***  RETURNS.
+C
+c     ------------------------------------------------------------------
+      DOUBLE PRECISION A, B, X, Y, Z
+C
+      DOUBLE PRECISION A1, B1, C, T
+      DOUBLE PRECISION ZERO
+      parameter(ZERO = 0.0D0)
+C
+C  ***  BODY  ***
+C
+      IF (B .NE. ZERO) GO TO 10
+         X = ZERO
+         Y = ZERO
+         Z = ZERO
+         DH2RFG = A
+         GO TO 999
+ 10   T = abs(A) + abs(B)
+      A1 = A / T
+      B1 = B / T
+      C = sqrt(A1**2 + B1**2)
+      IF (A1 .GT. ZERO) C = -C
+      A1 = A1 - C
+      Z = B1 / A1
+      X = A1 / C
+      Y = B1 / C
+      DH2RFG = T * C
+ 999  RETURN
+C  ***  LAST LINE OF DH2RFG FOLLOWS  ***
+      END
+      SUBROUTINE DH2RFA(N, A, B, X, Y, Z)
+C
+C  ***  APPLY 2X2 HOUSEHOLDER REFLECTION DETERMINED BY X, Y, Z TO
+C  ***  N-VECTORS A, B  ***
+C
+c     ------------------------------------------------------------------
+      INTEGER N
+      DOUBLE PRECISION A(N), B(N), X, Y, Z
+      INTEGER I
+      DOUBLE PRECISION T
+      DO 10 I = 1, N
+         T = A(I)*X + B(I)*Y
+         A(I) = A(I) + T
+         B(I) = B(I) + T*Z
+ 10      CONTINUE
+C  ***  LAST LINE OF DH2RFA FOLLOWS  ***
+      END
+      SUBROUTINE DG7QSB(B, D, DIHDI, GG, IPIV, IPIV1, IPIV2, KA, L, LV,
+     1                  P, P0, PC, STEPX, TD, TG, V, WW, X, XX0)
+C
+C  ***  COMPUTE HEURISTIC BOUNDED NEWTON STEP  ***
+C
+      INTEGER KA, LV, P, P0, PC
+      INTEGER IPIV(P), IPIV1(P), IPIV2(P)
+      DOUBLE PRECISION B(2,P), D(P), DIHDI(*), GG(P), L(*),
+     1   STEPX(P,2), TD(P), TG(P), V(LV), WW(P), XX0(P), X(P)
+C     DIMENSION DIHDI(P*(P+1)/2), L(P*(P+1)/2)
+C
+      EXTERNAL DD7TPR,DG7QTS, DS7BQN, DS7IPR,DV7CPY, DV7IPR,
+     1         DV7SCP, DV7VMP
+      DOUBLE PRECISION DD7TPR
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      INTEGER K, KB, KINIT, NS, P1, P10
+      DOUBLE PRECISION DS0, NRED, PRED, RAD
+      DOUBLE PRECISION ZERO
+C
+C  ***  V SUBSCRIPTS  ***
+C
+      INTEGER DST0, DSTNRM, GTSTEP, NREDUC, PREDUC, RADIUS
+C
+      PARAMETER (DST0=3, DSTNRM=2, GTSTEP=4, NREDUC=6, PREDUC=7,
+     1           RADIUS=8)
+      parameter(ZERO = 0.0D0)
+C
+C ++++++++++++++++++++++++++++++  BODY  ++++++++++++++++++++++++++++++++
+C
+      P1 = PC
+      IF (KA .LT. 0) GO TO 10
+         NRED = V(NREDUC)
+         DS0 = V(DST0)
+         GO TO 20
+ 10   P0 = 0
+      KA = -1
+C
+ 20   KINIT = -1
+      IF (P0 .EQ. P1) KINIT = KA
+      CALL DV7CPY(P, X, XX0)
+      PRED = ZERO
+      RAD = V(RADIUS)
+      KB = -1
+      V(DSTNRM) = ZERO
+      IF (P1 .GT. 0) GO TO 30
+         NRED = ZERO
+         DS0 = ZERO
+         CALL DV7SCP(P, STEPX, ZERO)
+         GO TO 60
+C
+ 30   CALL DV7CPY(P, TD, D)
+      CALL DV7IPR(P, IPIV, TD)
+      CALL DV7VMP(P, TG, GG, D, -1)
+      CALL DV7IPR(P, IPIV, TG)
+ 40   K = KINIT
+      KINIT = -1
+      V(RADIUS) = RAD - V(DSTNRM)
+      CALL DG7QTS(TD, TG, DIHDI, K, L, P1, STEPX, V, WW)
+      P0 = P1
+      IF (KA .GE. 0) GO TO 50
+         NRED = V(NREDUC)
+         DS0 = V(DST0)
+C
+ 50   KA = K
+      V(RADIUS) = RAD
+      P10 = P1
+      CALL DS7BQN(B, D, STEPX(1,2), IPIV, IPIV1, IPIV2, KB, L, LV,
+     1            NS, P, P1, STEPX, TD, TG, V, WW, X, XX0)
+      IF (NS .GT. 0) CALL DS7IPR(P10, IPIV1, DIHDI)
+      PRED = PRED + V(PREDUC)
+      IF (NS .NE. 0) P0 = 0
+      IF (KB .LE. 0) GO TO 40
+C
+ 60   V(DST0) = DS0
+      V(NREDUC) = NRED
+      V(PREDUC) = PRED
+      V(GTSTEP) = DD7TPR(P, GG, STEPX)
+C
+C  ***  LAST LINE OF DG7QSB FOLLOWS  ***
+      END
+      SUBROUTINE DL7MSB(B, D, GG, IERR, IPIV, IPIV1, IPIV2, KA, LMAT,
+     1                  LV, P, P0, PC, QTR, RMAT, STEPX, TD, TG, V,
+     2                  WW, WLM, X, XX0)
+C
+C  ***  COMPUTE HEURISTIC BOUNDED NEWTON STEP  ***
+C
+      INTEGER IERR, KA, LV, P, P0, PC
+      INTEGER IPIV(P), IPIV1(P), IPIV2(P)
+      DOUBLE PRECISION B(2,P), D(P), GG(P), LMAT(*), QTR(P), RMAT(*),
+     1                 STEPX(P,3), TD(P), TG(P), V(LV), WW(P), WLM(*),
+     2                 XX0(P), X(P)
+C     DIMENSION LMAT(P*(P+1)/2), RMAT(P*(P+1)/2), WLM(P*(P+5)/2 + 4)
+C
+      EXTERNAL DD7MLP, DD7TPR, DL7MST, DL7TVM, DQ7RSH, DS7BQN,
+     1        DV2AXY,DV7CPY, DV7IPR, DV7SCP, DV7VMP
+      DOUBLE PRECISION DD7TPR
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      INTEGER I, J, K, K0, KB, KINIT, L, NS, P1, P10, P11
+      DOUBLE PRECISION DS0, NRED, PRED, RAD
+      DOUBLE PRECISION ONE, ZERO
+C
+C  ***  V SUBSCRIPTS  ***
+C
+      INTEGER DST0, DSTNRM, GTSTEP, NREDUC, PREDUC, RADIUS
+C
+      PARAMETER (DST0=3, DSTNRM=2, GTSTEP=4, NREDUC=6, PREDUC=7,
+     1           RADIUS=8)
+      DATA ONE/1.D+0/, ZERO/0.D+0/
+C
+C ++++++++++++++++++++++++++++++  BODY  ++++++++++++++++++++++++++++++++
+C
+      P1 = PC
+      IF (KA .LT. 0) GO TO 10
+         NRED = V(NREDUC)
+         DS0 = V(DST0)
+         GO TO 20
+ 10   P0 = 0
+      KA = -1
+C
+ 20   KINIT = -1
+      IF (P0 .EQ. P1) KINIT = KA
+      CALL DV7CPY(P, X, XX0)
+      CALL DV7CPY(P, TD, D)
+C     *** USE STEPX(1,3) AS TEMP. COPY OF QTR ***
+      CALL DV7CPY(P, STEPX(1,3), QTR)
+      CALL DV7IPR(P, IPIV, TD)
+      PRED = ZERO
+      RAD = V(RADIUS)
+      KB = -1
+      V(DSTNRM) = ZERO
+      IF (P1 .GT. 0) GO TO 30
+         NRED = ZERO
+         DS0 = ZERO
+         CALL DV7SCP(P, STEPX, ZERO)
+         GO TO 90
+C
+ 30   CALL DV7VMP(P, TG, GG, D, -1)
+      CALL DV7IPR(P, IPIV, TG)
+      P10 = P1
+ 40   K = KINIT
+      KINIT = -1
+      V(RADIUS) = RAD - V(DSTNRM)
+      CALL DV7VMP(P1, TG, TG, TD, 1)
+      DO 50 I = 1, P1
+ 50      IPIV1(I) = I
+      K0 = max(0, K)
+      CALL DL7MST(TD, TG, IERR, IPIV1, K, P1, STEPX(1,3), RMAT, STEPX,
+     1            V, WLM)
+      CALL DV7VMP(P1, TG, TG, TD, -1)
+      P0 = P1
+      IF (KA .GE. 0) GO TO 60
+         NRED = V(NREDUC)
+         DS0 = V(DST0)
+C
+ 60   KA = K
+      V(RADIUS) = RAD
+      L = P1 + 5
+      IF (K .LE. K0) CALL DD7MLP(P1, LMAT, TD, RMAT, -1)
+      IF (K .GT. K0) CALL DD7MLP(P1, LMAT, TD, WLM(L), -1)
+      CALL DS7BQN(B, D, STEPX(1,2), IPIV, IPIV1, IPIV2, KB, LMAT,
+     1            LV, NS, P, P1, STEPX, TD, TG, V, WW, X, XX0)
+      PRED = PRED + V(PREDUC)
+      IF (NS .EQ. 0) GO TO 80
+      P0 = 0
+C
+C  ***  UPDATE RMAT AND QTR  ***
+C
+      P11 = P1 + 1
+      L = P10 + P11
+      DO 70 K = P11, P10
+         J = L - K
+         I = IPIV2(J)
+         IF (I .LT. J) CALL DQ7RSH(I, J, .TRUE., QTR, RMAT, WW)
+ 70      CONTINUE
+C
+ 80   IF (KB .GT. 0) GO TO 90
+C
+C  ***  UPDATE LOCAL COPY OF QTR  ***
+C
+      CALL DV7VMP(P10, WW, STEPX(1,2), TD, -1)
+      CALL DL7TVM(P10, WW, LMAT, WW)
+      CALL DV2AXY(P10, STEPX(1,3), ONE, WW, QTR)
+      GO TO 40
+C
+ 90   V(DST0) = DS0
+      V(NREDUC) = NRED
+      V(PREDUC) = PRED
+      V(GTSTEP) = DD7TPR(P, GG, STEPX)
+C
+C  ***  LAST LINE OF DL7MSB FOLLOWS  ***
+      END
+      SUBROUTINE DS7BQN(B, D, DST, IPIV, IPIV1, IPIV2, KB, L, LV, NS,
+     1                  P, P1, STEPX, TD, TG, V, WW, X, XX0)
+C
+C  ***  COMPUTE BOUNDED MODIFIED NEWTON STEP  ***
+C
+      INTEGER KB, LV, NS, P, P1
+      INTEGER IPIV(P), IPIV1(P), IPIV2(P)
+      DOUBLE PRECISION B(2,P), D(P), DST(P), L(*),
+     1                 STEPX(P), TD(P), TG(P), V(LV), WW(P), X(P),
+     2                 XX0(P)
+C     DIMENSION L(P*(P+1)/2)
+C
+      EXTERNAL DD7TPR, I7SHFT, DL7ITV, DL7IVM, DQ7RSH, DR7MDC, DV2NRM,
+     1        DV2AXY,DV7CPY, DV7IPR, DV7SCP, DV7SHF
+      DOUBLE PRECISION DD7TPR, DR7MDC, DV2NRM
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      INTEGER I, J, K, P0, P1M1
+      DOUBLE PRECISION ALPHA, DST0, DST1, DSTMAX, DSTMIN, DX, GTS, T,
+     1                 TI, T1, XI
+      DOUBLE PRECISION FUDGE, HALF, MEPS2, ONE, TWO, ZERO
+C
+C  ***  V SUBSCRIPTS  ***
+C
+      INTEGER DSTNRM, GTSTEP, PHMNFC, PHMXFC, PREDUC, RADIUS, STPPAR
+C
+      PARAMETER (DSTNRM=2, GTSTEP=4, PHMNFC=20, PHMXFC=21, PREDUC=7,
+     1           RADIUS=8, STPPAR=5)
+      SAVE MEPS2
+C
+      DATA FUDGE/1.0001D+0/, HALF/0.5D+0/, MEPS2/0.D+0/,
+     1     ONE/1.0D+0/, TWO/2.D+0/, ZERO/0.D+0/
+C
+C ++++++++++++++++++++++++++++++  BODY  ++++++++++++++++++++++++++++++++
+C
+      DSTMAX = FUDGE * (ONE + V(PHMXFC)) * V(RADIUS)
+      DSTMIN = (ONE + V(PHMNFC)) * V(RADIUS)
+      DST1 = ZERO
+      IF (MEPS2 .LE. ZERO) MEPS2 = TWO * DR7MDC(3)
+      P0 = P1
+      NS = 0
+      DO 10 I = 1, P
+         IPIV1(I) = I
+         IPIV2(I) = I
+ 10      CONTINUE
+      DO 20 I = 1, P1
+ 20      WW(I) = -STEPX(I) * TD(I)
+      ALPHA = abs(V(STPPAR))
+      V(PREDUC) = ZERO
+      GTS = -V(GTSTEP)
+      IF (KB .LT. 0) CALL DV7SCP(P, DST, ZERO)
+      KB = 1
+C
+C     ***  -WW = D TIMES RESTRICTED NEWTON STEP FROM X + DST/D.
+C
+C     ***  FIND T SUCH THAT X - T*WW IS STILL FEASIBLE.
+C
+ 30   T = ONE
+      K = 0
+* DNSGB (8 of 10)
+      DO 60 I = 1, P1
+         J = IPIV(I)
+         DX = WW(I) / D(J)
+         XI = X(J) - DX
+         IF (XI .LT. B(1,J)) GO TO 40
+         IF (XI .LE. B(2,J)) GO TO 60
+              TI = ( X(J)  -  B(2,J) ) / DX
+              K = I
+              GO TO 50
+ 40      TI = ( X(J)  -  B(1,J) ) / DX
+              K = -I
+ 50      IF (T .LE. TI) GO TO 60
+              T = TI
+ 60      CONTINUE
+C
+      IF (P .GT. P1) CALL DV7CPY(P-P1, STEPX(P1+1), DST(P1+1))
+      CALL DV2AXY(P1, STEPX, -T, WW, DST)
+      DST0 = DST1
+      DST1 = DV2NRM(P, STEPX)
+C
+C  ***  CHECK FOR OVERSIZE STEP  ***
+C
+      IF (DST1 .LE. DSTMAX) GO TO 80
+      IF (P1 .GE. P0) GO TO 70
+         IF (DST0 .LT. DSTMIN) KB = 0
+         GO TO 110
+C
+ 70   K = 0
+C
+C  ***  UPDATE DST, TG, AND V(PREDUC)  ***
+C
+ 80   V(DSTNRM) = DST1
+      CALL DV7CPY(P1, DST, STEPX)
+      T1 = ONE - T
+      DO 90 I = 1, P1
+ 90      TG(I) = T1 * TG(I)
+      IF (ALPHA .GT. ZERO) CALL DV2AXY(P1, TG, T*ALPHA, WW, TG)
+      V(PREDUC) = V(PREDUC) + T*((ONE - HALF*T)*GTS +
+     1                        HALF*ALPHA*T*DD7TPR(P1,WW,WW))
+      IF (K .EQ. 0) GO TO 110
+C
+C     ***  PERMUTE L, ETC. IF NECESSARY  ***
+C
+      P1M1 = P1 - 1
+      J = abs(K)
+      IF (J .EQ. P1) GO TO 100
+         NS = NS + 1
+         IPIV2(P1) = J
+         CALL DQ7RSH(J, P1, .FALSE., TG, L, WW)
+         CALL I7SHFT(P1, J, IPIV)
+         CALL I7SHFT(P1, J, IPIV1)
+         CALL DV7SHF(P1, J, TG)
+         CALL DV7SHF(P1, J, DST)
+ 100  IF (K .LT. 0) IPIV(P1) = -IPIV(P1)
+      P1 = P1M1
+      IF (P1 .LE. 0) GO TO 110
+      CALL DL7IVM(P1, WW, L, TG)
+      GTS = DD7TPR(P1, WW, WW)
+      CALL DL7ITV(P1, WW, L, WW)
+      GO TO 30
+C
+C     ***  UNSCALE STEPX  ***
+C
+ 110  DO 120 I = 1, P
+         J = abs(IPIV(I))
+         STEPX(J) = DST(I) / D(J)
+ 120     CONTINUE
+C
+C  ***  FUDGE STEPX TO ENSURE THAT IT FORCES APPROPRIATE COMPONENTS
+C  ***  TO THEIR BOUNDS  ***
+C
+      IF (P1 .GE. P0) GO TO 150
+      K = P1 + 1
+      DO 140 I = K, P0
+         J = IPIV(I)
+         T = MEPS2
+         IF (J .GT. 0) GO TO 130
+            T = -T
+            J = -J
+            IPIV(I) = J
+ 130     T = T * max(abs(X(J)), abs(XX0(J)))
+         STEPX(J) = STEPX(J) + T
+ 140     CONTINUE
+C
+ 150  CALL DV2AXY(P, X, ONE, STEPX, XX0)
+      IF (NS .GT. 0) CALL DV7IPR(P0, IPIV1, TD)
+C  ***  LAST LINE OF DS7BQN FOLLOWS  ***
+      END
+      SUBROUTINE DQ7RSH(K, P, HAVQTR, QTR1, R, WW)
+C
+C  ***  PERMUTE COLUMN K OF R TO COLUMN P, MODIFY QTR1 ACCORDINGLY  ***
+C
+      LOGICAL HAVQTR
+      INTEGER K, P
+      DOUBLE PRECISION QTR1(P), R(*), WW(P)
+C     DIMENSION R(P*(P+1)/2)
+C
+      EXTERNAL DH2RFA, DH2RFG,DV7CPY
+      DOUBLE PRECISION DH2RFG
+C
+C  ***  LOCAL VARIABLES  ***
+C
+      INTEGER I, I1, J, JM1, JP1, J1, KM1, K1, PM1
+      DOUBLE PRECISION A, B, T, WJ, X, Y, Z, ZERO
+C
+      DATA ZERO/0.0D+0/
+C
+C ++++++++++++++++++++++++++++++  BODY  ++++++++++++++++++++++++++++++++
+C
+      IF (K .GE. P) GO TO 999
+      KM1 = K - 1
+      K1 = K * KM1 / 2
+      CALL DV7CPY(K, WW, R(K1+1))
+      WJ = WW(K)
+      PM1 = P - 1
+      J1 = K1 + KM1
+      DO 50 J = K, PM1
+         JM1 = J - 1
+         JP1 = J + 1
+         IF (JM1 .GT. 0) CALL DV7CPY(JM1, R(K1+1), R(J1+2))
+         J1 = J1 + JP1
+         K1 = K1 + J
+         A = R(J1)
+         B = R(J1+1)
+         IF (B .NE. ZERO) GO TO 10
+              R(K1) = A
+              X = ZERO
+              Z = ZERO
+              GO TO 40
+ 10      R(K1) = DH2RFG(A, B, X, Y, Z)
+         IF (J .EQ. PM1) GO TO 30
+         I1 = J1
+         DO 20 I = JP1, PM1
+              I1 = I1 + I
+              CALL DH2RFA(1, R(I1), R(I1+1), X, Y, Z)
+ 20           CONTINUE
+ 30      IF (HAVQTR) CALL DH2RFA(1, QTR1(J), QTR1(JP1), X, Y, Z)
+ 40      T = X * WJ
+         WW(J) = WJ + T
+         WJ = T * Z
+ 50      CONTINUE
+      WW(P) = WJ
+      CALL DV7CPY(P, R(K1+1), WW)
+ 999  RETURN
+      END
+      SUBROUTINE DV7VMP(N, X, Y, Z, K)
+C
+C ***  SET X(I) = Y(I) * Z(I)**K, 1 .LE. I .LE. N (FOR K = 1 OR -1)  ***
+C
+c     ------------------------------------------------------------------
+      INTEGER N, K
+      DOUBLE PRECISION X(N), Y(N), Z(N)
+      INTEGER I
+C
+      IF (K .GE. 0) GO TO 20
+      DO 10 I = 1, N
+ 10      X(I) = Y(I) / Z(I)
+      GO TO 999
+C
+ 20   DO 30 I = 1, N
+ 30      X(I) = Y(I) * Z(I)
+ 999  RETURN
+C  ***  LAST CARD OF DV7VMP FOLLOWS  ***
+      END
+      SUBROUTINE DV7IPR(N, IP, X)
+C
+C     PERMUTE X SO THAT X.OUTPUT(I) = X.INPUT(IP(I)).
+C     IP IS UNCHANGED ON OUTPUT.
+C
+c     ------------------------------------------------------------------
+      INTEGER N
+      INTEGER IP(N)
+      DOUBLE PRECISION X(N)
+C
+      INTEGER I, J, K
+      DOUBLE PRECISION T
+      DO 30 I = 1, N
+         J = IP(I)
+         IF (J .EQ. I) GO TO 30
+         IF (J .GT. 0) GO TO 10
+            IP(I) = -J
+            GO TO 30
+ 10      T = X(I)
+         K = I
+ 20      X(K) = X(J)
+         K = J
+         J = IP(K)
+         IP(K) = -J
+         IF (J .GT. I) GO TO 20
+         X(K) = T
+ 30      CONTINUE
+C  ***  LAST LINE OF DV7IPR FOLLOWS  ***
+      END
+      SUBROUTINE DV7SHF(N, K, X)
+C
+C  ***  SHIFT X(K),...,X(N) LEFT CIRCULARLY ONE POSITION  ***
+C
+c     ------------------------------------------------------------------
+      INTEGER N, K
+      DOUBLE PRECISION X(N)
+C
+      INTEGER I, NM1
+      DOUBLE PRECISION T
+C
+      IF (K .GE. N) GO TO 999
+      NM1 = N - 1
+      T = X(K)
+      DO 10 I = K, NM1
+ 10      X(I) = X(I+1)
+      X(N) = T
+ 999  RETURN
+      END
+      SUBROUTINE DS7IPR(P, IP, HH)
+C
+C  APPLY THE PERMUTATION DEFINED BY IP TO THE ROWS AND COLUMNS OF THE
+C  P X P SYMMETRIC MATRIX WHOSE LOWER TRIANGLE IS STORED COMPACTLY IN
+C  HH.  THUS H.OUTPUT(I,J) = H.INPUT(IP(I), IP(J)).
+C
+c     ------------------------------------------------------------------
+      INTEGER P
+      INTEGER IP(P)
+      DOUBLE PRECISION HH(*)
+C
+      INTEGER I, J, J1, JM, K, K1, KK, KM, KMJ, L, M
+      DOUBLE PRECISION T
+C
+C ***  BODY  ***
+C
+      DO 90 I = 1, P
+         J = IP(I)
+         IF (J .EQ. I) GO TO 90
+         IP(I) = abs(J)
+         IF (J .LT. 0) GO TO 90
+         K = I
+ 10         J1 = J
+            K1 = K
+            IF (J .LE. K) GO TO 20
+               J1 = K
+               K1 = J
+ 20         KMJ = K1-J1
+            L = J1-1
+            JM = J1*L/2
+            KM = K1*(K1-1)/2
+            IF (L .LE. 0) GO TO 40
+               DO 30 M = 1, L
+                  JM = JM+1
+                  T = HH(JM)
+                  KM = KM+1
+                  HH(JM) = HH(KM)
+                  HH(KM) = T
+ 30               CONTINUE
+ 40         KM = KM+1
+            KK = KM+KMJ
+            JM = JM+1
+            T = HH(JM)
+            HH(JM) = HH(KK)
+            HH(KK) = T
+            J1 = L
+            L = KMJ-1
+            IF (L .LE. 0) GO TO 60
+               DO 50 M = 1, L
+                  JM = JM+J1+M
+                  T = HH(JM)
+                  KM = KM+1
+                  HH(JM) = HH(KM)
+                  HH(KM) = T
+ 50               CONTINUE
+ 60         IF (K1 .GE. P) GO TO 80
+               L = P-K1
+               K1 = K1-1
+               KM = KK
+               DO 70 M = 1, L
+                  KM = KM+K1+M
+                  JM = KM-KMJ
+                  T = HH(JM)
+                  HH(JM) = HH(KM)
+                  HH(KM) = T
+ 70               CONTINUE
+ 80         K = J
+            J = IP(K)
+            IP(K) = -J
+            IF (J .GT. I) GO TO 10
+ 90      CONTINUE
+C  ***  LAST LINE OF DS7IPR FOLLOWS  ***
+      END
+      SUBROUTINE DD7MLP(N, X, Y, Z, K)
+C
+C ***  SET X = DIAG(Y)**K * Z
+C ***  FOR X, Z = LOWER TRIANG. MATRICES STORED COMPACTLY BY ROW
+C ***  K = 1 OR -1.
+C
+c     ------------------------------------------------------------------
+      INTEGER N, K
+      DOUBLE PRECISION X(*), Y(N), Z(*)
+      INTEGER I, J, L
+      DOUBLE PRECISION ONE, T
+      DATA ONE/1.D+0/
+C
+      L = 1
+      IF (K .GE. 0) GO TO 30
+      DO 20 I = 1, N
+         T = ONE / Y(I)
+         DO 10 J = 1, I
+            X(L) = T * Z(L)
+            L = L + 1
+ 10         CONTINUE
+ 20      CONTINUE
+      GO TO 999
+C
+ 30   DO 50 I = 1, N
+         T = Y(I)
+         DO 40 J = 1, I
+            X(L) = T * Z(L)
+            L = L + 1
+ 40         CONTINUE
+ 50      CONTINUE
+ 999  RETURN
+C  ***  LAST CARD OF DD7MLP FOLLOWS  ***
+      END
+      SUBROUTINE DS7DMP(N, X, Y, Z, K)
+C
+C ***  SET X = DIAG(Z)**K * Y * DIAG(Z)**K
+C ***  FOR X, Y = COMPACTLY STORED LOWER TRIANG. MATRICES
+C ***  K = 1 OR -1.
+C
+c     ------------------------------------------------------------------
+      INTEGER N, K
+      DOUBLE PRECISION X(*), Y(*), Z(N)
+      INTEGER I, J, L
+      DOUBLE PRECISION ONE, T
+      DATA ONE/1.D+0/
+C
+      L = 1
+      IF (K .GE. 0) GO TO 30
+      DO 20 I = 1, N
+         T = ONE / Z(I)
+         DO 10 J = 1, I
+            X(L) = T * Y(L) / Z(J)
+            L = L + 1
+ 10         CONTINUE
+ 20      CONTINUE
+      GO TO 999
+C
+ 30   DO 50 I = 1, N
+         T = Z(I)
+         DO 40 J = 1, I
+            X(L) = T * Y(L) * Z(J)
+            L = L + 1
+ 40         CONTINUE
+ 50      CONTINUE
+ 999  RETURN
+C  ***  LAST CARD OF DS7DMP FOLLOWS  ***
+      END
